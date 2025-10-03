@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5001:8080"
+    depends_on:
+      - mongodb
+      - postgres
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: jojuhu
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
