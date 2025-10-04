@@ -1,0 +1,6 @@
+services:
+  backend:
+    build:
+      target: development
+    ports:
+      - "2345:2345"

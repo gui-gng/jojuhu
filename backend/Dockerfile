@@ -1,4 +1,5 @@
-FROM golang:1.22
+# Builder stage
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -7,8 +8,23 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /jojuhu-backend
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /jojuhu-backend .
 
-EXPOSE 8080
+# Development stage
+FROM builder AS development
 
-CMD [ "/jojuhu-backend" ]
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+EXPOSE 5001
+EXPOSE 2345
+
+CMD ["/go/bin/dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/jojuhu-backend"]
+
+# Production stage
+FROM alpine:latest AS production
+
+COPY --from=builder /jojuhu-backend /jojuhu-backend
+
+EXPOSE 5001
+
+CMD ["/jojuhu-backend"]

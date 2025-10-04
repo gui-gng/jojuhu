@@ -11,12 +11,15 @@ import (
 )
 
 func main() {
+	log.Println("Starting")
 	db, err := database.InitDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	db.AutoMigrate(&models.User{})
+
+	//write a log
 
 	r := gin.Default()
 	r.GET("/", handlers.HomeHandler)
