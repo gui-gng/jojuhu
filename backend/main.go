@@ -7,6 +7,7 @@ import (
 	"jojuhu/handlers"
 	"jojuhu/models"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +23,11 @@ func main() {
 	//write a log
 
 	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	r.Use(cors.New(config))
+
 	r.GET("/", handlers.HomeHandler)
 	r.POST("/register", handlers.RegisterUser)
 	r.POST("/login", handlers.Login)
