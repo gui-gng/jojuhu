@@ -8,7 +8,7 @@ import (
 var DB *gorm.DB
 
 func InitDB() (*gorm.DB, error) {
-	connStr := "postgres://user:password@localhost/jojuhu?sslmode=disable"
+	connStr := "postgres://user:password@postgres/jojuhu?sslmode=disable"
 	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		return nil, err

@@ -18,6 +18,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	_, err = database.InitMongo()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db.AutoMigrate(&models.User{})
 
 	//write a log
@@ -35,6 +40,10 @@ func main() {
 	auth := r.Group("/")
 	auth.Use(handlers.AuthMiddleware())
 	auth.GET("/profile", handlers.ProfileHandler)
+	auth.POST("/posts", handlers.CreatePost)
+	auth.GET("/users/:userId/posts", handlers.GetUserPosts)
+	auth.GET("/timeline", handlers.GetTimeline)
 
-	r.Run(":8080")
+	log.Println("Starting on port 5001")
+	r.Run(":5001")
 }
