@@ -2,15 +2,10 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 
-	"jojuhu/database"
-	"jojuhu/models"
+	"jojuhu/services"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 // LoginRequest represents the request body for the login endpoint
@@ -19,15 +14,18 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-var jwtKey = []byte("my_secret_key")
-
-// Claims represents the JWT claims
-type Claims struct {
-	Email string `json:"email"`
-	jwt.StandardClaims
-}
-
-// Login handles user login
+// Login godoc
+// @Summary User login
+// @Description Handles user login and returns a JWT token.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param login body LoginRequest true "Login credentials"
+// @Success 200 {object} map[string]string "token"
+// @Failure 400 {object} map[string]string "error"
+// @Failure 401 {object} map[string]string "error"
+// @Failure 500 {object} map[string]string "error"
+// @Router /login [post]
 func Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -35,35 +33,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	var user models.User
-	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	token, err := services.Login(req.Email, req.Password)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}
 
-	expirationTime := time.Now().Add(5 * time.Minute)
-	claims := &Claims{
-		Email: req.Email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"token": tokenString})
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

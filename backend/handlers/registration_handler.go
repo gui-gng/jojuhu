@@ -3,14 +3,23 @@ package handlers
 import (
 	"net/http"
 
-	"jojuhu/database"
 	"jojuhu/models"
+	"jojuhu/services"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
-// RegisterUser handles user registration
+// RegisterUser godoc
+// @Summary Register a new user
+// @Description Creates a new user account.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body models.User true "User registration details"
+// @Success 201
+// @Failure 400 {object} map[string]string "error"
+// @Failure 500 {object} map[string]string "error"
+// @Router /register [post]
 func RegisterUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -18,14 +27,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-		return
-	}
-	user.Password = string(hashedPassword)
-
-	if err := database.DB.Create(&user).Error; err != nil {
+	if err := services.Register(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

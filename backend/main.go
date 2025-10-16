@@ -4,13 +4,24 @@ import (
 	"log"
 
 	"jojuhu/database"
-	"jojuhu/handlers"
 	"jojuhu/models"
-
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"jojuhu/router"
 )
 
+// @title Jojuhu API
+// @version 1.0
+// @description This is a sample server for a social media application.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:5001
+// @BasePath /
 func main() {
 	log.Println("Starting")
 	db, err := database.InitDB()
@@ -27,22 +38,7 @@ func main() {
 
 	//write a log
 
-	r := gin.Default()
-
-	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
-	r.Use(cors.New(config))
-
-	r.GET("/", handlers.HomeHandler)
-	r.POST("/register", handlers.RegisterUser)
-	r.POST("/login", handlers.Login)
-
-	auth := r.Group("/")
-	auth.Use(handlers.AuthMiddleware())
-	auth.GET("/profile", handlers.ProfileHandler)
-	auth.POST("/posts", handlers.CreatePost)
-	auth.GET("/users/:userId/posts", handlers.GetUserPosts)
-	auth.GET("/timeline", handlers.GetTimeline)
+	r := router.SetupRouter()
 
 	log.Println("Starting on port 5001")
 	r.Run(":5001")

@@ -7,6 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var jwtKey = []byte("my_secret_key")
+
+// Claims represents the JWT claims
+type Claims struct {
+	Email string `json:"email"`
+	jwt.StandardClaims
+}
+
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")

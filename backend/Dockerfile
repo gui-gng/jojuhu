@@ -24,6 +24,7 @@ CMD ["/go/bin/dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--a
 FROM alpine:latest AS production
 
 COPY --from=builder /jojuhu-backend /jojuhu-backend
+COPY --from=builder /app/docs /app/docs
 
 EXPOSE 5001
 
