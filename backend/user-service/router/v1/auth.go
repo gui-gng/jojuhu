@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,6 +48,8 @@ func (r *RoutesUserV1) signup(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Signing up user with email: %s", reqBody.Email)
+
 	usr, err := r.service.RegisterUser(reqBody.Email, reqBody.FirstName, reqBody.LastName, reqBody.Password)
 
 	if err != nil {
@@ -82,6 +85,8 @@ func (r *RoutesUserV1) signin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	log.Printf("Signing in user with email: %s", reqBody.Email)
 
 	usr := r.service.ValidateUser(reqBody.Email, reqBody.Password)
 
