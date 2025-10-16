@@ -1,25 +1,29 @@
+version: "3.8"
+
 services:
-  backend:
-    restart: always
+  auth-service:
     build:
-      context: ./backend
-      target: production
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
     ports:
       - "5001:5001"
-    depends_on:
-      - mongodb
-      - postgres
 
-  mongodb:
-    image: mongo:latest
+    mongodb:
+      image: mongo:latest
+      ports:
+        - "27017:27017"
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
     ports:
-      - "27017:27017"
+      - "5672:5672"
+      - "15672:15672"
 
   postgres:
-    image: postgres:latest
+    image: "postgres:latest"
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: jojuhu
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=evaluatz
