@@ -5,25 +5,40 @@ services:
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
+    environment:
+      - PG_CONN=host=postgres port=5432 user=postgres password=postgrespw database=user_db
+      - RABBIT_CONN=amqp://evaluatz-admin:KU6NqgMms6xAda3mVncu@localhost:5672/internal-services-vhost
     ports:
       - "5001:5001"
+    networks:
+      - evaluatz-network
 
-    mongodb:
-      image: mongo:latest
-      ports:
-        - "27017:27017"
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - evaluatz-network
 
   rabbitmq:
     image: "rabbitmq:3-management"
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - evaluatz-network
 
   postgres:
     image: "postgres:latest"
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=evaluatz
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgrespw
+      - POSTGRES_DB=user_db
+    networks:
+      - evaluatz-network
+
+networks:
+  evaluatz-network:
+    driver: bridge

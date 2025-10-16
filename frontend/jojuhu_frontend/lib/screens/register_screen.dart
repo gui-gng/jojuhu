@@ -13,16 +13,18 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _nameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
 
   void _register() async {
     final response = await http.post(
-      Uri.parse(ApiService.baseUrl + '/register'),
+      Uri.parse('${ApiService.baseUrl}/v1/auth/signup'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'name': _nameController.text,
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
         'email': _emailController.text,
         'password': _passwordController.text,
       }),
@@ -53,8 +55,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(labelText: 'Name'),
+                    controller: _firstNameController,
+                    decoration: InputDecoration(labelText: 'Nome'),
+                  ),
+                  TextField(
+                    controller: _lastNameController,
+                    decoration: InputDecoration(labelText: 'Sobrenome'),
                   ),
                   TextField(
                     controller: _emailController,

@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     final response = await http.post(
-      Uri.parse(ApiService.baseUrl + '/login'),
+      Uri.parse('${ApiService.baseUrl}/v1/auth/signin'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
