@@ -50,7 +50,7 @@ func (r *RoutesUserV1) signup(c *gin.Context) {
 
 	log.Printf("Signing up user with email: %s", reqBody.Email)
 
-	usr, err := r.service.RegisterUser(reqBody.Email, reqBody.FirstName, reqBody.LastName, reqBody.Password)
+	usr, err := r.service.RegisterUser(c.Request.Context(), reqBody.Email, reqBody.FirstName, reqBody.LastName, reqBody.Password)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -88,7 +88,7 @@ func (r *RoutesUserV1) signin(c *gin.Context) {
 
 	log.Printf("Signing in user with email: %s", reqBody.Email)
 
-	usr := r.service.ValidateUser(reqBody.Email, reqBody.Password)
+	usr := r.service.ValidateUser(c.Request.Context(), reqBody.Email, reqBody.Password)
 
 	res := SignInResponse{
 		Account: Account{

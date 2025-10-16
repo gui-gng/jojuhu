@@ -1,31 +1,34 @@
 package services
 
 import (
+	"context"
 	"errors"
 
 	"gitlab.com/gng1/evaluatz/user-service/models"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/crypto/bcrypt"
 )
 
-
-func (data *Config) GetUserByEmail(email string) (models.User){
+func (data *Config) GetUserByEmail(email string) models.User {
 	var user models.User
-	data.db.First(&user, models.User{Email: email })
+	data.db.First(&user, models.User{Email: email})
 	return user
 }
 
-func (data *Config) RegisterUser(email string, firstname string, lastname string, password string) (*models.User, error){
-	
+func (data *Config) RegisterUser(ctx context.Context, email string, firstname string, lastname string, password string) (*models.User, error) {
+	_, span := otel.Tracer("user-service").Start(ctx, "RegisterUser")
+	defer span.End()
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	user := models.User{
-		Email: email,
+		Email:     email,
 		FirstName: firstname,
-		LastName: lastname,
-		Password: string(hashedPassword),
+		LastName:  lastname,
+		Password:  string(hashedPassword),
 	}
 	r := data.db.Create(&user)
 
@@ -36,7 +39,10 @@ func (data *Config) RegisterUser(email string, firstname string, lastname string
 	return &user, nil
 }
 
-func (data *Config) ValidateUser(email string, password string) (models.User){
+func (data *Config) ValidateUser(ctx context.Context, email string, password string) models.User {
+	_, span := otel.Tracer("user-service").Start(ctx, "ValidateUser")
+	defer span.End()
+
 	var user models.User
 	data.db.First(&user, models.User{Email: email})
 
