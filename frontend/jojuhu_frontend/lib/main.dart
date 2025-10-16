@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'package:jojuhu_frontend/screens/app/home_screen.dart';
+import 'screens/auth/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: LoginScreen(),
+      home: HomeScreen(),
     );
   }
 }
