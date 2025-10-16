@@ -15,6 +15,7 @@ func New() *gin.Engine {
 	router.Use(cors.Default())
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(TraceMiddleware())
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "ok",

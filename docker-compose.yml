@@ -41,6 +41,30 @@ services:
     networks:
       - evaluatz-network
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - evaluatz-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./infrastructure/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - evaluatz-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - evaluatz-network
+
 networks:
   evaluatz-network:
     driver: bridge
