@@ -13,8 +13,6 @@ class _ExploreScreen extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    const txtTitle = Text('Explore');
-    const txtCenter = Text('Oi');
 
     return Scaffold(
       body: Card(

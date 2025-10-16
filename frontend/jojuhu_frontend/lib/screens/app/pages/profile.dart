@@ -13,8 +13,6 @@ class _ProfileScreen extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    const txtTitle = Text('Explore');
-    const txtCenter = Text('Oi');
 
     return Scaffold(
       body: Card(

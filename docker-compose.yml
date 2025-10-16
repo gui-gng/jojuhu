@@ -1,15 +1,17 @@
 version: "3.8"
 
 services:
-  auth-service:
+  user-service:
     build:
-      context: ./backend/auth-service
+      context: ./backend/user-service
       dockerfile: Dockerfile
     environment:
       - PG_CONN=host=postgres port=5432 user=postgres password=postgrespw database=user_db
       - RABBIT_CONN=amqp://evaluatz-admin:KU6NqgMms6xAda3mVncu@localhost:5672/internal-services-vhost
     ports:
       - "5001:5001"
+    depends_on:
+      - postgres
     networks:
       - evaluatz-network
 

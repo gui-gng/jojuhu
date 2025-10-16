@@ -11,12 +11,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const home = HomeScreen();
+
     return MaterialApp(
       title: 'Jojuhu',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+        primarySwatch: Colors.deepOrange,
       ),
-      home: HomeScreen(),
+      home: home,
     );
   }
 }
