@@ -15,8 +15,6 @@ class _HomeScreen extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-
     const exploreScreen = ExploreScreen();
     const messageScreen = MessagesScreen();
     const forumScreen = ForumScreen();

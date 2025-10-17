@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jojuhu_frontend/screens/app/home_screen.dart';
-import 'screens/auth/login_screen.dart';
 
 void main() {
   runApp(const MyApp());

@@ -69,7 +69,6 @@ type ListRequest struct {
 
 type ListResponse struct {
 	Messages    []models.Message `json:"messages" binding:"required"`
-
 }
 
 func (r *RoutesV1) list(c *gin.Context) {
