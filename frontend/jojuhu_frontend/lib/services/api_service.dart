@@ -1,3 +1,3 @@
 class ApiService {
-  static const String baseUrl = 'http://localhost:5001';
+  static const String baseUrl = 'http://localhost:5001/api';
 }
