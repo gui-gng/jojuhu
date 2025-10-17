@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/gng1/evaluatz/user-service/models"
+	"github.com/gui-gng/jojuhu/user-service/models"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/crypto/bcrypt"
 )

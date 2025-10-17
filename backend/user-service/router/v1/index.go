@@ -2,7 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.com/gng1/evaluatz/user-service/services"
+	"github.com/gui-gng/jojuhu/user-service/services"
 )
 
 type RoutesV1 struct {

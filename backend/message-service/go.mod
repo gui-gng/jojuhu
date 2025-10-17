@@ -1,4 +1,4 @@
-module github.com/gui-gng/jojuhu/user-service
+module github.com/gui-gng/jojuhu/message-service
 
 go 1.23.0
 

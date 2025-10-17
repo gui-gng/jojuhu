@@ -3,8 +3,8 @@ package router
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	v1 "github.com/gui-gng/jojuhu/user-service/router/v1"
-	"github.com/gui-gng/jojuhu/user-service/services"
+	v1 "github.com/gui-gng/jojuhu/message-service/router/v1"
+	"github.com/gui-gng/jojuhu/message-service/services"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

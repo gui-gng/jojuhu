@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/gng1/evaluatz/user-service/services"
+	"github.com/google/uuid"
+	"github.com/gui-gng/jojuhu/user-service/services"
 )
 
 type RoutesUserV1 struct {
@@ -24,6 +25,7 @@ func (r *RoutesV1) CreateAuthGroup(service *services.Config) {
 }
 
 type Account struct {
+	ID  	uuid.UUID `json:"id" binding:"required"`
 	Email     string `json:"email" binding:"required"`
 	FirstName string `json:"firstname" binding:"required"`
 	LastName  string `json:"lastname" binding:"required"`
@@ -60,9 +62,10 @@ func (r *RoutesUserV1) signup(c *gin.Context) {
 
 	res := SignUpResponse{
 		Account: Account{
-		Email:     usr.Email,
-		FirstName: usr.FirstName,
-		LastName:  usr.LastName,
+			ID: usr.ID,
+			Email:     usr.Email,
+			FirstName: usr.FirstName,
+			LastName:  usr.LastName,
 		},
 	}
 

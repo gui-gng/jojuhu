@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"gitlab.com/gng1/evaluatz/user-service/router"
-	"gitlab.com/gng1/evaluatz/user-service/services"
+	"github.com/gui-gng/jojuhu/user-service/router"
+	"github.com/gui-gng/jojuhu/user-service/services"
 )
 
 func main() {

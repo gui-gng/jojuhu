@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/gui-gng/jojuhu/user-service/models"
+	"github.com/gui-gng/jojuhu/message-service/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -40,8 +40,6 @@ func ConnectToDB() (*gorm.DB) {
 		return nil
 	}
 
-
-
 	result := db.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";")
 
     if result.Error != nil {
@@ -52,5 +50,5 @@ func ConnectToDB() (*gorm.DB) {
 }
 
 func buildDB(conn *gorm.DB) {
-	conn.AutoMigrate(&models.User{})
+	conn.AutoMigrate(&models.Message{})
 }
