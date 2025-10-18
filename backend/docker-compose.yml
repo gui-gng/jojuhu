@@ -1,0 +1,32 @@
+services:
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    environment:
+      - PG_CONN=host=postgres port=5432 user=postgres password=postgrespw database=postgres
+      - RABBIT_CONN=amqp://evaluatz-admin:KU6NqgMms6xAda3mVncu@localhost:5672/internal-services-vhost
+    ports:
+      - "5001:5001"
+    depends_on:
+      - postgres
+    networks:
+      - network-jojuhu
+
+  message-service:
+    build:
+      context: ./message-service
+      dockerfile: Dockerfile
+    environment:
+      - PG_CONN=host=postgres port=5432 user=postgres password=postgrespw database=postgres
+      - RABBIT_CONN=amqp://evaluatz-admin:KU6NqgMms6xAda3mVncu@localhost:5672/internal-services-vhost
+    ports:
+      - "5002:5002"
+    depends_on:
+      - postgres
+    networks:
+      - network-jojuhu
+
+networks:
+  network-jojuhu:
+    driver: bridge

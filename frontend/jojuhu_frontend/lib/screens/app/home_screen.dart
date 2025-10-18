@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jojuhu_frontend/screens/app/pages/explore.dart';
 import 'package:jojuhu_frontend/screens/app/pages/forum.dart';
-import 'package:jojuhu_frontend/screens/app/pages/messages.dart';
+import 'package:jojuhu_frontend/screens/app/pages/messages/messages.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
