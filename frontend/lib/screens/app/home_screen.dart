@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jojuhu_frontend/screens/app/pages/explore.dart';
-import 'package:jojuhu_frontend/screens/app/pages/forum.dart';
-import 'package:jojuhu_frontend/screens/app/pages/messages/messages.dart';
+import 'package:jojuhu/screens/app/pages/explore.dart';
+import 'package:jojuhu/screens/app/pages/forum.dart';
+import 'package:jojuhu/screens/app/pages/messages/messages.dart';
+import 'package:jojuhu/screens/app/pages/social/contacts_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +17,7 @@ class _HomeScreen extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     const exploreScreen = ExploreScreen();
-    const messageScreen = MessagesScreen();
+    const messageScreen = ContactsList();
     const forumScreen = ForumScreen();
 
     return Scaffold(

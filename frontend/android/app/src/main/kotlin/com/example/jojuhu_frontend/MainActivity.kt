@@ -1,4 +1,4 @@
-package com.example.jojuhu_frontend
+package com.example.jojuhu
 
 import io.flutter.embedding.android.FlutterActivity
 

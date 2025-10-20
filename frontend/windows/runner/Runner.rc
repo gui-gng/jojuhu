@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "jojuhu_frontend" "\0"
+            VALUE "FileDescription", "jojuhu" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "jojuhu_frontend" "\0"
+            VALUE "InternalName", "jojuhu" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "jojuhu_frontend.exe" "\0"
-            VALUE "ProductName", "jojuhu_frontend" "\0"
+            VALUE "OriginalFilename", "jojuhu.exe" "\0"
+            VALUE "ProductName", "jojuhu" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

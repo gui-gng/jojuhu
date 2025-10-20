@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:jojuhu_frontend/services/api_service.dart';
+import 'package:jojuhu/services/api_service.dart';
 import '../app/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {

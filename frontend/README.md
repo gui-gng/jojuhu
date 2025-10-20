@@ -1,4 +1,4 @@
-# jojuhu_frontend
+# jojuhu
 
 A new Flutter project.
 
