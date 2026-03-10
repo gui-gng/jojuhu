@@ -1,0 +1,57 @@
+[package]
+name = "social_network"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A social network backend built with Rust and Actix-web"
+
+[dependencies]
+# Web Framework
+actix-web = "4"
+actix-web-httpauth = "0.8"
+futures = "0.3"
+actix-rt = "2"
+actix-cors = "0.7"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "migrate", "uuid", "chrono"] }
+
+# Authentication
+jsonwebtoken = "9"
+bcrypt = "0.15"
+
+# Validation
+validator = { version = "0.16", features = ["derive"] }
+
+# Environment
+config = "0.14"
+dotenvy = "0.15"
+
+# Async Runtime
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# Error Handling
+thiserror = "1.0"
+
+# Utilities
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Password hashing
+argon2 = "0.5"
+
+[dev-dependencies]
+reqwest = { version = "0.11", features = ["json"] }
+
+[[bin]]
+name = "social_network"
+path = "src/main.rs"

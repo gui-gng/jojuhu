@@ -1,0 +1,82 @@
+use actix_web::{dev::ServiceRequest, Error, HttpMessage};
+use chrono::{Duration, Utc};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+use crate::config::Settings;
+use crate::errors::AppError;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Claims {
+    pub sub: Uuid,
+    pub username: String,
+    pub email: String,
+    pub exp: i64,
+    pub iat: i64,
+}
+
+impl Claims {
+    pub fn new(user_id: Uuid, username: String, email: String, expiration_hours: i64) -> Self {
+        let now = Utc::now();
+        Self {
+            sub: user_id,
+            username,
+            email,
+            iat: now.timestamp(),
+            exp: (now + Duration::hours(expiration_hours)).timestamp(),
+        }
+    }
+}
+
+pub fn generate_token(
+    user_id: Uuid,
+    username: String,
+    email: String,
+    settings: &Settings,
+) -> Result<String, AppError> {
+    let claims = Claims::new(user_id, username, email, settings.jwt.expiration_hours);
+    
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(settings.jwt.secret.as_bytes()),
+    )
+    .map_err(|e| AppError::InternalError(format!("Token generation failed: {}", e)))
+}
+
+pub fn decode_token(token: &str, settings: &Settings) -> Result<Claims, AppError> {
+    decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(settings.jwt.secret.as_bytes()),
+        &Validation::default(),
+    )
+    .map(|data| data.claims)
+    .map_err(|e| AppError::AuthenticationError(format!("Invalid token: {}", e)))
+}
+
+pub async fn validator(
+    req: ServiceRequest,
+    token: Option<String>,
+) -> Result<ServiceRequest, (Error, ServiceRequest)> {
+    let settings = req
+        .app_data::<actix_web::web::Data<Settings>>()
+        .expect("Settings not found in app data");
+
+    match token {
+        Some(token) => match decode_token(&token, settings) {
+            Ok(claims) => {
+                req.extensions_mut().insert(claims);
+                Ok(req)
+            }
+            Err(_) => Err((
+                actix_web::error::ErrorUnauthorized("Invalid token"),
+                req,
+            )),
+        },
+        None => Err((
+            actix_web::error::ErrorUnauthorized("Missing token"),
+            req,
+        )),
+    }
+}

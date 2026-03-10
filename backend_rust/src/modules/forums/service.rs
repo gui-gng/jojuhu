@@ -1,0 +1,311 @@
+use uuid::Uuid;
+
+use crate::errors::AppError;
+
+use super::models::{
+    CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumResponse, ForumResponseRow, ForumRole,
+    ReplyResponse, ReplyResponseRow, TopicResponse, TopicResponseRow, UpdateForumRequest,
+};
+use super::repository::ForumRepository;
+
+pub struct ForumService {
+    repository: ForumRepository,
+}
+
+impl ForumService {
+    pub fn new(repository: ForumRepository) -> Self {
+        Self { repository }
+    }
+
+    pub async fn create_forum(
+        &self,
+        creator_id: Uuid,
+        request: CreateForumRequest,
+    ) -> Result<ForumResponse, AppError> {
+        if request.name.trim().is_empty() {
+            return Err(AppError::ValidationError("Forum name cannot be empty".to_string()));
+        }
+
+        let forum = self
+            .repository
+            .create_forum(
+                &request.name,
+                request.description.as_deref(),
+                creator_id,
+                request.is_public.unwrap_or(true),
+            )
+            .await?;
+
+        // Add creator as admin
+        self.repository
+            .add_member(forum.id, creator_id, ForumRole::Admin)
+            .await?;
+
+        let row = self.get_forum_response(forum.id, Some(creator_id)).await?;
+        Ok(row.into())
+    }
+
+    pub async fn get_forum(
+        &self,
+        forum_id: Uuid,
+        user_id: Option<Uuid>,
+    ) -> Result<ForumResponse, AppError> {
+        self.get_forum_response(forum_id, user_id).await
+    }
+
+    pub async fn list_forums(
+        &self,
+        offset: i32,
+        limit: i32,
+        user_id: Option<Uuid>,
+    ) -> Result<Vec<ForumResponse>, AppError> {
+        let rows = self.repository.list_forums(offset, limit, user_id).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn update_forum(
+        &self,
+        forum_id: Uuid,
+        user_id: Uuid,
+        request: UpdateForumRequest,
+    ) -> Result<ForumResponse, AppError> {
+        let member = self
+            .repository
+            .get_member(forum_id, user_id)
+            .await?;
+
+        match member {
+            Some(m) if matches!(m.role, ForumRole::Admin | ForumRole::Moderator) => (),
+            _ => return Err(AppError::AuthorizationError(
+                "Only admins and moderators can update forums".to_string()
+            )),
+        }
+
+        let forum = self
+            .repository
+            .update_forum(
+                forum_id,
+                request.name.as_deref(),
+                request.description.as_deref().map(Some),
+                request.is_public,
+            )
+            .await?;
+
+        let row = self.get_forum_response(forum.id, Some(user_id)).await?;
+        Ok(row.into())
+    }
+
+    pub async fn delete_forum(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let forum = self.repository.get_forum_by_id(forum_id).await?;
+
+        if forum.creator_id != user_id {
+            return Err(AppError::AuthorizationError(
+                "Only the creator can delete a forum".to_string(),
+            ));
+        }
+
+        self.repository.delete_forum(forum_id).await
+    }
+
+    pub async fn join_forum(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let forum = self.repository.get_forum_by_id(forum_id).await?;
+
+        if !forum.is_public {
+            return Err(AppError::AuthorizationError(
+                "This is a private forum".to_string(),
+            ));
+        }
+
+        self.repository
+            .add_member(forum_id, user_id, ForumRole::Member)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn leave_forum(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        self.repository.remove_member(forum_id, user_id).await
+    }
+
+    pub async fn create_topic(
+        &self,
+        forum_id: Uuid,
+        author_id: Uuid,
+        request: CreateTopicRequest,
+    ) -> Result<TopicResponse, AppError> {
+        if request.title.trim().is_empty() {
+            return Err(AppError::ValidationError("Topic title cannot be empty".to_string()));
+        }
+        if request.content.trim().is_empty() {
+            return Err(AppError::ValidationError("Topic content cannot be empty".to_string()));
+        }
+
+        self.check_forum_membership(forum_id, author_id).await?;
+
+        let topic = self
+            .repository
+            .create_topic(forum_id, author_id, &request.title, &request.content)
+            .await?;
+
+        let row = self.get_topic_response(topic.id).await?;
+        Ok(row.into())
+    }
+
+    pub async fn get_topic(&self, topic_id: Uuid) -> Result<TopicResponse, AppError> {
+        self.repository.increment_topic_views(topic_id).await.ok();
+        let row = self.get_topic_response(topic_id).await?;
+        Ok(row.into())
+    }
+
+    pub async fn get_topics(
+        &self,
+        forum_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<TopicResponse>, AppError> {
+        let rows = self.repository.get_topics(forum_id, offset, limit).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn delete_topic(&self, topic_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let topic = self.repository.get_topic_by_id(topic_id).await?;
+        let forum = self.repository.get_forum_by_id(topic.forum_id).await?;
+
+        if topic.author_id != user_id && forum.creator_id != user_id {
+            return Err(AppError::AuthorizationError(
+                "You can only delete your own topics".to_string(),
+            ));
+        }
+
+        self.repository.delete_topic(topic_id).await
+    }
+
+    pub async fn create_reply(
+        &self,
+        topic_id: Uuid,
+        author_id: Uuid,
+        request: CreateReplyRequest,
+    ) -> Result<ReplyResponse, AppError> {
+        let topic = self.repository.get_topic_by_id(topic_id).await?;
+
+        if topic.is_locked {
+            return Err(AppError::AuthorizationError(
+                "This topic is locked".to_string(),
+            ));
+        }
+
+        self.check_forum_membership(topic.forum_id, author_id).await?;
+
+        if request.content.trim().is_empty() {
+            return Err(AppError::ValidationError("Reply content cannot be empty".to_string()));
+        }
+
+        let reply = self
+            .repository
+            .create_reply(topic_id, author_id, &request.content, request.parent_reply_id)
+            .await?;
+
+        let row: ReplyResponseRow = self.get_reply_response(reply.id).await?;
+        Ok(row.into())
+    }
+
+    pub async fn get_replies(
+        &self,
+        topic_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<ReplyResponse>, AppError> {
+        let rows = self.repository.get_replies(topic_id, offset, limit).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn delete_reply(&self, reply_id: Uuid, _user_id: Uuid) -> Result<(), AppError> {
+        self.repository.delete_reply(reply_id).await
+    }
+
+    pub async fn lock_topic(&self, topic_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let topic = self.repository.get_topic_by_id(topic_id).await?;
+        self.check_moderator_permission(topic.forum_id, user_id).await?;
+        
+        self.repository.update_topic_lock(topic_id, true).await?;
+        Ok(())
+    }
+
+    pub async fn unlock_topic(&self, topic_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let topic = self.repository.get_topic_by_id(topic_id).await?;
+        self.check_moderator_permission(topic.forum_id, user_id).await?;
+        
+        self.repository.update_topic_lock(topic_id, false).await?;
+        Ok(())
+    }
+
+    pub async fn pin_topic(&self, topic_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let topic = self.repository.get_topic_by_id(topic_id).await?;
+        self.check_moderator_permission(topic.forum_id, user_id).await?;
+        
+        self.repository.update_topic_pin(topic_id, true).await?;
+        Ok(())
+    }
+
+    pub async fn unpin_topic(&self, topic_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let topic = self.repository.get_topic_by_id(topic_id).await?;
+        self.check_moderator_permission(topic.forum_id, user_id).await?;
+        
+        self.repository.update_topic_pin(topic_id, false).await?;
+        Ok(())
+    }
+
+    async fn check_forum_membership(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let forum = self.repository.get_forum_by_id(forum_id).await?;
+
+        if !forum.is_public {
+            let member = self.repository.get_member(forum_id, user_id).await?;
+            if member.is_none() {
+                return Err(AppError::AuthorizationError(
+                    "You must be a member to participate in this forum".to_string(),
+                ));
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn check_moderator_permission(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let member = self
+            .repository
+            .get_member(forum_id, user_id)
+            .await?;
+
+        match member {
+            Some(m) if matches!(m.role, ForumRole::Admin | ForumRole::Moderator) => Ok(()),
+            _ => Err(AppError::AuthorizationError(
+                "Moderator permission required".to_string()
+            )),
+        }
+    }
+
+    async fn get_forum_response(
+        &self,
+        forum_id: Uuid,
+        user_id: Option<Uuid>,
+    ) -> Result<ForumResponse, AppError> {
+        let rows: Vec<ForumResponseRow> = self.repository.list_forums(0, 1, user_id).await?;
+        rows.into_iter().find(|f| f.id == forum_id).map(Into::into).ok_or_else(|| {
+            AppError::NotFoundError("Forum not found".to_string())
+        })
+    }
+
+    async fn get_topic_response(&self, topic_id: Uuid) -> Result<TopicResponseRow, AppError> {
+        let rows: Vec<TopicResponseRow> = self.repository.get_topics(Uuid::nil(), 0, 1).await?;
+        rows.into_iter().find(|t| t.id == topic_id).ok_or_else(|| {
+            AppError::NotFoundError("Topic not found".to_string())
+        })
+    }
+
+    async fn get_reply_response(&self, reply_id: Uuid) -> Result<ReplyResponseRow, AppError> {
+        let rows: Vec<ReplyResponseRow> = self.repository.get_replies(Uuid::nil(), 0, 1).await?;
+        rows.into_iter().find(|r| r.id == reply_id).ok_or_else(|| {
+            AppError::NotFoundError("Reply not found".to_string())
+        })
+    }
+}
