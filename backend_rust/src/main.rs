@@ -94,6 +94,9 @@ fn routes(cfg: &mut web::ServiceConfig, pool: sqlx::PgPool, _settings: Settings)
             .route("/register", web::post().to(register))
             .route("/login", web::post().to(login))
     );
+    
+    // Health check (no auth required)
+    cfg.route("/health", web::get().to(health_check));
 
     // Protected routes (auth required)
     let auth = HttpAuthentication::bearer(crate::utils::auth::validator);
@@ -105,6 +108,13 @@ fn routes(cfg: &mut web::ServiceConfig, pool: sqlx::PgPool, _settings: Settings)
             .configure(|c| modules::timeline::configure_module(c, pool.clone()))
             .configure(|c| modules::forums::configure_module(c, pool.clone()))
     );
+}
+
+async fn health_check() -> HttpResponse {
+    HttpResponse::Ok().json(serde_json::json!({
+        "status": "healthy",
+        "service": "social_network"
+    }))
 }
 
 use crate::errors::AppError;

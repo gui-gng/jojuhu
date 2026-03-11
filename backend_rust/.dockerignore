@@ -1,0 +1,16 @@
+target/
+.git/
+.gitignore
+.env
+.env.local
+.env.*.local
+.env.production.example
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+README.md
+DOCKER.md
+bruno/
