@@ -29,8 +29,8 @@ async fn main() -> std::io::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    // Load configuration
-    let settings = Settings::new().expect("Failed to load configuration");
+    // Load configuration from environment
+    let settings = Settings::from_env().expect("Failed to load configuration from environment. Make sure .env file exists with DATABASE_URL, HOST, PORT, JWT_SECRET");
     let settings_data = web::Data::new(settings.clone());
 
     // Create database pool

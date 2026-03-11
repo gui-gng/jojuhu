@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Social Network API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

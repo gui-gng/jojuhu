@@ -1,0 +1,15 @@
+meta {
+  name: Join Forum
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/forums/:forum_id/join
+  body: none
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+}

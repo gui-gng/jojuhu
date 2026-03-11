@@ -1,0 +1,21 @@
+meta {
+  name: Get Replies
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/forums/:forum_id/topics/:topic_id/replies?page=1&per_page=20
+  body: none
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+  topic_id: 00000000-0000-0000-0000-000000000000
+}
+
+params:query {
+  page: 1
+  per_page: 20
+}

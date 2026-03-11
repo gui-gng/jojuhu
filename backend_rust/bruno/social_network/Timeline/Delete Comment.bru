@@ -1,0 +1,16 @@
+meta {
+  name: Delete Comment
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{baseUrl}}/timeline/posts/:post_id/comments/:comment_id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  post_id: 00000000-0000-0000-0000-000000000000
+  comment_id: 00000000-0000-0000-0000-000000000000
+}

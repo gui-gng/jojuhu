@@ -1,0 +1,22 @@
+meta {
+  name: Add Comment
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/timeline/posts/:post_id/comments
+  body: json
+  auth: bearer
+}
+
+params:path {
+  post_id: 00000000-0000-0000-0000-000000000000
+}
+
+body:json {
+  {
+    "content": "Great post! Thanks for sharing.",
+    "parent_comment_id": null
+  }
+}

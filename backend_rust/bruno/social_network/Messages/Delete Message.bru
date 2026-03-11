@@ -1,0 +1,15 @@
+meta {
+  name: Delete Message
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/messages/:message_id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  message_id: 00000000-0000-0000-0000-000000000000
+}

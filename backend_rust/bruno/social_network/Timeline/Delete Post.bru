@@ -1,0 +1,15 @@
+meta {
+  name: Delete Post
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/timeline/posts/:post_id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  post_id: 00000000-0000-0000-0000-000000000000
+}

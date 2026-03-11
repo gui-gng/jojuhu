@@ -1,0 +1,15 @@
+meta {
+  name: Mark as Read
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/messages/:message_id/read
+  body: none
+  auth: bearer
+}
+
+params:path {
+  message_id: 00000000-0000-0000-0000-000000000000
+}

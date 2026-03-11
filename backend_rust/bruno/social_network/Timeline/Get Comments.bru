@@ -1,0 +1,20 @@
+meta {
+  name: Get Comments
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/timeline/posts/:post_id/comments?page=1&per_page=20
+  body: none
+  auth: bearer
+}
+
+params:path {
+  post_id: 00000000-0000-0000-0000-000000000000
+}
+
+params:query {
+  page: 1
+  per_page: 20
+}

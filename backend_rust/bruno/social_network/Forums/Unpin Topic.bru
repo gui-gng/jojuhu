@@ -1,0 +1,16 @@
+meta {
+  name: Unpin Topic
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/forums/:forum_id/topics/:topic_id/unpin
+  body: none
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+  topic_id: 00000000-0000-0000-0000-000000000000
+}

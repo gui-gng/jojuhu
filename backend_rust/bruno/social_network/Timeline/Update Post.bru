@@ -1,0 +1,22 @@
+meta {
+  name: Update Post
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/timeline/posts/:post_id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  post_id: 00000000-0000-0000-0000-000000000000
+}
+
+body:json {
+  {
+    "content": "This is the updated content of my post!",
+    "is_public": true
+  }
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Update Forum
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/forums/:forum_id
+  body: json
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+}
+
+body:json {
+  {
+    "name": "Updated Forum Name",
+    "description": "Updated description",
+    "is_public": true
+  }
+}

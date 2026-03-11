@@ -1,0 +1,19 @@
+meta {
+  name: Create Post
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/timeline/posts
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "content": "This is my first post on the social network! 🎉",
+    "media_urls": [],
+    "is_public": true
+  }
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Create Reply
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/forums/:forum_id/topics/:topic_id/replies
+  body: json
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+  topic_id: 00000000-0000-0000-0000-000000000000
+}
+
+body:json {
+  {
+    "content": "Thanks for starting this discussion! I agree with your points.",
+    "parent_reply_id": null
+  }
+}

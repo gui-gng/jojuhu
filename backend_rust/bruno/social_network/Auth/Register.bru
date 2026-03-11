@@ -1,0 +1,28 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123",
+    "display_name": "Test User"
+  }
+}
+
+script:post-response {
+  // Save token from response
+  if (res.body.data && res.body.data.token) {
+    bru.setVar('token', res.body.data.token);
+    console.log('Token saved successfully');
+  }
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Delete Reply
+  type: http
+  seq: 18
+}
+
+delete {
+  url: {{baseUrl}}/forums/:forum_id/topics/:topic_id/replies/:reply_id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+  topic_id: 00000000-0000-0000-0000-000000000000
+  reply_id: 00000000-0000-0000-0000-000000000000
+}

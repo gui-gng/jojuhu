@@ -1,0 +1,20 @@
+meta {
+  name: Get Conversation
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/messages/conversations/:user_id?page=1&per_page=20
+  body: none
+  auth: bearer
+}
+
+params:path {
+  user_id: 00000000-0000-0000-0000-000000000000
+}
+
+params:query {
+  page: 1
+  per_page: 20
+}

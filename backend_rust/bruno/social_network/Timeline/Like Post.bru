@@ -1,0 +1,15 @@
+meta {
+  name: Like Post
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/timeline/posts/:post_id/like
+  body: none
+  auth: bearer
+}
+
+params:path {
+  post_id: 00000000-0000-0000-0000-000000000000
+}

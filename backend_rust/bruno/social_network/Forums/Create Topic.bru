@@ -1,0 +1,22 @@
+meta {
+  name: Create Topic
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/forums/:forum_id/topics
+  body: json
+  auth: bearer
+}
+
+params:path {
+  forum_id: 00000000-0000-0000-0000-000000000000
+}
+
+body:json {
+  {
+    "title": "Welcome to the forum!",
+    "content": "This is the first topic in our new forum. Feel free to introduce yourself!"
+  }
+}

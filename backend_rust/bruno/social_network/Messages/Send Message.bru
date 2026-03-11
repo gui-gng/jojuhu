@@ -1,0 +1,18 @@
+meta {
+  name: Send Message
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/messages
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "recipient_id": "00000000-0000-0000-0000-000000000000",
+    "content": "Hello! This is a test message."
+  }
+}
