@@ -57,6 +57,13 @@ async fn main() -> std::io::Result<()> {
     let server_address = settings.server_address();
 
     info!("Starting server at http://{}", server_address);
+    info!("Routes:");
+    info!("  Public: POST /api/v1/auth/register");
+    info!("  Public: POST /api/v1/auth/login");
+    info!("  Protected: GET /api/v1/me");
+    info!("  Protected: /api/v1/messages/*");
+    info!("  Protected: /api/v1/timeline/*");
+    info!("  Protected: /api/v1/forums/*");
 
     HttpServer::new(move || {
         let cors = Cors::default()
@@ -78,22 +85,25 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
+use actix_web_httpauth::middleware::HttpAuthentication;
+
 fn routes(cfg: &mut web::ServiceConfig, pool: sqlx::PgPool, _settings: Settings) {
+    // Public routes (no auth required)
+    cfg.service(
+        web::scope("/api/v1/auth")
+            .route("/register", web::post().to(register))
+            .route("/login", web::post().to(login))
+    );
+
+    // Protected routes (auth required)
+    let auth = HttpAuthentication::bearer(crate::utils::auth::validator);
     cfg.service(
         web::scope("/api/v1")
+            .wrap(auth)
+            .route("/me", web::get().to(get_current_user))
             .configure(|c| modules::messages::configure_module(c, pool.clone()))
             .configure(|c| modules::timeline::configure_module(c, pool.clone()))
             .configure(|c| modules::forums::configure_module(c, pool.clone()))
-            .configure(auth_routes),
-    );
-}
-
-fn auth_routes(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/auth")
-            .route("/register", web::post().to(register))
-            .route("/login", web::post().to(login))
-            .route("/me", web::get().to(get_current_user)),
     );
 }
 

@@ -23,10 +23,12 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub server: ServerSettings,
     pub jwt: JwtSettings,
+    #[allow(dead_code)]
     pub environment: String,
 }
 
 impl Settings {
+    #[allow(dead_code)]
     pub fn new() -> Result<Self, ConfigError> {
         let run_mode = std::env::var("APP_ENVIRONMENT").unwrap_or_else(|_| "development".into());
 

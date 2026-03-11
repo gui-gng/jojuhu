@@ -25,6 +25,7 @@ pub struct CreateUserRequest {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct UpdateUserRequest {
     pub display_name: Option<String>,
     pub bio: Option<String>,

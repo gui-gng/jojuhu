@@ -61,6 +61,7 @@ impl ForumRepository {
         Ok(forum)
     }
 
+    #[allow(dead_code)]
     pub async fn get_forum_by_slug(&self, slug: &str) -> Result<Forum, AppError> {
         let forum = sqlx::query_as::<_, Forum>(
             "SELECT * FROM forums WHERE slug = $1"

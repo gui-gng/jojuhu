@@ -5,6 +5,7 @@ use uuid::Uuid;
 pub mod user;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct BaseModel {
     pub id: Uuid,
     pub created_at: DateTime<Utc>,
@@ -38,6 +39,7 @@ impl<T> ApiResponse<T> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn error(message: String) -> Self {
         Self {
             success: false,
@@ -48,6 +50,7 @@ impl<T> ApiResponse<T> {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct PaginatedResponse<T> {
     pub items: Vec<T>,
     pub total: i64,

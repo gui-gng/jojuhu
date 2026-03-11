@@ -1,4 +1,5 @@
 use actix_web::{dev::ServiceRequest, Error, HttpMessage};
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
@@ -57,25 +58,19 @@ pub fn decode_token(token: &str, settings: &Settings) -> Result<Claims, AppError
 
 pub async fn validator(
     req: ServiceRequest,
-    token: Option<String>,
+    credentials: BearerAuth,
 ) -> Result<ServiceRequest, (Error, ServiceRequest)> {
     let settings = req
         .app_data::<actix_web::web::Data<Settings>>()
         .expect("Settings not found in app data");
 
-    match token {
-        Some(token) => match decode_token(&token, settings) {
-            Ok(claims) => {
-                req.extensions_mut().insert(claims);
-                Ok(req)
-            }
-            Err(_) => Err((
-                actix_web::error::ErrorUnauthorized("Invalid token"),
-                req,
-            )),
-        },
-        None => Err((
-            actix_web::error::ErrorUnauthorized("Missing token"),
+    match decode_token(credentials.token(), settings) {
+        Ok(claims) => {
+            req.extensions_mut().insert(claims);
+            Ok(req)
+        }
+        Err(_) => Err((
+            actix_web::error::ErrorUnauthorized("Invalid token"),
             req,
         )),
     }

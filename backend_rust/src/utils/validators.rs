@@ -1,5 +1,6 @@
 use validator::ValidationError;
 
+#[allow(dead_code)]
 pub fn validate_username(username: &str) -> Result<(), ValidationError> {
     if username.len() < 3 {
         return Err(ValidationError::new("username_too_short"));
@@ -13,6 +14,7 @@ pub fn validate_username(username: &str) -> Result<(), ValidationError> {
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn validate_password(password: &str) -> Result<(), ValidationError> {
     if password.len() < 8 {
         return Err(ValidationError::new("password_too_short"));

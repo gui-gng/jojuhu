@@ -154,6 +154,7 @@ impl From<CommentResponseRow> for CommentResponse {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct TimelineFeedQuery {
     pub page: Option<i32>,
     pub per_page: Option<i32>,

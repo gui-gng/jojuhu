@@ -32,6 +32,7 @@ pub struct SendMessageRequest {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct UpdateMessageRequest {
     pub content: String,
 }

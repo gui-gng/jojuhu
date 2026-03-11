@@ -36,6 +36,7 @@ impl MessageRepository {
         Ok(message)
     }
 
+    #[allow(dead_code)]
     pub async fn get_message_by_id(&self, message_id: Uuid) -> Result<Message, AppError> {
         let message = sqlx::query_as::<_, Message>(
             "SELECT * FROM messages WHERE id = $1"

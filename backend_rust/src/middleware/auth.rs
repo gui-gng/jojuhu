@@ -6,7 +6,9 @@ use crate::utils::auth::Claims;
 
 pub struct AuthenticatedUser {
     pub user_id: uuid::Uuid,
+    #[allow(dead_code)]
     pub username: String,
+    #[allow(dead_code)]
     pub email: String,
 }
 
@@ -29,7 +31,6 @@ impl FromRequest for AuthenticatedUser {
         
         match extensions.get::<Claims>() {
             Some(claims) => ready(Ok(AuthenticatedUser::from(claims.clone()))),
-
             None => ready(Err(AppError::AuthenticationError(
                 "User not authenticated".to_string()
             ))),
