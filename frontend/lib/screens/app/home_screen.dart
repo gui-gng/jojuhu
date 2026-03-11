@@ -1,25 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:jojuhu/screens/app/pages/explore.dart';
-import 'package:jojuhu/screens/app/pages/forum.dart';
-import 'package:jojuhu/screens/app/pages/messages/messages.dart';
-import 'package:jojuhu/screens/app/pages/social/contacts_screen.dart';
+import 'pages/explore.dart';
+import 'pages/forum.dart';
+import 'pages/messages/messages_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreen();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreen extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   int currentPageIndex = 0;
+
+  final List<Widget> _pages = const [
+    ExploreScreen(),
+    MessagesScreen(),
+    ForumScreen(),
+  ];
+
+  final List<NavigationDestination> _destinations = const [
+    NavigationDestination(
+      selectedIcon: Icon(Icons.explore),
+      icon: Icon(Icons.explore_outlined),
+      label: 'Explore',
+    ),
+    NavigationDestination(
+      selectedIcon: Icon(Icons.message),
+      icon: Icon(Icons.message_outlined),
+      label: 'Messages',
+    ),
+    NavigationDestination(
+      selectedIcon: Icon(Icons.forum),
+      icon: Icon(Icons.forum_outlined),
+      label: 'Forum',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    const exploreScreen = ExploreScreen();
-    const messageScreen = ContactsList();
-    const forumScreen = ForumScreen();
-
     return Scaffold(
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
@@ -27,30 +46,10 @@ class _HomeScreen extends State<HomeScreen> {
             currentPageIndex = index;
           });
         },
-        indicatorColor: Colors.amber,
         selectedIndex: currentPageIndex,
-        destinations: const <Widget>[
-          NavigationDestination(
-            selectedIcon:
-                Badge(label: Text('2'), child: Icon(Icons.south_america_sharp)),
-            icon: Badge(label: Text('2'), child: Icon(Icons.public)),
-            label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Badge(label: Text('2'), child: Icon(Icons.messenger_sharp)),
-            label: 'Messages',
-          ),
-          NavigationDestination(
-            icon: Badge(label: Text('2'), child: Icon(Icons.description)),
-            label: 'Forum',
-          ),
-        ],
+        destinations: _destinations,
       ),
-      body: <Widget>[
-        exploreScreen,
-        messageScreen,
-        forumScreen
-      ][currentPageIndex],
+      body: _pages[currentPageIndex],
     );
   }
 }
