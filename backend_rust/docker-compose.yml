@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: social_network
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_social_network:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -36,4 +36,4 @@ services:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+  postgres_data_social_network:
