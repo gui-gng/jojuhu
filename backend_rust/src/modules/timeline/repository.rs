@@ -299,6 +299,33 @@ impl TimelineRepository {
         Ok(comments)
     }
 
+    pub async fn get_comment_response_by_id(&self, comment_id: Uuid) -> Result<Option<CommentResponseRow>, AppError> {
+        let comment = sqlx::query_as::<_, CommentResponseRow>(
+            r#"
+            SELECT 
+                c.id,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name,
+                    'avatar_url', u.avatar_url
+                ) as author,
+                c.content,
+                c.parent_comment_id,
+                c.likes_count,
+                c.created_at
+            FROM comments c
+            JOIN users u ON c.author_id = u.id
+            WHERE c.id = $1
+            "#
+        )
+        .bind(comment_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(comment)
+    }
+
     pub async fn delete_comment(&self, comment_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
         let result = sqlx::query(
             "DELETE FROM comments WHERE id = $1 AND author_id = $2"

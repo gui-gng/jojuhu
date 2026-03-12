@@ -78,13 +78,7 @@ impl MessageService {
     }
 
     async fn get_message_response(&self, message_id: Uuid) -> Result<MessageResponseRow, AppError> {
-        let rows: Vec<MessageResponseRow> = self
-            .repository
-            .get_conversation(message_id, message_id, 0, 1)
-            .await?;
-
-        rows.into_iter().next().map(Into::into).ok_or_else(|| {
-            AppError::NotFoundError("Message not found".to_string())
-        })
+        self.repository.get_message_response_by_id(message_id).await?
+            .ok_or_else(|| AppError::NotFoundError("Message not found".to_string()))
     }
 }

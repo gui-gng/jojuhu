@@ -130,19 +130,14 @@ impl TimelineService {
             return Err(AppError::ValidationError("Comment content cannot be empty".to_string()));
         }
 
-        let _comment = self
+        let comment = self
             .repository
             .create_comment(post_id, author_id, &request.content, request.parent_comment_id)
             .await?;
 
-        let rows: Vec<CommentResponseRow> = self
-            .repository
-            .get_comments(post_id, 0, 1)
-            .await?;
-
-        rows.into_iter().next().map(Into::into).ok_or_else(|| {
-            AppError::NotFoundError("Comment not found".to_string())
-        })
+        self.repository.get_comment_response_by_id(comment.id).await?
+            .map(Into::into)
+            .ok_or_else(|| AppError::NotFoundError("Comment not found".to_string()))
     }
 
     pub async fn get_comments(

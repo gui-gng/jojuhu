@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::errors::AppError;
 
 use super::models::{
-    CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumResponse, ForumResponseRow, ForumRole,
+    CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumResponse, ForumRole,
     ReplyResponse, ReplyResponseRow, TopicResponse, TopicResponseRow, UpdateForumRequest,
 };
 use super::repository::ForumRepository;
@@ -289,23 +289,18 @@ impl ForumService {
         forum_id: Uuid,
         user_id: Option<Uuid>,
     ) -> Result<ForumResponse, AppError> {
-        let rows: Vec<ForumResponseRow> = self.repository.list_forums(0, 1, user_id).await?;
-        rows.into_iter().find(|f| f.id == forum_id).map(Into::into).ok_or_else(|| {
-            AppError::NotFoundError("Forum not found".to_string())
-        })
+        self.repository.get_forum_response_by_id(forum_id, user_id).await?
+            .map(Into::into)
+            .ok_or_else(|| AppError::NotFoundError("Forum not found".to_string()))
     }
 
     async fn get_topic_response(&self, topic_id: Uuid) -> Result<TopicResponseRow, AppError> {
-        let rows: Vec<TopicResponseRow> = self.repository.get_topics(Uuid::nil(), 0, 1).await?;
-        rows.into_iter().find(|t| t.id == topic_id).ok_or_else(|| {
-            AppError::NotFoundError("Topic not found".to_string())
-        })
+        self.repository.get_topic_response_by_id(topic_id).await?
+            .ok_or_else(|| AppError::NotFoundError("Topic not found".to_string()))
     }
 
     async fn get_reply_response(&self, reply_id: Uuid) -> Result<ReplyResponseRow, AppError> {
-        let rows: Vec<ReplyResponseRow> = self.repository.get_replies(Uuid::nil(), 0, 1).await?;
-        rows.into_iter().find(|r| r.id == reply_id).ok_or_else(|| {
-            AppError::NotFoundError("Reply not found".to_string())
-        })
+        self.repository.get_reply_response_by_id(reply_id).await?
+            .ok_or_else(|| AppError::NotFoundError("Reply not found".to_string()))
     }
 }

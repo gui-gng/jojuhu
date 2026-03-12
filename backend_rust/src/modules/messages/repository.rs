@@ -48,6 +48,31 @@ impl MessageRepository {
         Ok(message)
     }
 
+    pub async fn get_message_response_by_id(&self, message_id: Uuid) -> Result<Option<MessageResponseRow>, AppError> {
+        let message = sqlx::query_as::<_, MessageResponseRow>(
+            r#"
+            SELECT 
+                m.id,
+                m.sender_id,
+                s.username as sender_username,
+                m.recipient_id,
+                r.username as recipient_username,
+                m.content,
+                m.is_read,
+                m.created_at
+            FROM messages m
+            JOIN users s ON m.sender_id = s.id
+            JOIN users r ON m.recipient_id = r.id
+            WHERE m.id = $1
+            "#
+        )
+        .bind(message_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(message)
+    }
+
     pub async fn get_conversation(
         &self,
         user_id: Uuid,

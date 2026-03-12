@@ -73,6 +73,41 @@ impl ForumRepository {
         Ok(forum)
     }
 
+    pub async fn get_forum_response_by_id(&self, forum_id: Uuid, user_id: Option<Uuid>) -> Result<Option<ForumResponseRow>, AppError> {
+        let forum = sqlx::query_as::<_, ForumResponseRow>(
+            r#"
+            SELECT 
+                f.id,
+                f.name,
+                f.slug,
+                f.description,
+                f.icon_url,
+                f.cover_image_url,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name
+                ) as creator,
+                f.is_public,
+                f.members_count,
+                f.topics_count,
+                $2::uuid IS NOT NULL AND EXISTS(
+                    SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $2
+                ) as is_member,
+                f.created_at
+            FROM forums f
+            JOIN users u ON f.creator_id = u.id
+            WHERE f.id = $1
+            "#
+        )
+        .bind(forum_id)
+        .bind(user_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(forum)
+    }
+
     pub async fn list_forums(
         &self,
         offset: i32,
@@ -245,6 +280,36 @@ impl ForumRepository {
         Ok(topic)
     }
 
+    pub async fn get_topic_response_by_id(&self, topic_id: Uuid) -> Result<Option<TopicResponseRow>, AppError> {
+        let topic = sqlx::query_as::<_, TopicResponseRow>(
+            r#"
+            SELECT 
+                t.id,
+                t.forum_id,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name
+                ) as author,
+                t.title,
+                t.content,
+                t.is_pinned,
+                t.is_locked,
+                t.views_count,
+                t.replies_count,
+                t.created_at
+            FROM topics t
+            JOIN users u ON t.author_id = u.id
+            WHERE t.id = $1
+            "#
+        )
+        .bind(topic_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(topic)
+    }
+
     pub async fn get_topics(
         &self,
         forum_id: Uuid,
@@ -359,6 +424,32 @@ impl ForumRepository {
         .await?;
 
         Ok(replies)
+    }
+
+    pub async fn get_reply_response_by_id(&self, reply_id: Uuid) -> Result<Option<ReplyResponseRow>, AppError> {
+        let reply = sqlx::query_as::<_, ReplyResponseRow>(
+            r#"
+            SELECT 
+                tr.id,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name
+                ) as author,
+                tr.content,
+                tr.parent_reply_id,
+                tr.likes_count,
+                tr.created_at
+            FROM topic_replies tr
+            JOIN users u ON tr.author_id = u.id
+            WHERE tr.id = $1
+            "#
+        )
+        .bind(reply_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(reply)
     }
 
     pub async fn delete_reply(&self, reply_id: Uuid) -> Result<(), AppError> {
