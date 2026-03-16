@@ -59,7 +59,7 @@ pub struct PaginatedResponse<T> {
     pub total_pages: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PaginationParams {
     pub page: Option<i32>,
     pub per_page: Option<i32>,
