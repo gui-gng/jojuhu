@@ -1,3 +1,5 @@
+import 'user.dart';
+
 class Message {
   final String id;
   final String senderId;
@@ -80,29 +82,6 @@ class ConversationDetail {
       messages: (json['messages'] as List)
           .map((m) => Message.fromJson(m))
           .toList(),
-    );
-  }
-}
-
-class UserProfile {
-  final String id;
-  final String username;
-  final String? displayName;
-  final String? avatarUrl;
-
-  UserProfile({
-    required this.id,
-    required this.username,
-    this.displayName,
-    this.avatarUrl,
-  });
-
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
-    return UserProfile(
-      id: json['id'],
-      username: json['username'],
-      displayName: json['display_name'],
-      avatarUrl: json['avatar_url'],
     );
   }
 }
