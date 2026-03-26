@@ -1,9 +1,16 @@
 use uuid::Uuid;
 
 use crate::errors::AppError;
+use crate::middleware::security::{sanitize_input, validate_input_safety};
+use crate::middleware::validation::validate_content_length;
 
 use super::models::{ConversationSummary, ConversationSummaryRow, MessageResponse, MessageResponseRow, SendMessageRequest};
 use super::repository::MessageRepository;
+
+/// Maximum message content length
+const MAX_MESSAGE_LENGTH: usize = 2000;
+/// Minimum message content length
+const MIN_MESSAGE_LENGTH: usize = 1;
 
 pub struct MessageService {
     repository: MessageRepository,
@@ -17,11 +24,17 @@ impl MessageService {
     pub async fn send_message(
         &self,
         sender_id: Uuid,
-        request: SendMessageRequest,
+        mut request: SendMessageRequest,
     ) -> Result<MessageResponse, AppError> {
-        if request.content.trim().is_empty() {
-            return Err(AppError::ValidationError("Message content cannot be empty".to_string()));
-        }
+        // Validate content length
+        validate_content_length(&request.content, MIN_MESSAGE_LENGTH, MAX_MESSAGE_LENGTH, "Message content")?;
+        
+        // Check for suspicious patterns
+        validate_input_safety(&request.content)
+            .map_err(|e| AppError::ValidationError(e))?;
+        
+        // Sanitize content to prevent XSS
+        request.content = sanitize_input(&request.content);
 
         let message = self
             .repository

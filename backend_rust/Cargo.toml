@@ -12,6 +12,7 @@ actix-web-httpauth = "0.8"
 futures = "0.3"
 actix-rt = "2"
 actix-cors = "0.7"
+actix-governor = "0.5"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -26,6 +27,9 @@ bcrypt = "0.15"
 
 # Validation
 validator = { version = "0.16", features = ["derive"] }
+
+# Security
+ammonia = "4"
 
 # Environment
 config = "0.14"

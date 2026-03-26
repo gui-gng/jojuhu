@@ -1,12 +1,20 @@
 use uuid::Uuid;
 
 use crate::errors::AppError;
-
+use crate::middleware::security::{sanitize_input, validate_input_safety};
+use crate::middleware::validation::validate_content_length;
 
 use super::models::{
     CommentResponse, CommentResponseRow, CreateCommentRequest, CreatePostRequest, PostResponse, PostResponseRow, UpdatePostRequest,
 };
 use super::repository::TimelineRepository;
+
+/// Maximum post content length
+const MAX_POST_LENGTH: usize = 5000;
+/// Maximum comment content length
+const MAX_COMMENT_LENGTH: usize = 1000;
+/// Minimum content length
+const MIN_CONTENT_LENGTH: usize = 1;
 
 pub struct TimelineService {
     repository: TimelineRepository,
@@ -20,11 +28,17 @@ impl TimelineService {
     pub async fn create_post(
         &self,
         author_id: Uuid,
-        request: CreatePostRequest,
+        mut request: CreatePostRequest,
     ) -> Result<PostResponse, AppError> {
-        if request.content.trim().is_empty() {
-            return Err(AppError::ValidationError("Post content cannot be empty".to_string()));
-        }
+        // Validate content length
+        validate_content_length(&request.content, MIN_CONTENT_LENGTH, MAX_POST_LENGTH, "Post content")?;
+        
+        // Check for suspicious patterns
+        validate_input_safety(&request.content)
+            .map_err(|e| AppError::ValidationError(e))?;
+        
+        // Sanitize content
+        request.content = sanitize_input(&request.content);
 
         let post = self
             .repository
@@ -124,18 +138,30 @@ impl TimelineService {
         &self,
         post_id: Uuid,
         author_id: Uuid,
-        request: CreateCommentRequest,
+        mut request: CreateCommentRequest,
     ) -> Result<CommentResponse, AppError> {
-        if request.content.trim().is_empty() {
-            return Err(AppError::ValidationError("Comment content cannot be empty".to_string()));
-        }
+        // Validate content length
+        validate_content_length(
+            &request.content,
+            MIN_CONTENT_LENGTH,
+            MAX_COMMENT_LENGTH,
+            "Comment content",
+        )?;
+
+        // Check for suspicious patterns
+        validate_input_safety(&request.content).map_err(|e| AppError::ValidationError(e))?;
+
+        // Sanitize content
+        request.content = sanitize_input(&request.content);
 
         let comment = self
             .repository
             .create_comment(post_id, author_id, &request.content, request.parent_comment_id)
             .await?;
 
-        self.repository.get_comment_response_by_id(comment.id).await?
+        self.repository
+            .get_comment_response_by_id(comment.id)
+            .await?
             .map(Into::into)
             .ok_or_else(|| AppError::NotFoundError("Comment not found".to_string()))
     }

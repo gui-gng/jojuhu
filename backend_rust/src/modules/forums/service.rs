@@ -1,12 +1,21 @@
 use uuid::Uuid;
 
 use crate::errors::AppError;
+use crate::middleware::security::{sanitize_input, validate_input_safety};
+use crate::middleware::validation::validate_content_length;
 
 use super::models::{
     CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumResponse, ForumRole,
     ReplyResponse, ReplyResponseRow, TopicResponse, TopicResponseRow, UpdateForumRequest,
 };
 use super::repository::ForumRepository;
+
+/// Maximum forum/topic title length
+const MAX_TITLE_LENGTH: usize = 200;
+/// Maximum content length for topics/replies
+const MAX_CONTENT_LENGTH: usize = 10000;
+/// Minimum content length
+const MIN_CONTENT_LENGTH: usize = 1;
 
 pub struct ForumService {
     repository: ForumRepository,
@@ -20,10 +29,18 @@ impl ForumService {
     pub async fn create_forum(
         &self,
         creator_id: Uuid,
-        request: CreateForumRequest,
+        mut request: CreateForumRequest,
     ) -> Result<ForumResponse, AppError> {
-        if request.name.trim().is_empty() {
-            return Err(AppError::ValidationError("Forum name cannot be empty".to_string()));
+        // Validate and sanitize forum name
+        validate_content_length(&request.name, MIN_CONTENT_LENGTH, MAX_TITLE_LENGTH, "Forum name")?;
+        validate_input_safety(&request.name).map_err(|e| AppError::ValidationError(e))?;
+        request.name = sanitize_input(&request.name);
+
+        // Sanitize description if provided
+        if let Some(ref mut desc) = request.description {
+            validate_content_length(desc, MIN_CONTENT_LENGTH, MAX_CONTENT_LENGTH, "Forum description")?;
+            validate_input_safety(desc).map_err(|e| AppError::ValidationError(e))?;
+            *desc = sanitize_input(desc);
         }
 
         let forum = self
@@ -131,14 +148,17 @@ impl ForumService {
         &self,
         forum_id: Uuid,
         author_id: Uuid,
-        request: CreateTopicRequest,
+        mut request: CreateTopicRequest,
     ) -> Result<TopicResponse, AppError> {
-        if request.title.trim().is_empty() {
-            return Err(AppError::ValidationError("Topic title cannot be empty".to_string()));
-        }
-        if request.content.trim().is_empty() {
-            return Err(AppError::ValidationError("Topic content cannot be empty".to_string()));
-        }
+        // Validate and sanitize title
+        validate_content_length(&request.title, MIN_CONTENT_LENGTH, MAX_TITLE_LENGTH, "Topic title")?;
+        validate_input_safety(&request.title).map_err(|e| AppError::ValidationError(e))?;
+        request.title = sanitize_input(&request.title);
+
+        // Validate and sanitize content
+        validate_content_length(&request.content, MIN_CONTENT_LENGTH, MAX_CONTENT_LENGTH, "Topic content")?;
+        validate_input_safety(&request.content).map_err(|e| AppError::ValidationError(e))?;
+        request.content = sanitize_input(&request.content);
 
         self.check_forum_membership(forum_id, author_id).await?;
 
@@ -184,7 +204,7 @@ impl ForumService {
         &self,
         topic_id: Uuid,
         author_id: Uuid,
-        request: CreateReplyRequest,
+        mut request: CreateReplyRequest,
     ) -> Result<ReplyResponse, AppError> {
         let topic = self.repository.get_topic_by_id(topic_id).await?;
 
@@ -196,9 +216,15 @@ impl ForumService {
 
         self.check_forum_membership(topic.forum_id, author_id).await?;
 
-        if request.content.trim().is_empty() {
-            return Err(AppError::ValidationError("Reply content cannot be empty".to_string()));
-        }
+        // Validate and sanitize content
+        validate_content_length(
+            &request.content,
+            MIN_CONTENT_LENGTH,
+            MAX_CONTENT_LENGTH,
+            "Reply content",
+        )?;
+        validate_input_safety(&request.content).map_err(|e| AppError::ValidationError(e))?;
+        request.content = sanitize_input(&request.content);
 
         let reply = self
             .repository
