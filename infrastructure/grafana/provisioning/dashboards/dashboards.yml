@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'Jojuhu Dashboards'
+    orgId: 1
+    folder: 'Jojuhu'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards

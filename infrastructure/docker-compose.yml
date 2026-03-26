@@ -1,0 +1,184 @@
+# Infrastructure Services for Jojuhu
+# This docker-compose file runs all supporting infrastructure services
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: jojuhu_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jojuhu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jojuhu_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-jojuhu_backend}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: jojuhu_redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.96.0
+    container_name: jojuhu_otel_collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./opentelemetry/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "${OTEL_GRPC_PORT:-4317}:4317"   # OTLP gRPC receiver
+      - "${OTEL_HTTP_PORT:-4318}:4318"   # OTLP HTTP receiver
+      - "${OTEL_PROM_PORT:-8889}:8889"   # Prometheus metrics exporter
+      - "${OTEL_HEALTH_PORT:-13133}:13133" # Health check
+    depends_on:
+      - jaeger
+      - prometheus
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # Jaeger Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.54
+    container_name: jojuhu_jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"   # Jaeger UI
+      - "${JAEGER_OTLP_PORT:-4317}"       # OTLP gRPC (mapped to otel-collector)
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:v2.50.0
+    container_name: jojuhu_prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/rules:/etc/prometheus/rules
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: jojuhu_grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+      - jaeger
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # MinIO Object Storage (S3 compatible)
+  minio:
+    image: minio/minio:RELEASE.2024-02-26T09-33-48Z
+    container_name: jojuhu_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  # Create MinIO bucket on startup
+  minio-createbucket:
+    image: minio/mc:RELEASE.2024-02-24T01-33-20Z
+    container_name: jojuhu_minio_setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/jojuhu-uploads --ignore-existing;
+      /usr/bin/mc policy set public myminu/jojuhu-uploads;
+      exit 0;
+      "
+    networks:
+      - jojuhu_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  jaeger_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  jojuhu_network:
+    driver: bridge
+    name: jojuhu_network
