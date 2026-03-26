@@ -224,3 +224,158 @@ fn test_empty_password() {
     assert!(result.is_ok());
     assert!(result.unwrap());
 }
+
+// ==================== Security Tests ====================
+
+use social_network::middleware::security::{sanitize_input, validate_input_safety};
+use social_network::middleware::validation::{validate_content_length, validate_non_empty_string};
+
+#[test]
+fn test_sanitize_input_removes_script_tags() {
+    let input = "<script>alert('xss')</script>Hello";
+    let cleaned = sanitize_input(input);
+    assert!(!cleaned.contains("<script>"));
+    assert!(cleaned.contains("Hello"));
+}
+
+#[test]
+fn test_sanitize_input_removes_event_handlers() {
+    let input = "<img src=x onerror=alert('xss')>";
+    let cleaned = sanitize_input(input);
+    assert!(!cleaned.contains("onerror"));
+    assert!(!cleaned.contains("<img"));
+}
+
+#[test]
+fn test_sanitize_input_preserves_safe_html() {
+    let input = "<p>Hello <strong>World</strong></p>";
+    let cleaned = sanitize_input(input);
+    assert!(cleaned.contains("Hello"));
+    assert!(cleaned.contains("World"));
+}
+
+#[test]
+fn test_sanitize_input_empty_string() {
+    let input = "";
+    let cleaned = sanitize_input(input);
+    assert_eq!(cleaned, "");
+}
+
+#[test]
+fn test_validate_input_safety_detects_xss() {
+    let input = "<img src=x onerror=alert('xss')>";
+    assert!(validate_input_safety(input).is_err());
+}
+
+#[test]
+fn test_validate_input_safety_detects_javascript_protocol() {
+    let input = "javascript:alert('xss')";
+    assert!(validate_input_safety(input).is_err());
+}
+
+#[test]
+fn test_validate_input_safety_detects_sql_injection_select() {
+    let input = "'; SELECT * FROM users; --";
+    assert!(validate_input_safety(input).is_err());
+}
+
+#[test]
+fn test_validate_input_safety_detects_sql_injection_drop() {
+    let input = "'; DROP TABLE users; --";
+    assert!(validate_input_safety(input).is_err());
+}
+
+#[test]
+fn test_validate_input_safety_detects_sql_injection_union() {
+    let input = "' UNION SELECT * FROM passwords --";
+    assert!(validate_input_safety(input).is_err());
+}
+
+#[test]
+fn test_validate_input_safety_detects_sql_injection_or() {
+    let input = "admin' OR '1'='1";
+    assert!(validate_input_safety(input).is_err());
+}
+
+#[test]
+fn test_validate_input_safety_accepts_safe_input() {
+    let input = "Hello, this is a safe message!";
+    assert!(validate_input_safety(input).is_ok());
+}
+
+#[test]
+fn test_validate_input_safety_accepts_code_snippets() {
+    let input = "Check out this Rust code: fn main() { println!(\"Hello\"); }";
+    assert!(validate_input_safety(input).is_ok());
+}
+
+// ==================== Validation Middleware Tests ====================
+
+#[test]
+fn test_validate_non_empty_string_valid() {
+    assert!(validate_non_empty_string("Hello", "Field").is_ok());
+    assert!(validate_non_empty_string("  Hello  ", "Field").is_ok());
+    assert!(validate_non_empty_string("A", "Field").is_ok());
+}
+
+#[test]
+fn test_validate_non_empty_string_empty() {
+    let result = validate_non_empty_string("", "Username");
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("Username cannot be empty"));
+}
+
+#[test]
+fn test_validate_non_empty_string_whitespace_only() {
+    let result = validate_non_empty_string("   ", "Content");
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("Content cannot be empty"));
+}
+
+#[test]
+fn test_validate_non_empty_string_tabs_and_newlines() {
+    let result = validate_non_empty_string("\t\n\r", "Field");
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_validate_content_length_valid() {
+    assert!(validate_content_length("Hello", 1, 100, "Field").is_ok());
+    assert!(validate_content_length("A", 1, 10, "Field").is_ok());
+    assert!(validate_content_length(&"A".repeat(100), 1, 100, "Field").is_ok());
+}
+
+#[test]
+fn test_validate_content_length_too_short() {
+    let result = validate_content_length("Hi", 5, 100, "Description");
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("Description must be at least 5 characters"));
+}
+
+#[test]
+fn test_validate_content_length_too_long() {
+    let input = "A".repeat(101);
+    let result = validate_content_length(&input, 1, 100, "Bio");
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("Bio must be no more than 100 characters"));
+}
+
+#[test]
+fn test_validate_content_length_exactly_at_bounds() {
+    assert!(validate_content_length(&"A".repeat(5), 5, 100, "Field").is_ok());
+    assert!(validate_content_length(&"A".repeat(100), 5, 100, "Field").is_ok());
+}
+
+#[test]
+fn test_validate_content_length_with_unicode() {
+    let unicode = "Hello 世界! 🎉";
+    assert!(validate_content_length(unicode, 1, 100, "Field").is_ok());
+}
+
+#[test]
+fn test_validate_content_length_unicode_vs_bytes() {
+    // Unicode characters count as 1, not by byte length
+    let unicode = "世界"; // 6 bytes but 2 characters
+    assert!(validate_content_length(unicode, 2, 2, "Field").is_ok());
+    assert!(validate_content_length(unicode, 3, 10, "Field").is_err());
+}

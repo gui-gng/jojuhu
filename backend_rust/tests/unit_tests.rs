@@ -5,7 +5,9 @@
 
 mod unit {
     pub mod error_tests;
+    pub mod handler_tests;
     pub mod models_tests;
+    pub mod repository_tests;
     pub mod service_tests;
     pub mod utils_tests;
 }
