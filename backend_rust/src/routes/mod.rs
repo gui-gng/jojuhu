@@ -10,10 +10,16 @@ use sqlx::PgPool;
 // Auth handlers are used through auth::handlers
 use crate::auth::handlers::{get_current_user_handler, login_handler, register_handler};
 use crate::config::Settings;
+use crate::docs::{openapi_json, swagger_ui};
+use crate::modules::search;
 use crate::utils::auth::validator;
 
 /// Configure all application routes
 pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings) {
+    // API Documentation (public)
+    cfg.route("/docs", web::get().to(swagger_ui));
+    cfg.route("/api-docs/openapi.json", web::get().to(openapi_json));
+    
     // Public routes (no auth required)
     cfg.service(
         web::scope("/api/v1/auth")
@@ -33,6 +39,7 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
             .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::timeline::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
+            .configure(search::configure_routes)
     );
 }
 

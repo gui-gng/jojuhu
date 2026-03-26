@@ -10,6 +10,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod auth;
 mod config;
+mod docs;
 mod errors;
 mod middleware;
 mod models;
@@ -94,13 +95,18 @@ async fn main() -> std::io::Result<()> {
     info!("Starting server at http://{}", server_address);
     info!("Rate limiting: 1 req/sec with burst of 10");
     info!("CORS allowed origins: {:?}", allowed_origins);
+    info!("API Documentation: http://{}/docs", server_address);
     info!("Routes:");
+    info!("  Public: GET  /docs (Swagger UI)");
+    info!("  Public: GET  /api-docs/openapi.json");
+    info!("  Public: GET  /health");
     info!("  Public: POST /api/v1/auth/register");
     info!("  Public: POST /api/v1/auth/login");
     info!("  Protected: GET /api/v1/me");
     info!("  Protected: /api/v1/messages/*");
     info!("  Protected: /api/v1/timeline/*");
     info!("  Protected: /api/v1/forums/*");
+    info!("  Protected: /api/v1/search");
 
     HttpServer::new(move || {
         let mut cors = Cors::default()
