@@ -19,10 +19,16 @@ pub struct JwtSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct CorsSettings {
+    pub allowed_origins: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub server: ServerSettings,
     pub jwt: JwtSettings,
+    pub cors: Option<CorsSettings>,
     #[allow(dead_code)]
     pub environment: String,
 }
@@ -60,18 +66,41 @@ impl Settings {
 
         let database_url = std::env::var("DATABASE_URL")
             .map_err(|_| ConfigError::NotFound("DATABASE_URL".into()))?;
-        let host = std::env::var("HOST")
-            .unwrap_or_else(|_| "127.0.0.1".into());
+        let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".into());
         let port = std::env::var("PORT")
             .unwrap_or_else(|_| "8080".into())
             .parse::<u16>()
             .map_err(|e| ConfigError::Message(format!("Invalid PORT: {}", e)))?;
-        let jwt_secret = std::env::var("JWT_SECRET")
-            .map_err(|_| ConfigError::NotFound("JWT_SECRET".into()))?;
+        let jwt_secret =
+            std::env::var("JWT_SECRET").map_err(|_| ConfigError::NotFound("JWT_SECRET".into()))?;
         let jwt_expiration_hours = std::env::var("JWT_EXPIRATION_HOURS")
             .unwrap_or_else(|_| "24".into())
             .parse::<i64>()
             .map_err(|e| ConfigError::Message(format!("Invalid JWT_EXPIRATION_HOURS: {}", e)))?;
+
+        // Parse CORS allowed origins from environment
+        let allowed_origins = std::env::var("ALLOWED_ORIGINS")
+            .map(|origins| {
+                origins
+                    .split(',')
+                    .map(|s| s.trim().to_string())
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_else(|_| {
+                // Default origins for development
+                vec![
+                    "http://localhost:3000".to_string(),
+                    "http://localhost:8080".to_string(),
+                    "http://localhost:5000".to_string(),
+                    "http://localhost:4200".to_string(),
+                    "http://127.0.0.1:3000".to_string(),
+                    "http://127.0.0.1:8080".to_string(),
+                    "http://127.0.0.1:5000".to_string(),
+                    "http://127.0.0.1:4200".to_string(),
+                ]
+            });
+
+        let cors = Some(CorsSettings { allowed_origins });
 
         Ok(Settings {
             database: DatabaseSettings { url: database_url },
@@ -80,6 +109,7 @@ impl Settings {
                 secret: jwt_secret,
                 expiration_hours: jwt_expiration_hours,
             },
+            cors,
             environment: run_mode,
         })
     }

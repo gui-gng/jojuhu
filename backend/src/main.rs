@@ -22,12 +22,16 @@ use config::Settings;
 use middleware::logging::RequestLogger;
 use routes::configure;
 
-/// CORS allowed origins - in production, this should be restricted
+    /// CORS allowed origins - in production, this should be restricted
 const DEFAULT_ALLOWED_ORIGINS: &[&str] = &[
     "http://localhost:3000",
+    "http://localhost:5000",
     "http://localhost:8080",
+    "http://localhost:4200",
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:5000",
     "http://127.0.0.1:8080",
+    "http://127.0.0.1:4200",
 ];
 
 #[actix_web::main]
@@ -80,9 +84,11 @@ async fn main() -> std::io::Result<()> {
         .finish()
         .expect("Failed to create rate limiter config");
 
-    // Configure CORS
-    let allowed_origins = if settings.environment == "production" {
-        // In production, read from environment or use strict defaults
+    // Configure CORS - use settings from config if available
+    let allowed_origins: Vec<String> = if let Some(cors_settings) = &settings.cors {
+        cors_settings.allowed_origins.clone()
+    } else if settings.environment == "production" {
+        // In production without explicit config, use environment variable or strict default
         std::env::var("ALLOWED_ORIGINS")
             .map(|origins| {
                 origins.split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>()
