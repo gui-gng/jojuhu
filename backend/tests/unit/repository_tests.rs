@@ -3,7 +3,7 @@
 //! These tests verify repository logic without requiring a real database.
 //! For integration tests with a real database, see tests/integration_tests.rs
 
-use social_network::errors::AppError;
+use jojuhu_backend::errors::AppError;
 
 // Mock repository structure for testing
 struct MockMessageRepository {
@@ -67,7 +67,11 @@ impl MockMessageRepository {
             .collect()
     }
 
-    fn mark_as_read(&mut self, message_id: uuid::Uuid, user_id: uuid::Uuid) -> Result<(), AppError> {
+    fn mark_as_read(
+        &mut self,
+        message_id: uuid::Uuid,
+        user_id: uuid::Uuid,
+    ) -> Result<(), AppError> {
         if let Some(message) = self.messages.iter_mut().find(|m| m.id == message_id) {
             if message.recipient_id != user_id {
                 return Err(AppError::AuthorizationError(
@@ -89,7 +93,7 @@ fn test_mock_repository_create_message_success() {
     let recipient_id = uuid::Uuid::new_v4();
 
     let result = repo.create_message(sender_id, recipient_id, "Hello!");
-    
+
     assert!(result.is_ok());
     let message = result.unwrap();
     assert_eq!(message.sender_id, sender_id);
@@ -105,7 +109,7 @@ fn test_mock_repository_create_message_empty_content() {
     let recipient_id = uuid::Uuid::new_v4();
 
     let result = repo.create_message(sender_id, recipient_id, "");
-    
+
     assert!(result.is_err());
     match result.unwrap_err() {
         AppError::ValidationError(msg) => assert!(msg.contains("cannot be empty")),
@@ -120,7 +124,7 @@ fn test_mock_repository_create_message_whitespace_only() {
     let recipient_id = uuid::Uuid::new_v4();
 
     let result = repo.create_message(sender_id, recipient_id, "   ");
-    
+
     assert!(result.is_err());
 }
 
@@ -132,15 +136,16 @@ fn test_mock_repository_get_conversation() {
     let user3 = uuid::Uuid::new_v4();
 
     // Create messages between user1 and user2
-    repo.create_message(user1, user2, "Hello from user1").unwrap();
+    repo.create_message(user1, user2, "Hello from user1")
+        .unwrap();
     repo.create_message(user2, user1, "Hi from user2").unwrap();
     repo.create_message(user1, user2, "How are you?").unwrap();
-    
+
     // Create message between user1 and user3 (shouldn't appear in user1-user2 conversation)
     repo.create_message(user1, user3, "Hey user3").unwrap();
 
     let conversation = repo.get_conversation(user1, user2, 10);
-    
+
     assert_eq!(conversation.len(), 3);
 }
 
@@ -152,11 +157,12 @@ fn test_mock_repository_get_conversation_limit() {
 
     // Create 5 messages
     for i in 0..5 {
-        repo.create_message(user1, user2, &format!("Message {}", i)).unwrap();
+        repo.create_message(user1, user2, &format!("Message {}", i))
+            .unwrap();
     }
 
     let conversation = repo.get_conversation(user1, user2, 3);
-    
+
     assert_eq!(conversation.len(), 3);
 }
 
@@ -166,10 +172,12 @@ fn test_mock_repository_mark_as_read_success() {
     let sender_id = uuid::Uuid::new_v4();
     let recipient_id = uuid::Uuid::new_v4();
 
-    let message = repo.create_message(sender_id, recipient_id, "Hello!").unwrap();
-    
+    let message = repo
+        .create_message(sender_id, recipient_id, "Hello!")
+        .unwrap();
+
     let result = repo.mark_as_read(message.id, recipient_id);
-    
+
     assert!(result.is_ok());
 }
 
@@ -180,10 +188,12 @@ fn test_mock_repository_mark_as_read_wrong_user() {
     let recipient_id = uuid::Uuid::new_v4();
     let wrong_user = uuid::Uuid::new_v4();
 
-    let message = repo.create_message(sender_id, recipient_id, "Hello!").unwrap();
-    
+    let message = repo
+        .create_message(sender_id, recipient_id, "Hello!")
+        .unwrap();
+
     let result = repo.mark_as_read(message.id, wrong_user);
-    
+
     assert!(result.is_err());
     match result.unwrap_err() {
         AppError::AuthorizationError(msg) => assert!(msg.contains("Only the recipient")),
@@ -198,7 +208,7 @@ fn test_mock_repository_mark_as_read_not_found() {
     let non_existent_id = uuid::Uuid::new_v4();
 
     let result = repo.mark_as_read(non_existent_id, user_id);
-    
+
     assert!(result.is_err());
     match result.unwrap_err() {
         AppError::NotFoundError(msg) => assert_eq!(msg, "Message not found"),
@@ -260,7 +270,8 @@ impl MockTimelineRepository {
         Ok(post)
     }
 
-    fn get_user_posts(&self,
+    fn get_user_posts(
+        &self,
         author_id: uuid::Uuid,
         requesting_user_id: uuid::Uuid,
         limit: usize,
@@ -275,11 +286,7 @@ impl MockTimelineRepository {
             .collect()
     }
 
-    fn delete_post(
-        &mut self,
-        post_id: uuid::Uuid,
-        user_id: uuid::Uuid,
-    ) -> Result<(), AppError> {
+    fn delete_post(&mut self, post_id: uuid::Uuid, user_id: uuid::Uuid) -> Result<(), AppError> {
         if let Some(post) = self.posts.iter().find(|p| p.id == post_id) {
             if post.author_id != user_id {
                 return Err(AppError::AuthorizationError(
@@ -300,7 +307,7 @@ fn test_mock_timeline_create_post_success() {
     let author_id = uuid::Uuid::new_v4();
 
     let result = repo.create_post(author_id, "My first post!", true);
-    
+
     assert!(result.is_ok());
     let post = result.unwrap();
     assert_eq!(post.author_id, author_id);
@@ -314,7 +321,7 @@ fn test_mock_timeline_create_post_empty_content() {
     let author_id = uuid::Uuid::new_v4();
 
     let result = repo.create_post(author_id, "", true);
-    
+
     assert!(result.is_err());
 }
 
@@ -352,9 +359,9 @@ fn test_mock_timeline_delete_post_success() {
     let author_id = uuid::Uuid::new_v4();
 
     let post = repo.create_post(author_id, "To be deleted", true).unwrap();
-    
+
     let result = repo.delete_post(post.id, author_id);
-    
+
     assert!(result.is_ok());
     assert!(repo.posts.is_empty());
 }
@@ -366,9 +373,9 @@ fn test_mock_timeline_delete_post_unauthorized() {
     let other_user = uuid::Uuid::new_v4();
 
     let post = repo.create_post(author_id, "My post", true).unwrap();
-    
+
     let result = repo.delete_post(post.id, other_user);
-    
+
     assert!(result.is_err());
     assert_eq!(repo.posts.len(), 1); // Post should still exist
 }

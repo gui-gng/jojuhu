@@ -9,7 +9,7 @@ This is a Rust-based backend API for a social network platform, built with Actix
 ## Build/Lint/Test Commands
 
 ```bash
-# Build the project
+# Build the project (run from backend/ directory)
 cargo build
 
 # Build for release
@@ -21,14 +21,11 @@ cargo run
 # Run all tests
 cargo test
 
-# Run only unit tests
-cargo test --test unit_tests
-
-# Run only integration tests
-cargo test --test integration_tests
-
-# Run a specific test
+# Run a specific test by name
 cargo test test_validate_username_valid
+
+# Run tests in a specific file
+cargo test --test handler_tests
 
 # Run tests with output
 cargo test -- --nocapture
@@ -36,7 +33,7 @@ cargo test -- --nocapture
 # Run Clippy lints
 cargo clippy -- -D warnings
 
-# Run Clippy with all features
+# Run Clippy with all targets and features
 cargo clippy --all-targets --all-features -- -D warnings
 
 # Format code
@@ -56,18 +53,22 @@ docker-compose -f docker-compose.prod.yml up -d
 ## Code Style Guidelines
 
 ### Imports
-- Group imports: std lib, external crates, internal modules
+- Group imports in order: std lib, external crates, internal modules
 - Use `use crate::` for internal imports
 - Alphabetically sort within groups
-- Example:
+- Separate groups with blank lines
+
+Example:
 ```rust
 use std::fmt;
 
+use actix_web::{web, HttpResponse};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::errors::AppError;
+use crate::models::{ApiResponse, PaginationParams};
 ```
 
 ### Formatting
@@ -79,75 +80,104 @@ use crate::errors::AppError;
 ### Types and Naming
 - **Structs/Enums**: PascalCase (e.g., `MessageResponse`, `AppError`)
 - **Functions/Variables**: snake_case (e.g., `send_message`, `user_id`)
-- **Constants**: SCREAMING_SNAKE_CASE
+- **Constants**: SCREAMING_SNAKE_CASE (e.g., `MAX_MESSAGE_LENGTH`)
 - **Traits**: PascalCase with clear purpose
-- **Modules**: snake_case
+- **Modules**: snake_case (e.g., `handlers.rs`, `repository.rs`)
+- **Generic parameters**: Single uppercase letters (e.g., `T`, `K`, `V`)
 
 ### Error Handling
 - Use the centralized `AppError` enum for all errors
 - Implement `From` traits for automatic conversion (e.g., `From<sqlx::Error>`)
-- Map database errors to appropriate HTTP status codes
+- Map database errors to appropriate HTTP status codes:
+  - `RowNotFound` → 404 Not Found
+  - Constraint violations → 409 Conflict
+  - Other DB errors → 500 Internal Server Error
 - Use `thiserror` for error definitions
 - Return `Result<T, AppError>` from handlers and services
+- Create error messages with `format!("...", value)`
 
 ### Architecture Patterns
 
 Each domain module follows this structure:
 ```
 modules/{name}/
-├── mod.rs        # Module config, dependency injection
-├── models.rs     # Data models and DTOs
-├── repository.rs # Database access layer
+├── mod.rs        # Module config, dependency injection, re-exports
+├── models.rs     # Data models, DTOs, and database row types
+├── repository.rs # Database access layer with SQLx queries
 ├── service.rs    # Business logic layer
 ├── handlers.rs   # HTTP request handlers
 └── routes.rs     # Route definitions
 ```
 
 Guidelines:
-- **Handlers**: HTTP layer only, delegate to services
-- **Services**: Business logic, no HTTP or DB details
-- **Repositories**: Database access with raw SQL queries
+- **Handlers**: HTTP layer only, delegate to services, return `Result<HttpResponse, AppError>`
+- **Services**: Business logic, no HTTP or DB details, validate inputs, sanitize data
+- **Repositories**: Database access with raw SQL queries, use `sqlx::query_as!()`
 - **Models**: Use `#[derive(Debug, Serialize, Deserialize)]` for DTOs
-- Use dependency injection via constructors
+- Use dependency injection via constructors (e.g., `MessageService::new(repository)`)
 
 ### Database
-- Use SQLx for compile-time checked queries
-- Use `sqlx::FromRow` for query results
+- Use SQLx for compile-time checked queries with `sqlx::query_as!()`
+- Use `sqlx::FromRow` for query result structs
 - Prefer raw SQL in repositories over ORM abstractions
-- Use UUIDs for primary keys (v4 for new records)
-- Use chrono for datetime fields
+- Use UUIDs for primary keys (v4 for new records via `Uuid::new_v4()`)
+- Use chrono for datetime fields (`DateTime<Utc>`)
+- Use pagination with `get_offset()` and `get_limit()` methods
+
+### Security
+- Sanitize all user inputs with `sanitize_input()` from `middleware::security`
+- Validate input safety with `validate_input_safety()` to prevent XSS/SQL injection
+- Validate content length with `validate_content_length()`
+- Use bcrypt/argon2 for password hashing
+- All authenticated endpoints extract user via `AuthenticatedUser` middleware
 
 ### Testing
 - Unit tests go in `tests/unit/{feature}_tests.rs`
 - Integration tests go in `tests/integration_tests.rs`
 - Use `#[actix_rt::test]` for async tests
+- Use standard `#[test]` for synchronous tests
+- Use descriptive test names: `test_{behavior}_{condition}` (e.g., `test_validate_username_too_short`)
 - Mock external dependencies, test business logic in isolation
-- Use descriptive test names: `test_validate_username_too_short`
+- Test error responses and status codes
 
 ### API Responses
-- Use standardized JSON responses:
+- Use standardized `ApiResponse<T>` wrapper:
 ```rust
-json!({
-    "success": false,
-    "error": message
-})
+// Success
+Ok(HttpResponse::Ok().json(ApiResponse::success(data)))
+
+// Error (handled by AppError ResponseError trait)
+Err(AppError::ValidationError("Invalid input".to_string()))
 ```
+- HTTP status codes:
+  - 200 OK for successful GET/PUT
+  - 201 Created for successful POST
+  - 204 No Content for successful DELETE
+  - 400 Bad Request for validation errors
+  - 401 Unauthorized for authentication errors
+  - 403 Forbidden for authorization errors
+  - 404 Not Found for missing resources
+  - 409 Conflict for duplicate/constraint errors
+  - 500 Internal Server Error for unexpected errors
 
 ### Authentication
 - Use Bearer token in Authorization header
-- JWT validation handled in middleware
-- Extract user_id from authenticated requests
+- JWT validation handled in `middleware::auth`
+- Extract user_id from `AuthenticatedUser` in handlers
+- Password hashing with argon2 (preferred) or bcrypt
 
 ### Logging
 - Use `tracing` for structured logging
 - Use appropriate levels: trace, debug, info, warn, error
+- Log at service layer for business operations
+- Log at handler layer for request/response info
 
 ## Environment Setup
 
 Required environment variables:
 ```bash
 DATABASE_URL=postgres://user:password@localhost:5432/social_network_rust
-JWT_SECRET=your_secret_key
+JWT_SECRET=your_secret_key_min_32_chars_long
 JWT_EXPIRATION_HOURS=24
 SERVER_HOST=127.0.0.1
 SERVER_PORT=8080
@@ -161,3 +191,4 @@ SERVER_PORT=8080
 - [ ] Code formatted: `cargo fmt`
 - [ ] No hardcoded secrets or credentials
 - [ ] Error handling implemented for all fallible operations
+- [ ] Input validation and sanitization added for user inputs

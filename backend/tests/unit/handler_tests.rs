@@ -4,8 +4,8 @@
 //! validation, and error responses.
 
 use actix_web::{http::StatusCode, test, web, App};
-use social_network::auth::handlers::{login_handler, register_handler};
-use social_network::config::{DatabaseSettings, JwtSettings, ServerSettings, Settings};
+use jojuhu_backend::auth::handlers::{login_handler, register_handler};
+use jojuhu_backend::config::{DatabaseSettings, JwtSettings, ServerSettings, Settings};
 
 fn create_test_settings() -> Settings {
     Settings {
@@ -74,8 +74,8 @@ mod auth_handler_tests {
 
 #[cfg(test)]
 mod validation_tests {
-    use social_network::middleware::validation::{validate_content_length, validate_non_empty_string};
-    use social_network::middleware::security::validate_input_safety;
+    use jojuhu_backend::middleware::validation::{validate_content_length, validate_non_empty_string};
+    use jojuhu_backend::middleware::security::validate_input_safety;
 
     #[test]
     fn test_handler_input_validation_username() {
@@ -130,7 +130,7 @@ mod validation_tests {
 
 #[cfg(test)]
 mod response_format_tests {
-    use social_network::models::{ApiResponse, PaginatedResponse};
+    use jojuhu_backend::models::{ApiResponse, PaginatedResponse};
     use serde_json::json;
 
     #[test]
@@ -184,7 +184,7 @@ mod response_format_tests {
 
 #[cfg(test)]
 mod error_response_tests {
-    use social_network::errors::AppError;
+    use jojuhu_backend::errors::AppError;
     use actix_web::ResponseError;
 
     #[test]

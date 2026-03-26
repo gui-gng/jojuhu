@@ -39,7 +39,7 @@ async fn main() -> std::io::Result<()> {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "social_network=debug,actix_web=info".into()),
+                .unwrap_or_else(|_| "jojuhu_backend=debug,actix_web=info".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();

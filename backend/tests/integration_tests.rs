@@ -3,13 +3,13 @@
 //! These tests require a running PostgreSQL database with test data.
 //! Set the DATABASE_URL environment variable before running these tests.
 
-use social_network::config::{Settings, DatabaseSettings, ServerSettings, JwtSettings};
+use jojuhu_backend::config::{DatabaseSettings, JwtSettings, ServerSettings, Settings};
 
 fn create_test_settings() -> Settings {
     Settings {
         database: DatabaseSettings {
             url: std::env::var("DATABASE_URL")
-                .unwrap_or_else(|_| "postgres://localhost:5432/social_network_test".to_string()),
+                .unwrap_or_else(|_| "postgres://localhost:5432/jojuhu_backend_test".to_string()),
         },
         server: ServerSettings {
             host: "127.0.0.1".to_string(),
@@ -28,9 +28,9 @@ fn test_health_check_response_structure() {
     // Verify expected health check response format
     let expected_response = serde_json::json!({
         "status": "healthy",
-        "service": "social_network"
+        "service": "jojuhu_backend"
     });
-    
+
     assert_eq!(expected_response["status"], "healthy");
     assert_eq!(expected_response["service"], "social_network");
 }
@@ -38,7 +38,7 @@ fn test_health_check_response_structure() {
 #[test]
 fn test_settings_loads_correctly() {
     let settings = create_test_settings();
-    
+
     assert_eq!(settings.server.port, 8080);
     assert_eq!(settings.jwt.expiration_hours, 24);
     assert_eq!(settings.environment, "test");

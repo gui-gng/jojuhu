@@ -1,6 +1,6 @@
 //! Unit tests for service layer validation logic
 
-use social_network::errors::AppError;
+use jojuhu_backend::errors::AppError;
 
 // ==================== Message Service Tests ====================
 
@@ -22,7 +22,7 @@ fn validate_message_content(content: &str) -> Result<(), AppError> {
 fn test_validate_message_content_valid() {
     assert!(validate_message_content("Hello!").is_ok());
     assert!(validate_message_content("This is valid.").is_ok());
-    
+
     let long_content = "a".repeat(10000);
     assert!(validate_message_content(&long_content).is_ok());
 }
@@ -65,9 +65,7 @@ fn validate_comment_content(content: &str) -> Result<(), AppError> {
         ));
     }
     if content.len() > 1000 {
-        return Err(AppError::ValidationError(
-            "Comment too long".to_string(),
-        ));
+        return Err(AppError::ValidationError("Comment too long".to_string()));
     }
     Ok(())
 }
@@ -135,9 +133,7 @@ fn validate_forum_name(name: &str) -> Result<(), AppError> {
         ));
     }
     if name.len() > 100 {
-        return Err(AppError::ValidationError(
-            "Forum name too long".to_string(),
-        ));
+        return Err(AppError::ValidationError("Forum name too long".to_string()));
     }
     Ok(())
 }
@@ -194,7 +190,10 @@ fn test_validate_topic_title_empty() {
 #[test]
 fn test_generate_slug() {
     assert_eq!(generate_slug("Hello World"), "hello-world");
-    assert_eq!(generate_slug("Rust Programming Forum"), "rust-programming-forum");
+    assert_eq!(
+        generate_slug("Rust Programming Forum"),
+        "rust-programming-forum"
+    );
     assert_eq!(generate_slug("C++ Tips & Tricks"), "c-tips--tricks");
     assert_eq!(generate_slug("Web Development 101"), "web-development-101");
     // Note: underscore is NOT alphanumeric, and not '-', so it's removed

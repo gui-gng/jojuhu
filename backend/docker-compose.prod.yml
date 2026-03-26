@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: social_network_app
+    container_name: jojuhu_backend_app
     environment:
       DATABASE_URL: ${DATABASE_URL}
       HOST: 0.0.0.0

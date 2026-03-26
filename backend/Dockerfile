@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y \
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy binary from builder
-COPY --from=builder /app/target/release/social_network /app/social_network
+COPY --from=builder /app/target/release/jojuhu_backend /app/jojuhu_backend
 
 # Copy migrations
 COPY --from=builder /app/migrations ./migrations
@@ -63,4 +63,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
 # Start the application
-CMD ["/app/social_network"]
+CMD ["/app/jojuhu_backend"]

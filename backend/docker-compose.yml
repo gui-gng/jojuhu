@@ -1,13 +1,13 @@
 services:
   db:
     image: postgres:18-alpine
-    container_name: social_network_db
+    container_name: jojuhu_backend_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: social_network
+      POSTGRES_DB: jojuhu_backend
     volumes:
-      - postgres_data_social_network:/var/lib/postgresql/data
+      - postgres_data_jojuhu:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     healthcheck:
@@ -20,9 +20,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: social_network_app
+    container_name: jojuhu_backend_app
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/social_network
+      DATABASE_URL: postgres://postgres:postgres@db:5432/jojuhu_backend
       HOST: 0.0.0.0
       PORT: 8080
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
@@ -36,4 +36,4 @@ services:
         condition: service_healthy
 
 volumes:
-  postgres_data_social_network:
+  postgres_data_jojuhu:

@@ -342,7 +342,7 @@ const OPENAPI_SPEC: &str = r#"{
                   "type": "object",
                   "properties": {
                     "status": { "type": "string", "example": "healthy" },
-                    "service": { "type": "string", "example": "social_network" }
+                    "service": { "type": "string", "example": "jojuhu_backend" }
                   }
                 }
               }

@@ -1,7 +1,7 @@
 //! Unit tests for data models
 
-use social_network::models::user::CreateUserRequest;
-use social_network::models::{ApiResponse, PaginatedResponse, PaginationParams};
+use jojuhu_backend::models::user::CreateUserRequest;
+use jojuhu_backend::models::{ApiResponse, PaginatedResponse, PaginationParams};
 
 #[test]
 fn test_api_response_success() {

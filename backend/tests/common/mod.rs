@@ -2,7 +2,7 @@
 //!
 //! This module provides shared test helpers for both unit and integration tests.
 
-use social_network::config::{DatabaseSettings, JwtSettings, ServerSettings, Settings};
+use jojuhu_backend::config::{DatabaseSettings, JwtSettings, ServerSettings, Settings};
 use sqlx::PgPool;
 use std::env;
 
@@ -11,7 +11,7 @@ pub fn create_test_settings() -> Settings {
     Settings {
         database: DatabaseSettings {
             url: env::var("DATABASE_URL")
-                .unwrap_or_else(|_| "postgres://localhost:5432/social_network_test".to_string()),
+                .unwrap_or_else(|_| "postgres://localhost:5432/jojuhu_backend_test".to_string()),
         },
         server: ServerSettings {
             host: "127.0.0.1".to_string(),
@@ -29,7 +29,7 @@ pub fn create_test_settings() -> Settings {
 /// Note: This requires a running PostgreSQL instance
 pub async fn create_test_pool() -> Result<PgPool, sqlx::Error> {
     let database_url = env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://localhost:5432/social_network_test".to_string());
+        .unwrap_or_else(|_| "postgres://localhost:5432/jojuhu_backend_test".to_string());
     
     PgPool::connect(&database_url).await
 }

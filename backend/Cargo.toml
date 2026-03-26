@@ -1,5 +1,5 @@
 [package]
-name = "social_network"
+name = "jojuhu_backend"
 version = "0.1.0"
 edition = "2021"
 authors = ["Your Name <your.email@example.com>"]
@@ -73,5 +73,5 @@ tokio-test = "0.4"
 # mockall = "0.12"
 
 [[bin]]
-name = "social_network"
+name = "jojuhu_backend"
 path = "src/main.rs"
