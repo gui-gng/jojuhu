@@ -1,32 +1,39 @@
 services:
-  user-service:
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
+  db:
+    image: postgres:18-alpine
+    container_name: social_network_db
     environment:
-      - PG_CONN=host=postgres port=5432 user=postgres password=postgrespw database=postgres
-      - RABBIT_CONN=amqp://evaluatz-admin:KU6NqgMms6xAda3mVncu@localhost:5672/internal-services-vhost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: social_network
+    volumes:
+      - postgres_data_social_network:/var/lib/postgresql/data
     ports:
-      - "5001:5001"
-    depends_on:
-      - postgres
-    networks:
-      - network-jojuhu
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  message-service:
+  app:
     build:
-      context: ./message-service
+      context: .
       dockerfile: Dockerfile
+    container_name: social_network_app
     environment:
-      - PG_CONN=host=postgres port=5432 user=postgres password=postgrespw database=postgres
-      - RABBIT_CONN=amqp://evaluatz-admin:KU6NqgMms6xAda3mVncu@localhost:5672/internal-services-vhost
+      DATABASE_URL: postgres://postgres:postgres@db:5432/social_network
+      HOST: 0.0.0.0
+      PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      JWT_EXPIRATION_HOURS: 24
+      RUST_LOG: info
+      APP_ENVIRONMENT: production
     ports:
-      - "5002:5002"
+      - "8080:8080"
     depends_on:
-      - postgres
-    networks:
-      - network-jojuhu
+      db:
+        condition: service_healthy
 
-networks:
-  network-jojuhu:
-    driver: bridge
+volumes:
+  postgres_data_social_network:
