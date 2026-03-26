@@ -1,18 +1,32 @@
+//! Message models
+//!
+//! This module defines data structures for the direct messaging system
+//! including messages, conversations, and thread information.
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// Core message entity representing a single message
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Message {
+    /// Unique identifier for the message
     pub id: Uuid,
+    /// ID of the user who sent the message
     pub sender_id: Uuid,
+    /// ID of the recipient user
     pub recipient_id: Uuid,
+    /// Message content (encrypted at rest)
     pub content: String,
+    /// Whether the message has been read by the recipient
     pub is_read: bool,
+    /// When the message was sent
     pub created_at: DateTime<Utc>,
+    /// When the message was last edited (if applicable)
     pub updated_at: DateTime<Utc>,
 }
 
+/// Database row for message responses with sender/recipient info
 #[derive(Debug, sqlx::FromRow)]
 pub struct MessageResponseRow {
     pub id: Uuid,
@@ -25,15 +39,19 @@ pub struct MessageResponseRow {
     pub created_at: DateTime<Utc>,
 }
 
+/// Request to send a new message
 #[derive(Debug, Deserialize)]
 pub struct SendMessageRequest {
+    /// ID of the intended recipient
     pub recipient_id: Uuid,
+    /// Message content (max 2000 chars)
     pub content: String,
 }
 
+/// Request to update/edit an existing message
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 pub struct UpdateMessageRequest {
+    /// New content for the message
     pub content: String,
 }
 

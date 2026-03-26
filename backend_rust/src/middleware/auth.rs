@@ -1,14 +1,34 @@
+//! Authentication middleware
+//!
+//! This module provides middleware for authenticating HTTP requests
+//! and extracting authenticated user information from JWT tokens.
+
 use actix_web::{dev::Payload, FromRequest, HttpMessage, HttpRequest};
 use std::future::{ready, Ready};
 
 use crate::errors::AppError;
 use crate::utils::auth::Claims;
 
+/// Represents an authenticated user extracted from a valid JWT token.
+///
+/// This struct is automatically populated by the authentication middleware
+/// and can be injected into request handlers using Actix-web's extractor system.
+///
+/// # Example
+/// ```rust
+/// use actix_web::{web, HttpResponse};
+/// use social_network::middleware::auth::AuthenticatedUser;
+///
+/// async fn profile(user: AuthenticatedUser) -> HttpResponse {
+///     HttpResponse::Ok().body(format!("Hello, {}", user.username))
+/// }
+/// ```
 pub struct AuthenticatedUser {
+    /// Unique identifier for the user (UUID v4)
     pub user_id: uuid::Uuid,
-    #[allow(dead_code)]
+    /// User's display name (may differ from username)
     pub username: String,
-    #[allow(dead_code)]
+    /// User's email address (verified)
     pub email: String,
 }
 
