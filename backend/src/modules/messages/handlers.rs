@@ -61,3 +61,13 @@ pub async fn delete_message(
     service.delete_message(message_id, user.user_id).await?;
     Ok(HttpResponse::NoContent().finish())
 }
+
+pub async fn delete_conversation(
+    service: web::Data<MessageService>,
+    user: AuthenticatedUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let other_user_id = path.into_inner();
+    service.delete_conversation(user.user_id, other_user_id).await?;
+    Ok(HttpResponse::NoContent().finish())
+}

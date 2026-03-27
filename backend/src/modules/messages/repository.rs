@@ -197,4 +197,17 @@ impl MessageRepository {
 
         Ok(user)
     }
+
+    pub async fn delete_conversation(&self, user_id: Uuid, other_user_id: Uuid) -> Result<(), AppError> {
+        // Mark all messages as deleted for this user
+        sqlx::query(
+            "DELETE FROM messages WHERE (sender_id = $1 AND recipient_id = $2) OR (sender_id = $2 AND recipient_id = $1)"
+        )
+        .bind(user_id)
+        .bind(other_user_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
 }

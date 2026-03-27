@@ -198,4 +198,56 @@ impl UserService {
     ) -> Result<bool, AppError> {
         self.repository.is_following(follower_id, following_id).await
     }
+
+    /// Block a user
+    pub async fn block_user(
+        &self,
+        blocker_id: Uuid,
+        blocked_id: Uuid,
+    ) -> Result<bool, AppError> {
+        if blocker_id == blocked_id {
+            return Err(AppError::ValidationError(
+                "Cannot block yourself".to_string(),
+            ));
+        }
+        self.repository.block_user(blocker_id, blocked_id).await
+    }
+
+    /// Unblock a user
+    pub async fn unblock_user(
+        &self,
+        blocker_id: Uuid,
+        blocked_id: Uuid,
+    ) -> Result<(), AppError> {
+        self.repository.unblock_user(blocker_id, blocked_id).await
+    }
+
+    /// Check if a user is blocked
+    pub async fn is_blocked(
+        &self,
+        blocker_id: Uuid,
+        blocked_id: Uuid,
+    ) -> Result<bool, AppError> {
+        self.repository.is_blocked(blocker_id, blocked_id).await
+    }
+
+    /// Get blocked users list
+    pub async fn get_blocked_users(
+        &self,
+        user_id: Uuid,
+        page: i64,
+        per_page: i64,
+    ) -> Result<UsersListResponse, AppError> {
+        let (users, total) = self.repository.get_blocked_users(user_id, page, per_page).await?;
+
+        let has_more = (page * per_page) < total;
+
+        Ok(UsersListResponse {
+            users,
+            total,
+            page,
+            per_page,
+            has_more,
+        })
+    }
 }

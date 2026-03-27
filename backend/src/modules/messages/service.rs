@@ -90,6 +90,14 @@ impl MessageService {
         self.repository.delete_message(message_id, user_id).await
     }
 
+    pub async fn delete_conversation(
+        &self,
+        user_id: Uuid,
+        other_user_id: Uuid,
+    ) -> Result<(), AppError> {
+        self.repository.delete_conversation(user_id, other_user_id).await
+    }
+
     async fn get_message_response(&self, message_id: Uuid) -> Result<MessageResponseRow, AppError> {
         self.repository.get_message_response_by_id(message_id).await?
             .ok_or_else(|| AppError::NotFoundError("Message not found".to_string()))

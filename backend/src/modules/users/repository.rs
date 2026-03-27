@@ -422,4 +422,113 @@ impl UserRepository {
 
         Ok((users, total))
     }
+
+    /// Block a user
+    pub async fn block_user(&self, blocker_id: Uuid, blocked_id: Uuid) -> Result<bool, AppError> {
+        // Prevent self-blocking
+        if blocker_id == blocked_id {
+            return Err(AppError::ValidationError(
+                "Cannot block yourself".to_string(),
+            ));
+        }
+
+        let result = sqlx::query(
+            "INSERT INTO user_blocks (blocker_id, blocked_id) VALUES ($1, $2) ON CONFLICT DO NOTHING"
+        )
+        .bind(blocker_id)
+        .bind(blocked_id)
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(result.rows_affected() > 0)
+    }
+
+    /// Unblock a user
+    pub async fn unblock_user(&self, blocker_id: Uuid, blocked_id: Uuid) -> Result<(), AppError> {
+        sqlx::query(
+            "DELETE FROM user_blocks WHERE blocker_id = $1 AND blocked_id = $2"
+        )
+        .bind(blocker_id)
+        .bind(blocked_id)
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(())
+    }
+
+    /// Check if a user is blocked
+    pub async fn is_blocked(&self, blocker_id: Uuid, blocked_id: Uuid) -> Result<bool, AppError> {
+        let result = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS(
+                SELECT 1 FROM user_blocks 
+                WHERE blocker_id = $1 AND blocked_id = $2
+            )
+            "#,
+        )
+        .bind(blocker_id)
+        .bind(blocked_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(result)
+    }
+
+    /// Get list of blocked users
+    pub async fn get_blocked_users(
+        &self,
+        user_id: Uuid,
+        page: i64,
+        per_page: i64,
+    ) -> Result<(Vec<UserInfo>, i64), AppError> {
+        let offset = (page - 1) * per_page;
+
+        let rows = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.avatar_url,
+                FALSE as is_following,
+                0 as mutual_friends_count
+            FROM user_blocks ub
+            JOIN users u ON u.id = ub.blocked_id
+            WHERE ub.blocker_id = $1
+            ORDER BY ub.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#,
+        )
+        .bind(user_id)
+        .bind(per_page)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        let users: Vec<UserInfo> = rows
+            .into_iter()
+            .map(|row| UserInfo {
+                id: row.get("id"),
+                username: row.get("username"),
+                display_name: row.get("display_name"),
+                avatar_url: row.get("avatar_url"),
+                is_following: row.get("is_following"),
+                mutual_friends_count: row.get("mutual_friends_count"),
+            })
+            .collect();
+
+        let total: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM user_blocks WHERE blocker_id = $1"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok((users, total))
+    }
 }

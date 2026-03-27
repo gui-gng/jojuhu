@@ -25,6 +25,10 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool) {
             .service(handlers::update_profile)
             // Update avatar
             .service(handlers::update_avatar)
+            // Block/unblock user
+            .service(handlers::block_user)
+            .service(handlers::unblock_user)
+            .service(handlers::get_blocked_users)
             // Follow/unfollow user
             .service(handlers::follow_user)
             .service(handlers::unfollow_user)
