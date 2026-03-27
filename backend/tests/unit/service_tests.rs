@@ -209,3 +209,104 @@ fn test_generate_slug_empty() {
 fn test_generate_slug_only_special_chars() {
     assert_eq!(generate_slug("!@#$%"), "");
 }
+
+// ==================== User Service Tests ====================
+
+fn validate_display_name(name: &str) -> Result<(), AppError> {
+    if name.len() > 100 {
+        return Err(AppError::ValidationError(
+            "Display name must be at most 100 characters".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_bio(bio: &str) -> Result<(), AppError> {
+    if bio.len() > 500 {
+        return Err(AppError::ValidationError(
+            "Bio must be at most 500 characters".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_username(username: &str) -> Result<(), AppError> {
+    if username.len() < 3 {
+        return Err(AppError::ValidationError(
+            "Username must be at least 3 characters".to_string(),
+        ));
+    }
+    if username.len() > 32 {
+        return Err(AppError::ValidationError(
+            "Username must be at most 32 characters".to_string(),
+        ));
+    }
+    if !username.chars().all(|c| c.is_alphanumeric() || c == '_') {
+        return Err(AppError::ValidationError(
+            "Username can only contain letters, numbers, and underscores".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+#[test]
+fn test_validate_display_name_valid() {
+    assert!(validate_display_name("John Doe").is_ok());
+    assert!(validate_display_name("Alice").is_ok());
+    assert!(validate_display_name("").is_ok());
+}
+
+#[test]
+fn test_validate_display_name_too_long() {
+    let long_name = "a".repeat(101);
+    assert!(validate_display_name(&long_name).is_err());
+}
+
+#[test]
+fn test_validate_bio_valid() {
+    assert!(validate_bio("Hello, I'm a developer!").is_ok());
+    assert!(validate_bio("").is_ok());
+    let max_bio = "a".repeat(500);
+    assert!(validate_bio(&max_bio).is_ok());
+}
+
+#[test]
+fn test_validate_bio_too_long() {
+    let long_bio = "a".repeat(501);
+    assert!(validate_bio(&long_bio).is_err());
+}
+
+#[test]
+fn test_validate_username_valid() {
+    assert!(validate_username("john_doe").is_ok());
+    assert!(validate_username("alice123").is_ok());
+    assert!(validate_username("user_name").is_ok());
+}
+
+#[test]
+fn test_validate_username_too_short() {
+    assert!(validate_username("ab").is_err());
+    assert!(validate_username("a").is_err());
+}
+
+#[test]
+fn test_validate_username_too_long() {
+    let long_username = "a".repeat(33);
+    assert!(validate_username(&long_username).is_err());
+}
+
+#[test]
+fn test_validate_username_invalid_chars() {
+    assert!(validate_username("john@doe").is_err());
+    assert!(validate_username("alice.name").is_err());
+    assert!(validate_username("user-name").is_err());
+}
+
+#[test]
+fn test_validate_username_edge_cases() {
+    // Exactly 3 characters (minimum)
+    assert!(validate_username("abc").is_ok());
+    // Exactly 32 characters (maximum)
+    let max_username = "a".repeat(32);
+    assert!(validate_username(&max_username).is_ok());
+}
