@@ -1,0 +1,387 @@
+use sqlx::{PgPool, Row};
+use uuid::Uuid;
+
+use crate::errors::AppError;
+
+use super::models::{MyProfile, UpdateProfileRequest, UserInfo, UserProfile};
+
+pub struct UserRepository {
+    pool: PgPool,
+}
+
+impl UserRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+
+    /// Get user profile with counts
+    pub async fn get_user_profile(
+        &self,
+        user_id: Uuid,
+        current_user_id: Option<Uuid>,
+    ) -> Result<Option<UserProfile>, AppError> {
+        let result = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.bio,
+                u.avatar_url,
+                u.created_at,
+                COALESCE(followers.count, 0) as followers_count,
+                COALESCE(following.count, 0) as following_count,
+                COALESCE(posts.count, 0) as posts_count,
+                CASE 
+                    WHEN $2::uuid IS NOT NULL THEN
+                        EXISTS(
+                            SELECT 1 FROM follows f 
+                            WHERE f.follower_id = $2 AND f.following_id = u.id
+                        )
+                    ELSE FALSE
+                END as is_following
+            FROM users u
+            LEFT JOIN (
+                SELECT following_id, COUNT(*) as count 
+                FROM follows 
+                GROUP BY following_id
+            ) followers ON followers.following_id = u.id
+            LEFT JOIN (
+                SELECT follower_id, COUNT(*) as count 
+                FROM follows 
+                GROUP BY follower_id
+            ) following ON following.follower_id = u.id
+            LEFT JOIN (
+                SELECT author_id, COUNT(*) as count 
+                FROM posts 
+                GROUP BY author_id
+            ) posts ON posts.author_id = u.id
+            WHERE u.id = $1
+            "#,
+        )
+        .bind(user_id)
+        .bind(current_user_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        match result {
+            Some(row) => Ok(Some(UserProfile {
+                id: row.get("id"),
+                username: row.get("username"),
+                display_name: row.get("display_name"),
+                bio: row.get("bio"),
+                avatar_url: row.get("avatar_url"),
+                created_at: row.get("created_at"),
+                followers_count: row.get("followers_count"),
+                following_count: row.get("following_count"),
+                posts_count: row.get("posts_count"),
+                is_following: row.get("is_following"),
+            })),
+            None => Ok(None),
+        }
+    }
+
+    /// Get my profile (authenticated user) with counts
+    pub async fn get_my_profile(&self,
+        user_id: Uuid,
+    ) -> Result<Option<MyProfile>, AppError> {
+        let result = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.email,
+                u.display_name,
+                u.bio,
+                u.avatar_url,
+                u.created_at,
+                COALESCE(followers.count, 0) as followers_count,
+                COALESCE(following.count, 0) as following_count,
+                COALESCE(posts.count, 0) as posts_count
+            FROM users u
+            LEFT JOIN (
+                SELECT following_id, COUNT(*) as count 
+                FROM follows 
+                GROUP BY following_id
+            ) followers ON followers.following_id = u.id
+            LEFT JOIN (
+                SELECT follower_id, COUNT(*) as count 
+                FROM follows 
+                GROUP BY follower_id
+            ) following ON following.follower_id = u.id
+            LEFT JOIN (
+                SELECT author_id, COUNT(*) as count 
+                FROM posts 
+                GROUP BY author_id
+            ) posts ON posts.author_id = u.id
+            WHERE u.id = $1
+            "#,
+        )
+        .bind(user_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        match result {
+            Some(row) => Ok(Some(MyProfile {
+                id: row.get("id"),
+                username: row.get("username"),
+                email: row.get("email"),
+                display_name: row.get("display_name"),
+                bio: row.get("bio"),
+                avatar_url: row.get("avatar_url"),
+                created_at: row.get("created_at"),
+                followers_count: row.get("followers_count"),
+                following_count: row.get("following_count"),
+                posts_count: row.get("posts_count"),
+            })),
+            None => Ok(None),
+        }
+    }
+
+    /// Update user profile
+    pub async fn update_profile(
+        &self,
+        user_id: Uuid,
+        request: &UpdateProfileRequest,
+    ) -> Result<(), AppError> {
+        sqlx::query(
+            r#"
+            UPDATE users 
+            SET 
+                display_name = COALESCE($1, display_name),
+                bio = COALESCE($2, bio),
+                updated_at = NOW()
+            WHERE id = $3
+            "#,
+        )
+        .bind(&request.display_name)
+        .bind(&request.bio)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(())
+    }
+
+    /// Update avatar URL
+    pub async fn update_avatar(&self, user_id: Uuid, avatar_url: &str) -> Result<(), AppError> {
+        sqlx::query(
+            r#"
+            UPDATE users 
+            SET avatar_url = $1, updated_at = NOW()
+            WHERE id = $2
+            "#,
+        )
+        .bind(avatar_url)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(())
+    }
+
+    /// Follow a user
+    pub async fn follow_user(
+        &self,
+        follower_id: Uuid,
+        following_id: Uuid,
+    ) -> Result<bool, AppError> {
+        // Prevent self-following
+        if follower_id == following_id {
+            return Ok(false);
+        }
+
+        let result = sqlx::query(
+            r#"
+            INSERT INTO follows (follower_id, following_id)
+            VALUES ($1, $2)
+            ON CONFLICT (follower_id, following_id) DO NOTHING
+            RETURNING id
+            "#,
+        )
+        .bind(follower_id)
+        .bind(following_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(result.is_some())
+    }
+
+    /// Unfollow a user
+    pub async fn unfollow_user(
+        &self,
+        follower_id: Uuid,
+        following_id: Uuid,
+    ) -> Result<bool, AppError> {
+        let result = sqlx::query(
+            r#"
+            DELETE FROM follows 
+            WHERE follower_id = $1 AND following_id = $2
+            RETURNING id
+            "#,
+        )
+        .bind(follower_id)
+        .bind(following_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(result.is_some())
+    }
+
+    /// Check if user is following another user
+    pub async fn is_following(
+        &self,
+        follower_id: Uuid,
+        following_id: Uuid,
+    ) -> Result<bool, AppError> {
+        let result = sqlx::query_scalar::<_, bool>(
+            r#"
+            SELECT EXISTS(
+                SELECT 1 FROM follows 
+                WHERE follower_id = $1 AND following_id = $2
+            )
+            "#,
+        )
+        .bind(follower_id)
+        .bind(following_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(result)
+    }
+
+    /// Get followers list
+    pub async fn get_followers(
+        &self,
+        user_id: Uuid,
+        current_user_id: Option<Uuid>,
+        page: i64,
+        per_page: i64,
+    ) -> Result<(Vec<UserInfo>, i64), AppError> {
+        let offset = (page - 1) * per_page;
+
+        let rows = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.avatar_url,
+                CASE 
+                    WHEN $3::uuid IS NOT NULL THEN
+                        EXISTS(
+                            SELECT 1 FROM follows f2 
+                            WHERE f2.follower_id = $3 AND f2.following_id = u.id
+                        )
+                    ELSE FALSE
+                END as is_following
+            FROM follows f
+            JOIN users u ON u.id = f.follower_id
+            WHERE f.following_id = $1
+            ORDER BY f.created_at DESC
+            LIMIT $2 OFFSET $4
+            "#,
+        )
+        .bind(user_id)
+        .bind(per_page)
+        .bind(current_user_id)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        let users: Vec<UserInfo> = rows
+            .into_iter()
+            .map(|row| UserInfo {
+                id: row.get("id"),
+                username: row.get("username"),
+                display_name: row.get("display_name"),
+                avatar_url: row.get("avatar_url"),
+                is_following: row.get("is_following"),
+            })
+            .collect();
+
+        let total: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*) FROM follows WHERE following_id = $1
+            "#,
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok((users, total))
+    }
+
+    /// Get following list
+    pub async fn get_following(
+        &self,
+        user_id: Uuid,
+        current_user_id: Option<Uuid>,
+        page: i64,
+        per_page: i64,
+    ) -> Result<(Vec<UserInfo>, i64), AppError> {
+        let offset = (page - 1) * per_page;
+
+        let rows = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.avatar_url,
+                CASE 
+                    WHEN $3::uuid IS NOT NULL THEN
+                        EXISTS(
+                            SELECT 1 FROM follows f2 
+                            WHERE f2.follower_id = $3 AND f2.following_id = u.id
+                        )
+                    ELSE FALSE
+                END as is_following
+            FROM follows f
+            JOIN users u ON u.id = f.following_id
+            WHERE f.follower_id = $1
+            ORDER BY f.created_at DESC
+            LIMIT $2 OFFSET $4
+            "#,
+        )
+        .bind(user_id)
+        .bind(per_page)
+        .bind(current_user_id)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        let users: Vec<UserInfo> = rows
+            .into_iter()
+            .map(|row| UserInfo {
+                id: row.get("id"),
+                username: row.get("username"),
+                display_name: row.get("display_name"),
+                avatar_url: row.get("avatar_url"),
+                is_following: row.get("is_following"),
+            })
+            .collect();
+
+        let total: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*) FROM follows WHERE follower_id = $1
+            "#,
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok((users, total))
+    }
+}

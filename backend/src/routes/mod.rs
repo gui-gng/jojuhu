@@ -36,6 +36,7 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
         web::scope("/api/v1")
             .wrap(auth)
             .route("/me", web::get().to(get_current_user_handler))
+            .configure(|c| crate::modules::users::configure(c, pool.clone()))
             .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::timeline::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
