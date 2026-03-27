@@ -31,7 +31,7 @@
 - [x] Follow/unfollow users
 - [x] View followers list
 - [x] View following list
-- [ ] Mutual friends indicator
+- [x] Mutual friends indicator
 
 #### Feed & Posts
 - [x] Create text posts
@@ -48,7 +48,7 @@
 - [x] Join/leave forums
 - [x] Create topics
 - [x] Reply to topics
-- [ ] Forum moderation (pin/lock topics)
+- [x] Forum moderation (pin/lock topics)
 - [ ] Forum discovery/search
 
 #### Messaging
@@ -56,8 +56,8 @@
 - [x] Conversation list
 - [x] Message history with pagination
 - [x] Mark messages as read
-- [ ] Delete conversations
-- [ ] Block users
+- [x] Delete conversations
+- [x] Block users
 
 #### Media Upload
 - [ ] Avatar upload (MinIO storage)
@@ -72,7 +72,7 @@
 - [x] OpenTelemetry observability
 - [x] Docker Compose setup
 - [x] CORS configuration
-- [ ] Rate limiting per user (not just IP)
+- [x] Rate limiting per user (not just IP)
 - [ ] Database backups strategy
 
 #### Frontend
