@@ -64,6 +64,16 @@ impl TimelineService {
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
+    pub async fn get_following_feed(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<PostResponse>, AppError> {
+        let rows: Vec<PostResponseRow> = self.repository.get_following_feed(user_id, offset, limit).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
     pub async fn get_user_posts(
         &self,
         author_id: Uuid,

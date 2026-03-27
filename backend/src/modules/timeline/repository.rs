@@ -133,6 +133,51 @@ impl TimelineRepository {
         Ok(posts)
     }
 
+    pub async fn get_following_feed(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<PostResponseRow>, AppError> {
+        let posts = sqlx::query_as::<_, PostResponseRow>(
+            r#"
+            SELECT 
+                p.id,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name,
+                    'avatar_url', u.avatar_url
+                ) as author,
+                p.content,
+                p.media_urls,
+                p.likes_count,
+                p.comments_count,
+                p.shares_count,
+                p.is_public,
+                p.created_at,
+                EXISTS(
+                    SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1
+                ) as is_liked
+            FROM posts p
+            JOIN users u ON p.author_id = u.id
+            WHERE p.author_id = $1
+               OR EXISTS(
+                   SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = p.author_id
+               )
+            ORDER BY p.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#
+        )
+        .bind(user_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(posts)
+    }
+
     pub async fn get_user_posts(
         &self,
         author_id: Uuid,

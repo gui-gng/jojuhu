@@ -29,6 +29,18 @@ pub async fn get_feed(
     Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
 }
 
+pub async fn get_following_feed(
+    service: web::Data<TimelineService>,
+    user: AuthenticatedUser,
+    query: web::Query<PaginationParams>,
+) -> Result<HttpResponse, AppError> {
+    let offset = query.get_offset();
+    let limit = query.get_limit();
+
+    let posts = service.get_following_feed(user.user_id, offset, limit).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
+}
+
 pub async fn get_user_posts(
     service: web::Data<TimelineService>,
     user: AuthenticatedUser,
