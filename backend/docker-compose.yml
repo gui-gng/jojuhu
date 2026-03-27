@@ -1,19 +1,30 @@
 services:
-  app:
+  jojuhu_backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: jojuhu_backend_app
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/jojuhu_backend
+      DATABASE_URL: postgres://${POSTGRES_USER:-jojuhu}:${POSTGRES_PASSWORD:-jojuhu_secret}@postgres:5432/${POSTGRES_DB:-jojuhu_backend}
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_PASSWORD:-minioadmin}
+      MINIO_BUCKET_NAME: jojuhu-uploads
       HOST: 0.0.0.0
       PORT: 8080
       JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
-      JWT_EXPIRATION_HOURS: 24
-      RUST_LOG: info
-      APP_ENVIRONMENT: production
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      RUST_LOG: ${RUST_LOG:-info}
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-local}
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
 
-volumes:
-  postgres_data_jojuhu:
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+networks:
+  jojuhu_network:
+    driver: bridge
+    external: true
+    name: jojuhu_network

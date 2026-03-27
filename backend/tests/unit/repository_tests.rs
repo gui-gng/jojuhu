@@ -10,7 +10,7 @@ struct MockMessageRepository {
     messages: Vec<MockMessage>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct MockMessage {
     id: uuid::Uuid,
     sender_id: uuid::Uuid,

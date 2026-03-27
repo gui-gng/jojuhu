@@ -183,6 +183,43 @@ SERVER_HOST=127.0.0.1
 SERVER_PORT=8080
 ```
 
+## Commit Guidelines
+
+Always use semantic commits with project-specific prefixes.
+
+### Commit Format
+```
+<type>(<project>/<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+### Project Prefixes
+- `backend/` - Rust API and server-side code
+- `frontend/` - Client-side UI code
+- `infrastructure/` - Docker, CI/CD, deployment configs
+
+### Commit Types
+- `feat` - New features or functionality
+- `fix` - Bug fixes
+- `refactor` - Code refactoring without behavior changes
+- `docs` - Documentation updates
+- `test` - Adding or updating tests
+- `chore` - Maintenance tasks, dependency updates
+- `style` - Code style changes (formatting, linting)
+- `perf` - Performance improvements
+
+### Examples
+```
+feat(backend/auth): add JWT token refresh endpoint
+fix(frontend/profile): resolve avatar upload validation bug
+refactor(backend/messages): extract message validation logic
+chore(infrastructure): update PostgreSQL to v15
+docs(backend): add API documentation for user module
+```
+
 ## Pre-Commit Checklist
 
 - [ ] Code compiles: `cargo build`

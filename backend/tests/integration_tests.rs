@@ -20,6 +20,9 @@ fn create_test_settings() -> Settings {
             expiration_hours: 24,
         },
         environment: "test".to_string(),
+        cors: Some(jojuhu_backend::config::CorsSettings {
+            allowed_origins: vec!["*".to_string()],
+        }),
     }
 }
 

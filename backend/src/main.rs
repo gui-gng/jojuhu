@@ -22,12 +22,10 @@ use config::Settings;
 use middleware::logging::RequestLogger;
 use routes::configure;
 
-    /// CORS allowed origins - in production, this should be restricted
-const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &[
-    "*",
-];
+/// CORS allowed origins - in production, this should be restricted
+const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &["*", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:33347"];
 
-const DEFAULT_ALLOWED_ORIGIN:String = "https://yourdomain.com".to_string();
+const DEFAULT_ALLOWED_ORIGIN: &str = "https://yourdomain.com";
 
 
 
@@ -90,9 +88,9 @@ async fn main() -> std::io::Result<()> {
             .map(|origins| {
                 origins.split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>()
             })
-            .unwrap_or_else(|_| vec![DEFAULT_ALLOWED_ORIGIN.clone()])
+            .unwrap_or_else(|_| vec![DEFAULT_ALLOWED_ORIGIN.to_string()])
     } else {
-        DEFAULT_ALLOWED_ORIGINS.iter().map(|&s| s.to_string()).collect()
+        DEFAULT_ALLOWED_ORIGINS_LOCAL.iter().map(|&s| s.to_string()).collect()
     };
 
     info!("Starting server at http://{}", server_address);
@@ -230,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_allowed_origins_in_dev() {
-        let origins: Vec<String> = DEFAULT_ALLOWED_ORIGINS
+        let origins: Vec<String> = DEFAULT_ALLOWED_ORIGINS_LOCAL
             .iter()
             .map(|&s| s.to_string())
             .collect();
