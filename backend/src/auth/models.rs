@@ -25,12 +25,27 @@ pub struct RefreshTokenRequest {
     pub refresh_token: String,
 }
 
-/// Password reset request
-#[allow(dead_code)]
+/// Password reset request (step 1 - request reset)
 #[derive(Debug, Deserialize)]
-pub struct PasswordResetRequest {
+pub struct RequestPasswordResetRequest {
     /// Email address of the account to reset
     pub email: String,
+}
+
+/// Password reset request (step 2 - confirm with token)
+#[derive(Debug, Deserialize)]
+pub struct ConfirmPasswordResetRequest {
+    /// Reset token from email
+    pub token: String,
+    /// New password
+    pub new_password: String,
+}
+
+/// Email verification request
+#[derive(Debug, Deserialize)]
+pub struct VerifyEmailRequest {
+    /// Verification token from email
+    pub token: String,
 }
 
 /// Change password request for authenticated users

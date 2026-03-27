@@ -51,6 +51,7 @@ impl UserService {
         let sanitized_request = UpdateProfileRequest {
             display_name: request.display_name.map(|s| s.trim().to_string()),
             bio: request.bio.map(|s| s.trim().to_string()),
+            is_private: request.is_private,
         };
 
         self.repository.update_profile(user_id, &sanitized_request).await

@@ -39,7 +39,8 @@ impl UserRepository {
                             WHERE f.follower_id = $2 AND f.following_id = u.id
                         )
                     ELSE FALSE
-                END as is_following
+                END as is_following,
+                COALESCE(mutual.count, 0) as mutual_friends_count
             FROM users u
             LEFT JOIN (
                 SELECT following_id, COUNT(*) as count 
@@ -56,6 +57,15 @@ impl UserRepository {
                 FROM posts 
                 GROUP BY author_id
             ) posts ON posts.author_id = u.id
+            LEFT JOIN (
+                SELECT COUNT(*) as count
+                FROM follows f1
+                WHERE f1.follower_id = $1
+                AND EXISTS(
+                    SELECT 1 FROM follows f2 
+                    WHERE f2.follower_id = $2 AND f2.following_id = f1.following_id
+                )
+            ) mutual ON $2::uuid IS NOT NULL
             WHERE u.id = $1
             "#,
         )
@@ -77,6 +87,7 @@ impl UserRepository {
                 following_count: row.get("following_count"),
                 posts_count: row.get("posts_count"),
                 is_following: row.get("is_following"),
+                mutual_friends_count: row.get("mutual_friends_count"),
             })),
             None => Ok(None),
         }
@@ -152,12 +163,14 @@ impl UserRepository {
             SET 
                 display_name = COALESCE($1, display_name),
                 bio = COALESCE($2, bio),
+                is_private = COALESCE($3, is_private),
                 updated_at = NOW()
-            WHERE id = $3
+            WHERE id = $4
             "#,
         )
         .bind(&request.display_name)
         .bind(&request.bio)
+        .bind(&request.is_private)
         .bind(user_id)
         .execute(&self.pool)
         .await
@@ -282,9 +295,20 @@ impl UserRepository {
                             WHERE f2.follower_id = $3 AND f2.following_id = u.id
                         )
                     ELSE FALSE
-                END as is_following
+                END as is_following,
+                COALESCE(mutual.count, 0) as mutual_friends_count
             FROM follows f
             JOIN users u ON u.id = f.follower_id
+            LEFT JOIN (
+                SELECT f1.following_id as user_id, COUNT(*) as count
+                FROM follows f1
+                WHERE f1.follower_id = $1
+                AND EXISTS(
+                    SELECT 1 FROM follows f2 
+                    WHERE f2.follower_id = $3 AND f2.following_id = f1.following_id
+                )
+                GROUP BY f1.following_id
+            ) mutual ON $3::uuid IS NOT NULL AND mutual.user_id = u.id
             WHERE f.following_id = $1
             ORDER BY f.created_at DESC
             LIMIT $2 OFFSET $4
@@ -306,6 +330,7 @@ impl UserRepository {
                 display_name: row.get("display_name"),
                 avatar_url: row.get("avatar_url"),
                 is_following: row.get("is_following"),
+                mutual_friends_count: row.get("mutual_friends_count"),
             })
             .collect();
 
@@ -346,9 +371,20 @@ impl UserRepository {
                             WHERE f2.follower_id = $3 AND f2.following_id = u.id
                         )
                     ELSE FALSE
-                END as is_following
+                END as is_following,
+                COALESCE(mutual.count, 0) as mutual_friends_count
             FROM follows f
             JOIN users u ON u.id = f.following_id
+            LEFT JOIN (
+                SELECT f1.following_id as user_id, COUNT(*) as count
+                FROM follows f1
+                WHERE f1.follower_id = $1
+                AND EXISTS(
+                    SELECT 1 FROM follows f2 
+                    WHERE f2.follower_id = $3 AND f2.following_id = f1.following_id
+                )
+                GROUP BY f1.following_id
+            ) mutual ON $3::uuid IS NOT NULL AND mutual.user_id = u.id
             WHERE f.follower_id = $1
             ORDER BY f.created_at DESC
             LIMIT $2 OFFSET $4
@@ -370,6 +406,7 @@ impl UserRepository {
                 display_name: row.get("display_name"),
                 avatar_url: row.get("avatar_url"),
                 is_following: row.get("is_following"),
+                mutual_friends_count: row.get("mutual_friends_count"),
             })
             .collect();
 

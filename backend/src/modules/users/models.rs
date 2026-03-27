@@ -15,6 +15,7 @@ pub struct UserProfile {
     pub following_count: i64,
     pub posts_count: i64,
     pub is_following: bool,
+    pub mutual_friends_count: i64,
 }
 
 /// User profile for the authenticated user (includes private info)
@@ -37,6 +38,7 @@ pub struct MyProfile {
 pub struct UpdateProfileRequest {
     pub display_name: Option<String>,
     pub bio: Option<String>,
+    pub is_private: Option<bool>,
 }
 
 /// Request to update avatar
@@ -53,6 +55,7 @@ pub struct UserInfo {
     pub display_name: Option<String>,
     pub avatar_url: Option<String>,
     pub is_following: bool,
+    pub mutual_friends_count: i64,
 }
 
 /// Paginated list of users

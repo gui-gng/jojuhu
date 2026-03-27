@@ -16,6 +16,7 @@ mod middleware;
 mod models;
 mod modules;
 mod routes;
+mod services;
 mod utils;
 
 use config::Settings;

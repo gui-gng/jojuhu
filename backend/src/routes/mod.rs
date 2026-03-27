@@ -8,7 +8,11 @@ use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::PgPool;
 
 // Auth handlers are used through auth::handlers
-use crate::auth::handlers::{get_current_user_handler, login_handler, register_handler};
+use crate::auth::handlers::{
+    confirm_password_reset_handler, get_current_user_handler, login_handler,
+    register_handler, request_password_reset_handler, resend_verification_handler,
+    verify_email_handler,
+};
 use crate::config::Settings;
 use crate::docs::{openapi_json, swagger_ui};
 use crate::modules::search;
@@ -25,6 +29,9 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
         web::scope("/api/v1/auth")
             .route("/register", web::post().to(register_handler))
             .route("/login", web::post().to(login_handler))
+            .route("/password-reset", web::post().to(request_password_reset_handler))
+            .route("/password-reset/confirm", web::post().to(confirm_password_reset_handler))
+            .route("/verify-email", web::post().to(verify_email_handler))
     );
     
     // Health check (no auth required)
@@ -36,6 +43,7 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
         web::scope("/api/v1")
             .wrap(auth)
             .route("/me", web::get().to(get_current_user_handler))
+            .route("/me/resend-verification", web::post().to(resend_verification_handler))
             .configure(|c| crate::modules::users::configure(c, pool.clone()))
             .configure(|c| crate::modules::upload::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))

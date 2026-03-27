@@ -24,10 +24,21 @@ pub struct CorsSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct EmailSettings {
+    pub smtp_host: String,
+    pub smtp_port: u16,
+    pub smtp_user: String,
+    pub smtp_password: String,
+    pub from_email: String,
+    pub from_name: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub server: ServerSettings,
     pub jwt: JwtSettings,
+    pub email: EmailSettings,
     pub cors: Option<CorsSettings>,
     #[allow(dead_code)]
     pub environment: String,
@@ -102,6 +113,19 @@ impl Settings {
 
         let cors = Some(CorsSettings { allowed_origins });
 
+        // Email settings with defaults for development
+        let email = EmailSettings {
+            smtp_host: std::env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".into()),
+            smtp_port: std::env::var("SMTP_PORT")
+                .unwrap_or_else(|_| "587".into())
+                .parse::<u16>()
+                .map_err(|e| ConfigError::Message(format!("Invalid SMTP_PORT: {}", e)))?,
+            smtp_user: std::env::var("SMTP_USER").unwrap_or_else(|_| "".into()),
+            smtp_password: std::env::var("SMTP_PASSWORD").unwrap_or_else(|_| "".into()),
+            from_email: std::env::var("FROM_EMAIL").unwrap_or_else(|_| "noreply@jojuhu.com".into()),
+            from_name: std::env::var("FROM_NAME").unwrap_or_else(|_| "Jojuhu".into()),
+        };
+
         Ok(Settings {
             database: DatabaseSettings { url: database_url },
             server: ServerSettings { host, port },
@@ -109,6 +133,7 @@ impl Settings {
                 secret: jwt_secret,
                 expiration_hours: jwt_expiration_hours,
             },
+            email,
             cors,
             environment: run_mode,
         })

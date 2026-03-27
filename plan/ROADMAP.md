@@ -18,29 +18,29 @@
 - [x] Login with JWT tokens
 - [x] Secure password handling (bcrypt/argon2)
 - [x] Token refresh mechanism
-- [ ] Password reset via email
-- [ ] Email verification
+- [x] Password reset via email
+- [x] Email verification
 
 #### User Profiles
-- [ ] View user profile page
-- [ ] Edit profile (display name, bio, avatar)
-- [ ] Profile privacy settings (public/private)
-- [ ] User stats (posts count, followers, following)
+- [x] View user profile page
+- [x] Edit profile (display name, bio, avatar)
+- [x] Profile privacy settings (public/private)
+- [x] User stats (posts count, followers, following)
 
 #### Social Graph (Follow System)
-- [ ] Follow/unfollow users
-- [ ] View followers list
-- [ ] View following list
+- [x] Follow/unfollow users
+- [x] View followers list
+- [x] View following list
 - [ ] Mutual friends indicator
 
 #### Feed & Posts
 - [x] Create text posts
 - [x] Like/unlike posts
 - [x] Comment on posts
-- [ ] Delete own posts/comments
-- [ ] Edit posts (within time limit)
-- [ ] Personal feed (posts from followed users)
-- [ ] Global explore feed
+- [x] Delete own posts/comments
+- [x] Edit posts (within time limit)
+- [x] Personal feed (posts from followed users)
+- [x] Global explore feed
 - [ ] Chronological sorting option
 
 #### Forums (Communities)

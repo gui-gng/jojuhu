@@ -25,6 +25,10 @@ pub struct User {
     pub bio: Option<String>,
     /// URL to user's avatar image
     pub avatar_url: Option<String>,
+    /// Whether the profile is private (only visible to followers)
+    pub is_private: bool,
+    /// Whether the email has been verified
+    pub email_verified: bool,
     /// Account creation timestamp
     pub created_at: DateTime<Utc>,
     /// Last update timestamp
@@ -45,7 +49,6 @@ pub struct CreateUserRequest {
 }
 
 /// Request to update user profile information
-#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct UpdateUserRequest {
     /// New display name (optional)
@@ -54,6 +57,8 @@ pub struct UpdateUserRequest {
     pub bio: Option<String>,
     /// New avatar URL (optional)
     pub avatar_url: Option<String>,
+    /// Whether the profile is private (optional)
+    pub is_private: Option<bool>,
 }
 
 /// User response DTO (excludes sensitive fields like password_hash)
@@ -65,6 +70,8 @@ pub struct UserResponse {
     pub display_name: Option<String>,
     pub bio: Option<String>,
     pub avatar_url: Option<String>,
+    pub is_private: bool,
+    pub email_verified: bool,
     pub created_at: DateTime<Utc>,
 }
 
@@ -77,6 +84,8 @@ impl From<User> for UserResponse {
             display_name: user.display_name,
             bio: user.bio,
             avatar_url: user.avatar_url,
+            is_private: user.is_private,
+            email_verified: user.email_verified,
             created_at: user.created_at,
         }
     }

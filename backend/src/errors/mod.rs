@@ -80,3 +80,9 @@ impl From<serde_json::Error> for AppError {
         AppError::ValidationError(error.to_string())
     }
 }
+
+impl From<validator::ValidationError> for AppError {
+    fn from(error: validator::ValidationError) -> Self {
+        AppError::ValidationError(error.code.to_string())
+    }
+}
