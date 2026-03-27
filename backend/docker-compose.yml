@@ -1,21 +1,4 @@
 services:
-  db:
-    image: postgres:18-alpine
-    container_name: jojuhu_backend_db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: jojuhu_backend
-    volumes:
-      - postgres_data_jojuhu:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   app:
     build:
       context: .
@@ -31,9 +14,6 @@ services:
       APP_ENVIRONMENT: production
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
 
 volumes:
   postgres_data_jojuhu:
