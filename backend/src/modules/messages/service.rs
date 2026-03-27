@@ -31,7 +31,7 @@ impl MessageService {
         
         // Check for suspicious patterns
         validate_input_safety(&request.content)
-            .map_err(|e| AppError::ValidationError(e))?;
+            .map_err(AppError::ValidationError)?;
         
         // Sanitize content to prevent XSS
         request.content = sanitize_input(&request.content);

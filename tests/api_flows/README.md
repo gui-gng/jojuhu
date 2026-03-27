@@ -61,7 +61,7 @@ python3 test_messages.py
   - Missing fields
 - ✅ Get user profile with token
 
-**Output:** Saves user credentials and tokens to `/tmp/jojuhu_test_users.json`
+**Output:** Saves user credentials and tokens to `./tmp/jojuhu_test_users.json`
 
 ### 2. Posts (`test_posts.py`)
 
@@ -75,7 +75,7 @@ python3 test_messages.py
 - ✅ Get Following feed
 - ✅ Get post details with comments
 
-**Output:** Saves posts and comments to `/tmp/jojuhu_test_posts.json`
+**Output:** Saves posts and comments to `./tmp/jojuhu_test_posts.json`
 
 ### 3. Forums (`test_forums.py`)
 
@@ -96,7 +96,7 @@ python3 test_messages.py
 - ✅ Reply to topics
 - ✅ Get forums list
 
-**Output:** Saves forums and topics to `/tmp/jojuhu_test_forums.json`
+**Output:** Saves forums and topics to `./tmp/jojuhu_test_forums.json`
 
 ### 4. Messages (`test_messages.py`)
 
@@ -108,7 +108,7 @@ python3 test_messages.py
 - ✅ Get messages in a conversation
 - ✅ Reply to received messages
 
-**Output:** Saves messages and conversations to `/tmp/jojuhu_test_messages.json`
+**Output:** Saves messages and conversations to `./tmp/jojuhu_test_messages.json`
 
 ## Configuration
 
@@ -164,10 +164,10 @@ python3 test_forums.py
 python3 test_messages.py
 
 # 6. Check results
-cat /tmp/jojuhu_test_users.json
-cat /tmp/jojuhu_test_posts.json
-cat /tmp/jojuhu_test_forums.json
-cat /tmp/jojuhu_test_messages.json
+cat ./tmp/jojuhu_test_users.json
+cat ./tmp/jojuhu_test_posts.json
+cat ./tmp/jojuhu_test_forums.json
+cat ./tmp/jojuhu_test_messages.json
 ```
 
 ## Expected Results

@@ -30,24 +30,27 @@ pub fn validate_input_safety(input: &str) -> Result<(), String> {
         "javascript:",
         "onerror=",
         "onload=",
-        "SELECT * FROM",
-        "DROP TABLE",
-        "INSERT INTO",
-        "DELETE FROM",
-        "UNION SELECT",
+        "select * from",
+        "drop table",
+        "insert into",
+        "delete from",
+        "union select",
         "1=1",
-        "' OR '",
+        "' or '",
         ";--",
     ];
-    
+
     let lower_input = input.to_lowercase();
-    
+
     for pattern in suspicious_patterns {
         if lower_input.contains(pattern) {
-            return Err(format!("Input contains potentially dangerous pattern: {}", pattern));
+            return Err(format!(
+                "Input contains potentially dangerous pattern: {}",
+                pattern
+            ));
         }
     }
-    
+
     Ok(())
 }
 
@@ -55,6 +58,7 @@ pub fn validate_input_safety(input: &str) -> Result<(), String> {
 ///
 /// This is a helper function to sanitize string fields before processing.
 /// Use it in handlers that accept user-generated content.
+#[allow(dead_code)]
 pub fn sanitize_content_fields(content: &mut String) {
     *content = sanitize_input(content);
 }

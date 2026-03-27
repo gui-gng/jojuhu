@@ -35,7 +35,7 @@ impl TimelineService {
         
         // Check for suspicious patterns
         validate_input_safety(&request.content)
-            .map_err(|e| AppError::ValidationError(e))?;
+            .map_err(AppError::ValidationError)?;
         
         // Sanitize content
         request.content = sanitize_input(&request.content);
@@ -159,7 +159,7 @@ impl TimelineService {
         )?;
 
         // Check for suspicious patterns
-        validate_input_safety(&request.content).map_err(|e| AppError::ValidationError(e))?;
+        validate_input_safety(&request.content).map_err(AppError::ValidationError)?;
 
         // Sanitize content
         request.content = sanitize_input(&request.content);

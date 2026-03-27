@@ -49,6 +49,7 @@ pub struct SendMessageRequest {
 }
 
 /// Request to update/edit an existing message
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct UpdateMessageRequest {
     /// New content for the message

@@ -27,17 +27,17 @@ pub struct AuthenticatedUser {
     /// Unique identifier for the user (UUID v4)
     pub user_id: uuid::Uuid,
     /// User's display name (may differ from username)
-    pub username: String,
+    pub _username: String,
     /// User's email address (verified)
-    pub email: String,
+    pub _email: String,
 }
 
 impl From<Claims> for AuthenticatedUser {
     fn from(claims: Claims) -> Self {
         Self {
             user_id: claims.sub,
-            username: claims.username,
-            email: claims.email,
+            _username: claims.username,
+            _email: claims.email,
         }
     }
 }
@@ -48,11 +48,11 @@ impl FromRequest for AuthenticatedUser {
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
         let extensions = req.extensions();
-        
+
         match extensions.get::<Claims>() {
             Some(claims) => ready(Ok(AuthenticatedUser::from(claims.clone()))),
             None => ready(Err(AppError::AuthenticationError(
-                "User not authenticated".to_string()
+                "User not authenticated".to_string(),
             ))),
         }
     }

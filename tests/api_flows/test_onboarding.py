@@ -293,7 +293,7 @@ if __name__ == "__main__":
     results = flow.run_all_tests()
     
     # Save results for other test flows
-    with open("/tmp/jojuhu_test_users.json", "w") as f:
+    with open("./tmp/jojuhu_test_users.json", "w") as f:
         json.dump(results, f, indent=2)
     
-    print("Test results saved to /tmp/jojuhu_test_users.json")
+    print("Test results saved to ./tmp/jojuhu_test_users.json")

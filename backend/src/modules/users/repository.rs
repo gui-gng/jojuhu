@@ -234,6 +234,7 @@ impl UserRepository {
         Ok(result.is_some())
     }
 
+    #[allow(dead_code)]
     /// Check if user is following another user
     pub async fn is_following(
         &self,

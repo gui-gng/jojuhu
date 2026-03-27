@@ -24,6 +24,7 @@ impl UploadType {
         }
     }
 
+    #[allow(dead_code)]
     pub fn max_size(&self) -> usize {
         match self {
             UploadType::Avatar => 5 * 1024 * 1024,     // 5MB
@@ -81,7 +82,7 @@ impl PresignedUrlRequest {
         let extension = self
             .file_name
             .split('.')
-            .last()
+            .next_back()
             .unwrap_or("")
             .to_lowercase();
 

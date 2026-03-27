@@ -33,13 +33,13 @@ impl ForumService {
     ) -> Result<ForumResponse, AppError> {
         // Validate and sanitize forum name
         validate_content_length(&request.name, MIN_CONTENT_LENGTH, MAX_TITLE_LENGTH, "Forum name")?;
-        validate_input_safety(&request.name).map_err(|e| AppError::ValidationError(e))?;
+        validate_input_safety(&request.name).map_err(AppError::ValidationError)?;
         request.name = sanitize_input(&request.name);
 
         // Sanitize description if provided
         if let Some(ref mut desc) = request.description {
             validate_content_length(desc, MIN_CONTENT_LENGTH, MAX_CONTENT_LENGTH, "Forum description")?;
-            validate_input_safety(desc).map_err(|e| AppError::ValidationError(e))?;
+            validate_input_safety(desc).map_err(AppError::ValidationError)?;
             *desc = sanitize_input(desc);
         }
 
@@ -59,7 +59,7 @@ impl ForumService {
             .await?;
 
         let row = self.get_forum_response(forum.id, Some(creator_id)).await?;
-        Ok(row.into())
+        Ok(row)
     }
 
     pub async fn get_forum(
@@ -109,7 +109,7 @@ impl ForumService {
             .await?;
 
         let row = self.get_forum_response(forum.id, Some(user_id)).await?;
-        Ok(row.into())
+        Ok(row)
     }
 
     pub async fn delete_forum(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
@@ -152,12 +152,12 @@ impl ForumService {
     ) -> Result<TopicResponse, AppError> {
         // Validate and sanitize title
         validate_content_length(&request.title, MIN_CONTENT_LENGTH, MAX_TITLE_LENGTH, "Topic title")?;
-        validate_input_safety(&request.title).map_err(|e| AppError::ValidationError(e))?;
+        validate_input_safety(&request.title).map_err(AppError::ValidationError)?;
         request.title = sanitize_input(&request.title);
 
         // Validate and sanitize content
         validate_content_length(&request.content, MIN_CONTENT_LENGTH, MAX_CONTENT_LENGTH, "Topic content")?;
-        validate_input_safety(&request.content).map_err(|e| AppError::ValidationError(e))?;
+        validate_input_safety(&request.content).map_err(AppError::ValidationError)?;
         request.content = sanitize_input(&request.content);
 
         self.check_forum_membership(forum_id, author_id).await?;
@@ -223,7 +223,7 @@ impl ForumService {
             MAX_CONTENT_LENGTH,
             "Reply content",
         )?;
-        validate_input_safety(&request.content).map_err(|e| AppError::ValidationError(e))?;
+        validate_input_safety(&request.content).map_err(AppError::ValidationError)?;
         request.content = sanitize_input(&request.content);
 
         let reply = self

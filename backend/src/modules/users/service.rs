@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::errors::AppError;
 
 use super::{
-    models::{MyProfile, UpdateProfileRequest, UserInfo, UserProfile, UsersListResponse},
+    models::{MyProfile, UpdateProfileRequest, UserProfile, UsersListResponse},
     repository::UserRepository,
 };
 
@@ -45,7 +45,7 @@ impl UserService {
         request: UpdateProfileRequest,
     ) -> Result<(), AppError> {
         // Validate input
-        request.validate().map_err(|e| AppError::ValidationError(e))?;
+        request.validate().map_err(AppError::ValidationError)?;
 
         // Sanitize input
         let sanitized_request = UpdateProfileRequest {
@@ -130,7 +130,7 @@ impl UserService {
                 "Page must be at least 1".to_string(),
             ));
         }
-        if per_page < 1 || per_page > 100 {
+        if !(1..=100).contains(&per_page) {
             return Err(AppError::ValidationError(
                 "Per page must be between 1 and 100".to_string(),
             ));
@@ -166,7 +166,7 @@ impl UserService {
                 "Page must be at least 1".to_string(),
             ));
         }
-        if per_page < 1 || per_page > 100 {
+        if !(1..=100).contains(&per_page) {
             return Err(AppError::ValidationError(
                 "Per page must be between 1 and 100".to_string(),
             ));
@@ -188,6 +188,7 @@ impl UserService {
         })
     }
 
+    #[allow(dead_code)]
     /// Check if a user is following another
     pub async fn is_following(
         &self,

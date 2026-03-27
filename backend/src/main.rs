@@ -23,9 +23,9 @@ use middleware::logging::RequestLogger;
 use routes::configure;
 
 /// CORS allowed origins - in production, this should be restricted
-const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &["*", "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:33347"];
+const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &["*", "http://localhost:3000"];
 
-const DEFAULT_ALLOWED_ORIGIN: &str = "https://yourdomain.com";
+const DEFAULT_ALLOWED_ORIGINS_PROD: &[&str] = &["https://yourdomain.com"];
 
 
 
@@ -88,7 +88,7 @@ async fn main() -> std::io::Result<()> {
             .map(|origins| {
                 origins.split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>()
             })
-            .unwrap_or_else(|_| vec![DEFAULT_ALLOWED_ORIGIN.to_string()])
+            .unwrap_or_else(|_| DEFAULT_ALLOWED_ORIGINS_PROD.iter().map(|&s| s.to_string()).collect())
     } else {
         DEFAULT_ALLOWED_ORIGINS_LOCAL.iter().map(|&s| s.to_string()).collect()
     };

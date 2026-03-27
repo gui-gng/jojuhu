@@ -2,6 +2,7 @@ use actix_web::{HttpResponse, ResponseError};
 use serde_json::json;
 use std::fmt;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug)]
 pub enum AppError {
     DatabaseError(String),
@@ -30,13 +31,25 @@ impl fmt::Display for AppError {
 impl ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         let (status, message) = match self {
-            AppError::DatabaseError(msg) => (actix_web::http::StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
-            AppError::ValidationError(msg) => (actix_web::http::StatusCode::BAD_REQUEST, msg.clone()),
-            AppError::AuthenticationError(msg) => (actix_web::http::StatusCode::UNAUTHORIZED, msg.clone()),
-            AppError::AuthorizationError(msg) => (actix_web::http::StatusCode::FORBIDDEN, msg.clone()),
+            AppError::DatabaseError(msg) => (
+                actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+                msg.clone(),
+            ),
+            AppError::ValidationError(msg) => {
+                (actix_web::http::StatusCode::BAD_REQUEST, msg.clone())
+            }
+            AppError::AuthenticationError(msg) => {
+                (actix_web::http::StatusCode::UNAUTHORIZED, msg.clone())
+            }
+            AppError::AuthorizationError(msg) => {
+                (actix_web::http::StatusCode::FORBIDDEN, msg.clone())
+            }
             AppError::NotFoundError(msg) => (actix_web::http::StatusCode::NOT_FOUND, msg.clone()),
             AppError::ConflictError(msg) => (actix_web::http::StatusCode::CONFLICT, msg.clone()),
-            AppError::InternalError(msg) => (actix_web::http::StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
+            AppError::InternalError(msg) => (
+                actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+                msg.clone(),
+            ),
         };
 
         HttpResponse::build(status).json(json!({

@@ -83,10 +83,10 @@ def main():
     
     print("\n" + "="*70)
     print("Generated test data files:")
-    print("  - /tmp/jojuhu_test_users.json")
-    print("  - /tmp/jojuhu_test_posts.json")
-    print("  - /tmp/jojuhu_test_forums.json")
-    print("  - /tmp/jojuhu_test_messages.json")
+    print("  - ./tmp/jojuhu_test_users.json")
+    print("  - ./tmp/jojuhu_test_posts.json")
+    print("  - ./tmp/jojuhu_test_forums.json")
+    print("  - ./tmp/jojuhu_test_messages.json")
     print("="*70 + "\n")
     
     # Return exit code

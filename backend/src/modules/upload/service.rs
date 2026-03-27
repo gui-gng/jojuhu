@@ -1,21 +1,15 @@
-use hmac::{Hmac, Mac};
-use sha2::Sha256;
-use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 use crate::errors::AppError;
 
-use super::models::{PresignedUrlRequest, PresignedUrlResponse, UploadType};
-
-// HMAC-SHA256 type alias
-type HmacSha256 = Hmac<Sha256>;
+use super::models::{PresignedUrlRequest, PresignedUrlResponse};
 
 pub struct UploadService {
     endpoint: String,
     bucket_name: String,
-    access_key: String,
-    secret_key: String,
-    region: String,
+    _access_key: String,
+    _secret_key: String,
+    _region: String,
 }
 
 impl UploadService {
@@ -29,9 +23,9 @@ impl UploadService {
         Ok(Self {
             endpoint,
             bucket_name,
-            access_key,
-            secret_key,
-            region: "us-east-1".to_string(),
+            _access_key: access_key,
+            _secret_key: secret_key,
+            _region: _region.unwrap_or_else(|| "us-east-1".to_string()),
         })
     }
 
@@ -62,7 +56,7 @@ impl UploadService {
         let extension = request
             .file_name
             .split('.')
-            .last()
+            .next_back()
             .unwrap_or("jpg")
             .to_lowercase();
         let key = format!(

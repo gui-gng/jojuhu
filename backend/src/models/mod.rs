@@ -10,6 +10,7 @@ use uuid::Uuid;
 pub mod user;
 
 /// Base model with common fields for database entities
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BaseModel {
     /// Unique identifier (UUID v4)
@@ -53,6 +54,7 @@ impl<T> ApiResponse<T> {
     }
 
     /// Creates an error API response with a message
+    #[allow(dead_code)]
     pub fn error(message: String) -> Self {
         Self {
             success: false,

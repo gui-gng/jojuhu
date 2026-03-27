@@ -6,6 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Token response returned after successful authentication
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenResponse {
     /// JWT access token
@@ -17,6 +18,7 @@ pub struct TokenResponse {
 }
 
 /// Refresh token request for obtaining new access tokens
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct RefreshTokenRequest {
     /// The refresh token string
@@ -24,6 +26,7 @@ pub struct RefreshTokenRequest {
 }
 
 /// Password reset request
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct PasswordResetRequest {
     /// Email address of the account to reset
@@ -31,6 +34,7 @@ pub struct PasswordResetRequest {
 }
 
 /// Change password request for authenticated users
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct ChangePasswordRequest {
     /// Current password for verification

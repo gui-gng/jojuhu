@@ -219,7 +219,7 @@ impl TimelineRepository {
         .fetch_all(&self.pool)
         .await?;
 
-        Ok(posts.into_iter().map(Into::into).collect())
+        Ok(posts)
     }
 
     pub async fn update_post(

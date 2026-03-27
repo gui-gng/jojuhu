@@ -45,6 +45,7 @@ pub struct CreateUserRequest {
 }
 
 /// Request to update user profile information
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct UpdateUserRequest {
     /// New display name (optional)
