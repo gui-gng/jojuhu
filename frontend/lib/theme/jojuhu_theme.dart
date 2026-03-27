@@ -96,7 +96,7 @@ class JojuhuTheme {
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: JojuhuColors.fundoBranco,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -162,7 +162,7 @@ class JojuhuTheme {
       ),
       
       // Tab Bar
-      tabBarTheme: const TabBarTheme(
+      tabBarTheme: const TabBarThemeData(
         labelColor: JojuhuColors.sol,
         unselectedLabelColor: JojuhuColors.textoCinza,
         indicatorColor: JojuhuColors.sol,

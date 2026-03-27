@@ -10,13 +10,13 @@ class PresignedUrlRequest {
     required this.uploadType,
   });
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
     return {
       'file_name': fileName,
       'content_type': contentType,
       'upload_type': uploadType.value,
     };
-  };
+  }
 }
 
 enum UploadType {
@@ -57,7 +57,7 @@ class ConfirmUploadRequest {
 
   ConfirmUploadRequest({required this.key});
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
     return {'key': key};
-  };
+  }
 }

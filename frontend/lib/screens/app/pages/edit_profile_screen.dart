@@ -276,7 +276,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 8),
               TextButton(
-                onTap: _pickAvatar,
+                onPressed: _pickAvatar,
                 child: const Text('Change Avatar'),
               ),
               if (_selectedAvatar != null) ...[

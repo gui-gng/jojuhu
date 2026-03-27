@@ -5,7 +5,7 @@ import 'package:jojuhu/services/api_service.dart';
 import 'package:jojuhu/theme/jojuhu_theme.dart';
 import 'edit_profile_screen.dart';
 import 'follow_list_screen.dart';
-import '../post_detail_screen.dart';
+import 'post_detail_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -190,7 +190,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     }
 
     final isMyProfile = widget.isMyProfile || widget.userId == null;
-    final profile = _myProfile ?? _profile;
+    final dynamic profile = _myProfile ?? _profile;
 
     if (profile == null) {
       return const Scaffold(

@@ -1,4 +1,5 @@
 import 'user.dart';
+import 'user_profile.dart';
 
 class Message {
   final String id;
