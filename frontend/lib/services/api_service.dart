@@ -3,9 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/api_response.dart';
 import '../models/user.dart';
+import '../models/user_profile.dart';
 import '../models/message.dart';
 import '../models/post.dart';
 import '../models/forum.dart';
+import '../models/upload.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:8080';
@@ -701,5 +703,199 @@ class ApiService {
     );
 
     return _handleResponse<Map<String, dynamic>>(response, (data) => data);
+  }
+
+  // ============================================================================
+  // USER PROFILE
+  // ============================================================================
+
+  /// GET /api/v1/users/me
+  /// Gets the current user's profile
+  static Future<ApiResponse<MyProfile>> getMyProfile() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$apiPrefix/users/me'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<MyProfile>(response, (data) => MyProfile.fromJson(data));
+  }
+
+  /// GET /api/v1/users/{id}
+  /// Gets a user's profile by ID
+  static Future<ApiResponse<UserProfile>> getUserProfile(String userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$apiPrefix/users/$userId'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<UserProfile>(response, (data) => UserProfile.fromJson(data));
+  }
+
+  /// PUT /api/v1/users/me
+  /// Updates the current user's profile
+  static Future<ApiResponse<void>> updateProfile({
+    String? displayName,
+    String? bio,
+  }) async {
+    final body = {
+      if (displayName != null) 'display_name': displayName,
+      if (bio != null) 'bio': bio,
+    };
+
+    final response = await http.put(
+      Uri.parse('$baseUrl$apiPrefix/users/me'),
+      headers: await _getHeaders(),
+      body: jsonEncode(body),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// PUT /api/v1/users/me/avatar
+  /// Updates the current user's avatar
+  static Future<ApiResponse<void>> updateAvatar(String avatarUrl) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl$apiPrefix/users/me/avatar'),
+      headers: await _getHeaders(),
+      body: jsonEncode({'avatar_url': avatarUrl}),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// POST /api/v1/users/{id}/follow
+  /// Follows a user
+  static Future<ApiResponse<void>> followUser(String userId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl$apiPrefix/users/$userId/follow'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// DELETE /api/v1/users/{id}/follow
+  /// Unfollows a user
+  static Future<ApiResponse<void>> unfollowUser(String userId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl$apiPrefix/users/$userId/follow'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// GET /api/v1/users/{id}/followers
+  /// Gets a user's followers
+  static Future<ApiResponse<UsersListResponse>> getFollowers({
+    required String userId,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$apiPrefix/users/$userId/followers?page=$page&per_page=$perPage'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<UsersListResponse>(response, (data) => UsersListResponse.fromJson(data));
+  }
+
+  /// GET /api/v1/users/{id}/following
+  /// Gets a user's following list
+  static Future<ApiResponse<UsersListResponse>> getFollowing({
+    required String userId,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$apiPrefix/users/$userId/following?page=$page&per_page=$perPage'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<UsersListResponse>(response, (data) => UsersListResponse.fromJson(data));
+  }
+
+  // ============================================================================
+  // FEED
+  // ============================================================================
+
+  /// GET /api/v1/timeline/following
+  /// Gets the personalized following feed
+  static Future<ApiResponse<List<Post>>> getFollowingFeed({
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl$apiPrefix/timeline/following?page=$page&per_page=$perPage'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<List<Post>>(
+      response,
+      (data) => (data as List).map((p) => Post.fromJson(p)).toList(),
+    );
+  }
+
+  // ============================================================================
+  // UPLOAD
+  // ============================================================================
+
+  /// POST /api/v1/upload/presigned-url
+  /// Generates a presigned URL for uploading a file
+  static Future<ApiResponse<PresignedUrlResponse>> generatePresignedUrl(
+    PresignedUrlRequest request,
+  ) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl$apiPrefix/upload/presigned-url'),
+      headers: await _getHeaders(),
+      body: jsonEncode(request.toJson()),
+    );
+
+    return _handleResponse<PresignedUrlResponse>(
+      response,
+      (data) => PresignedUrlResponse.fromJson(data),
+    );
+  }
+
+  /// POST /api/v1/upload/confirm-avatar
+  /// Confirms an avatar upload
+  static Future<ApiResponse<void>> confirmAvatarUpload(String key) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl$apiPrefix/upload/confirm-avatar'),
+      headers: await _getHeaders(),
+      body: jsonEncode({'key': key}),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// Uploads a file directly to MinIO using a presigned URL
+  static Future<bool> uploadToPresignedUrl({
+    required String presignedUrl,
+    required List<int> fileBytes,
+    required String contentType,
+  }) async {
+    try {
+      final response = await http.put(
+        Uri.parse(presignedUrl),
+        headers: {'Content-Type': contentType},
+        body: fileBytes,
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// DELETE /api/v1/upload/files/{key}
+  /// Deletes a file from storage
+  static Future<ApiResponse<void>> deleteFile(String key) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl$apiPrefix/upload/files/$key'),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
   }
 }

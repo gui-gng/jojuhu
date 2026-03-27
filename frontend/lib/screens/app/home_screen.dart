@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pages/explore.dart';
 import 'pages/forum.dart';
 import 'pages/messages/messages_screen.dart';
+import 'pages/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ExploreScreen(),
     MessagesScreen(),
     ForumScreen(),
+    ProfileScreen(isMyProfile: true),
   ];
 
   final List<NavigationDestination> _destinations = const [
@@ -34,6 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedIcon: Icon(Icons.forum),
       icon: Icon(Icons.forum_outlined),
       label: 'Forum',
+    ),
+    NavigationDestination(
+      selectedIcon: Icon(Icons.person),
+      icon: Icon(Icons.person_outlined),
+      label: 'Profile',
     ),
   ];
 
