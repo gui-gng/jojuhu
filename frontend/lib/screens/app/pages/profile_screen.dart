@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jojuhu/models/post.dart';
 import 'package:jojuhu/models/user_profile.dart';
 import 'package:jojuhu/services/api_service.dart';
+import 'package:jojuhu/theme/jojuhu_theme.dart';
 import 'edit_profile_screen.dart';
 import 'follow_list_screen.dart';
 import '../post_detail_screen.dart';
@@ -269,17 +270,31 @@ class _ProfileScreenState extends State<ProfileScreen>
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: profile.avatarUrl != null
-                    ? NetworkImage(profile.avatarUrl!)
-                    : null,
-                child: profile.avatarUrl == null
-                    ? Text(
-                        profile.username[0].toUpperCase(),
-                        style: const TextStyle(fontSize: 40),
-                      )
-                    : null,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: JojuhuColors.sol,
+                    width: 3,
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: JojuhuColors.lua.withOpacity(0.1),
+                  backgroundImage: profile.avatarUrl != null
+                      ? NetworkImage(profile.avatarUrl!)
+                      : null,
+                  child: profile.avatarUrl == null
+                      ? Text(
+                          profile.username[0].toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 40,
+                            color: JojuhuColors.lua,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -353,11 +368,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                 onPressed: _toggleFollow,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: profile.isFollowing
-                      ? Colors.grey[200]
-                      : Theme.of(context).primaryColor,
+                      ? JojuhuColors.fundo
+                      : JojuhuColors.sol,
                   foregroundColor: profile.isFollowing
-                      ? Colors.black87
-                      : Colors.white,
+                      ? JojuhuColors.textoEscuro
+                      : JojuhuColors.textoClaro,
+                  side: profile.isFollowing
+                      ? const BorderSide(color: JojuhuColors.textoCinza)
+                      : null,
                 ),
                 child: Text(profile.isFollowing ? 'Following' : 'Follow'),
               ),

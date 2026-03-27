@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jojuhu/screens/app/home_screen.dart';
 import 'package:jojuhu/screens/auth/login_screen.dart';
 import 'package:jojuhu/services/api_service.dart';
+import 'package:jojuhu/theme/jojuhu_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,32 +21,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Jojuhu',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.deepOrange,
-        scaffoldBackgroundColor: Colors.white,
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.grey[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
+      theme: JojuhuTheme.lightTheme,
       home: FutureBuilder<bool>(
         future: _checkAuth(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
+            return Scaffold(
+              backgroundColor: JojuhuTheme.lightTheme.scaffoldBackgroundColor,
+              body: const Center(
                 child: CircularProgressIndicator(),
               ),
             );
