@@ -39,8 +39,10 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
 
     // Protected routes (auth required)
     let auth = HttpAuthentication::bearer(validator);
+    let user_rate_limit = crate::middleware::rate_limit::UserRateLimit::new(100, 60); // 100 requests per minute per user
     cfg.service(
         web::scope("/api/v1")
+            .wrap(user_rate_limit)
             .wrap(auth)
             .route("/me", web::get().to(get_current_user_handler))
             .route("/me/resend-verification", web::post().to(resend_verification_handler))
