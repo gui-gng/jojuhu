@@ -23,16 +23,13 @@ use middleware::logging::RequestLogger;
 use routes::configure;
 
     /// CORS allowed origins - in production, this should be restricted
-const DEFAULT_ALLOWED_ORIGINS: &[&str] = &[
-    "http://localhost:3000",
-    "http://localhost:5000",
-    "http://localhost:8080",
-    "http://localhost:4200",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5000",
-    "http://127.0.0.1:8080",
-    "http://127.0.0.1:4200",
+const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &[
+    "*",
 ];
+
+const DEFAULT_ALLOWED_ORIGIN:String = "https://yourdomain.com".to_string();
+
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -93,7 +90,7 @@ async fn main() -> std::io::Result<()> {
             .map(|origins| {
                 origins.split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>()
             })
-            .unwrap_or_else(|_| vec!["https://yourdomain.com".to_string()])
+            .unwrap_or_else(|_| vec![DEFAULT_ALLOWED_ORIGIN.clone()])
     } else {
         DEFAULT_ALLOWED_ORIGINS.iter().map(|&s| s.to_string()).collect()
     };
@@ -222,6 +219,9 @@ mod tests {
                 expiration_hours: 24,
             },
             environment: "test".to_string(),
+            cors: Some(config::CorsSettings {
+                allowed_origins: vec!["*".to_string()],
+            }),
         };
         
         assert_eq!(settings.server.port, 8080);
