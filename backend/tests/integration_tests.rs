@@ -35,7 +35,7 @@ fn test_health_check_response_structure() {
     });
 
     assert_eq!(expected_response["status"], "healthy");
-    assert_eq!(expected_response["service"], "social_network");
+    assert_eq!(expected_response["service"], "jojuhu_backend");
 }
 
 #[test]

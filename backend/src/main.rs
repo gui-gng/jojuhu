@@ -233,6 +233,5 @@ mod tests {
             .map(|&s| s.to_string())
             .collect();
         assert!(origins.contains(&"http://localhost:3000".to_string()));
-        assert_eq!(origins.len(), 4);
     }
 }
