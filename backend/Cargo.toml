@@ -56,11 +56,14 @@ argon2 = "0.5"
 # Search
 regex = "1"
 
-# File Storage (MinIO/S3)
-rust-s3 = { version = "0.35", default-features = false, features = ["tokio", "tokio-native-tls"] }
+# HTTP client for uploads
+reqwest = { version = "0.12", features = ["json"] }
 
-# Image processing
-image = "0.25"
+# HMAC for S3 signature
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+url = "2.5"
 
 [dev-dependencies]
 # HTTP client for integration tests

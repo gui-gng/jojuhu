@@ -1,7 +1,131 @@
-include:
-  - ./backend/docker-compose.yml
-  - ./infrastructure/docker-compose.yml
+# Jojuhu Full Stack Docker Compose
+# This file runs both infrastructure and application services
+
+services:
+  # ============================================
+  # Infrastructure Services
+  # ============================================
+
+  postgres:
+    image: postgres:17.2-alpine
+    container_name: jojuhu_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jojuhu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jojuhu_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-jojuhu_backend}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init:/docker-entrypoint-initdb.d
+      - ./infrastructure/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: jojuhu_redis
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis_data:/data
+      - ./infrastructure/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: jojuhu_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+  minio-createbucket:
+    image: minio/mc:RELEASE.2024-11-17T19-35-25Z
+    container_name: jojuhu_minio_setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/jojuhu-uploads --ignore-existing;
+      /usr/bin/mc policy set public myminio/jojuhu-uploads;
+      exit 0;
+      "
+    networks:
+      - jojuhu_network
+
+  # ============================================
+  # Application Services
+  # ============================================
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: jojuhu_backend_app
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-jojuhu}:${POSTGRES_PASSWORD:-jojuhu_secret}@postgres:5432/${POSTGRES_DB:-jojuhu_backend}
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_PASSWORD:-minioadmin}
+      MINIO_BUCKET_NAME: jojuhu-uploads
+      HOST: 0.0.0.0
+      PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      RUST_LOG: ${RUST_LOG:-info}
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-production}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - jojuhu_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
 
 networks:
-  network-jojuhu:
+  jojuhu_network:
     driver: bridge
+    name: jojuhu_network
