@@ -49,7 +49,7 @@
 - [x] Create topics
 - [x] Reply to topics
 - [x] Forum moderation (pin/lock topics)
-- [ ] Forum discovery/search
+- [x] Forum discovery/search
 
 #### Messaging
 - [x] Direct messaging between users
