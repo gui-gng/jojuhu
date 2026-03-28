@@ -60,10 +60,10 @@
 - [x] Block users
 
 #### Media Upload
-- [ ] Avatar upload (MinIO storage)
-- [ ] Post image attachments (up to 4 images)
-- [ ] Image optimization (resizing)
-- [ ] Image deletion
+- [x] Avatar upload (MinIO storage)
+- [x] Post image attachments (up to 4 images)
+- [x] Image validation (type, size)
+- [x] Image deletion
 
 #### Infrastructure
 - [x] PostgreSQL database
