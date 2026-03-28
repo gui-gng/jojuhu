@@ -23,3 +23,30 @@ services:
       timeout: 3s
       start_period: 10s
       retries: 3
+    networks:
+      - jojuhu_network
+
+  # Automated Database Backups
+  postgres-backup:
+    image: postgres:16-alpine
+    container_name: jojuhu-postgres-backup
+    environment:
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGDATABASE=${POSTGRES_DB:-jojuhu_backend}
+      - PGUSER=${POSTGRES_USER:-jojuhu}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-jojuhu_secret}
+      - BACKUP_RETENTION_DAYS=7
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup-entrypoint.sh:/backup-entrypoint.sh:ro
+    entrypoint: ["/backup-entrypoint.sh"]
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - jojuhu_network
+
+networks:
+  jojuhu_network:
+    external: true

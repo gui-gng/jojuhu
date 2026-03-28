@@ -5,8 +5,8 @@ use crate::middleware::security::{sanitize_input, validate_input_safety};
 use crate::middleware::validation::validate_content_length;
 
 use super::models::{
-    CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumResponse, ForumRole,
-    ReplyResponse, ReplyResponseRow, TopicResponse, TopicResponseRow, UpdateForumRequest,
+    CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumListResponse, ForumResponse,
+    ForumRole, ReplyResponse, ReplyResponseRow, TopicResponse, TopicResponseRow, UpdateForumRequest,
 };
 use super::repository::ForumRepository;
 
@@ -77,6 +77,47 @@ impl ForumService {
         user_id: Option<Uuid>,
     ) -> Result<Vec<ForumResponse>, AppError> {
         let rows = self.repository.list_forums(offset, limit, user_id).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    /// Search forums with filtering and sorting
+    pub async fn search_forums(
+        &self,
+        user_id: Option<Uuid>,
+        search: Option<&str>,
+        sort_by: &str,
+        page: i64,
+        per_page: i64,
+    ) -> Result<super::models::ForumListResponse, AppError> {
+        let offset = ((page - 1) * per_page) as i32;
+        let limit = per_page as i32;
+
+        let rows = self
+            .repository
+            .search_forums(user_id, search, sort_by, offset, limit)
+            .await?;
+
+        let total = self.repository.get_search_count(user_id, search).await?;
+
+        let forums: Vec<ForumResponse> = rows.into_iter().map(Into::into).collect();
+        let has_more = (page * per_page) < total;
+
+        Ok(super::models::ForumListResponse {
+            forums,
+            total,
+            page,
+            per_page,
+            has_more,
+        })
+    }
+
+    /// Get trending forums
+    pub async fn get_trending_forums(
+        &self,
+        user_id: Option<Uuid>,
+        limit: i32,
+    ) -> Result<Vec<ForumResponse>, AppError> {
+        let rows = self.repository.get_trending_forums(user_id, limit).await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 

@@ -154,6 +154,143 @@ impl ForumRepository {
         Ok(forums)
     }
 
+    /// Search forums by name or description
+    pub async fn search_forums(
+        &self,
+        user_id: Option<Uuid>,
+        search: Option<&str>,
+        sort_by: &str,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<ForumResponseRow>, AppError> {
+        let search_pattern = search.map(|s| format!("%{}%", s.to_lowercase()));
+        
+        let order_clause = match sort_by {
+            "popular" => "f.members_count DESC",
+            "most_active" => "f.topics_count DESC",
+            "most_members" => "f.members_count DESC",
+            _ => "f.created_at DESC", // newest
+        };
+
+        let sql = format!(
+            r#"
+            SELECT 
+                f.id,
+                f.name,
+                f.slug,
+                f.description,
+                f.icon_url,
+                f.cover_image_url,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name
+                ) as creator,
+                f.is_public,
+                f.members_count,
+                f.topics_count,
+                $4::uuid IS NOT NULL AND EXISTS(
+                    SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $4
+                ) as is_member,
+                f.created_at
+            FROM forums f
+            JOIN users u ON f.creator_id = u.id
+            WHERE (f.is_public = true OR ($4::uuid IS NOT NULL AND EXISTS(
+                SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $4
+            )))
+            AND ($5::text IS NULL OR (LOWER(f.name) LIKE $5 OR LOWER(f.description) LIKE $5))
+            ORDER BY {}
+            LIMIT $1 OFFSET $2
+            "#,
+            order_clause
+        );
+
+        let forums = sqlx::query_as::<_, ForumResponseRow>(&sql)
+            .bind(limit)
+            .bind(offset)
+            .bind(user_id)
+            .bind(user_id)
+            .bind(search_pattern)
+            .fetch_all(&self.pool)
+            .await?;
+
+        Ok(forums)
+    }
+
+    /// Get trending forums (most active in last 30 days)
+    pub async fn get_trending_forums(
+        &self,
+        user_id: Option<Uuid>,
+        limit: i32,
+    ) -> Result<Vec<ForumResponseRow>, AppError> {
+        let forums = sqlx::query_as::<_, ForumResponseRow>(
+            r#"
+            SELECT 
+                f.id,
+                f.name,
+                f.slug,
+                f.description,
+                f.icon_url,
+                f.cover_image_url,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name
+                ) as creator,
+                f.is_public,
+                f.members_count,
+                f.topics_count,
+                $3::uuid IS NOT NULL AND EXISTS(
+                    SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $3
+                ) as is_member,
+                f.created_at
+            FROM forums f
+            JOIN users u ON f.creator_id = u.id
+            WHERE f.is_public = true OR ($3::uuid IS NOT NULL AND EXISTS(
+                SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $3
+            ))
+            ORDER BY (
+                SELECT COUNT(*) FROM topics t 
+                WHERE t.forum_id = f.id AND t.created_at > NOW() - INTERVAL '30 days'
+            ) DESC
+            LIMIT $1
+            "#
+        )
+        .bind(limit)
+        .bind(user_id)
+        .bind(user_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(forums)
+    }
+
+    /// Get forum count for search
+    pub async fn get_search_count(
+        &self,
+        user_id: Option<Uuid>,
+        search: Option<&str>,
+    ) -> Result<i64, AppError> {
+        let search_pattern = search.map(|s| format!("%{}%", s.to_lowercase()));
+
+        let count: i64 = sqlx::query_scalar(
+            r#"
+            SELECT COUNT(*) 
+            FROM forums f
+            WHERE (f.is_public = true OR ($1::uuid IS NOT NULL AND EXISTS(
+                SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $1
+            )))
+            AND ($2::text IS NULL OR (LOWER(f.name) LIKE $2 OR LOWER(f.description) LIKE $2))
+            "#
+        )
+        .bind(user_id)
+        .bind(search_pattern)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
+    }
+
     pub async fn update_forum(
         &self,
         forum_id: Uuid,

@@ -1,11 +1,11 @@
-use actix_web::{web, HttpResponse};
+use actix_web::{web, HttpResponse, HttpRequest, HttpMessage};
 use uuid::Uuid;
 
 use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
 
-use super::models::{CreateForumRequest, CreateReplyRequest, CreateTopicRequest, UpdateForumRequest};
+use super::models::{CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumSearchQuery, UpdateForumRequest};
 use super::service::ForumService;
 
 pub async fn create_forum(
@@ -25,6 +25,53 @@ pub async fn list_forums(
     let limit = query.get_limit();
 
     let forums = service.list_forums(offset, limit, None).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(forums)))
+}
+
+pub async fn search_forums(
+    service: web::Data<ForumService>,
+    query: web::Query<ForumSearchQuery>,
+    req: HttpRequest,
+) -> Result<HttpResponse, AppError> {
+    let page = query.page.unwrap_or(1) as i64;
+    let per_page = query.per_page.unwrap_or(20).min(100) as i64;
+    let sort_by = match query.sort_by {
+        Some(super::models::ForumSortBy::Popular) => "popular",
+        Some(super::models::ForumSortBy::MostActive) => "most_active",
+        Some(super::models::ForumSortBy::MostMembers) => "most_members",
+        _ => "newest",
+    };
+
+    // Try to get current user ID from request if authenticated
+    let current_user_id = req
+        .extensions()
+        .get::<AuthenticatedUser>()
+        .map(|u| u.user_id);
+
+    let response = service
+        .search_forums(
+            current_user_id,
+            query.search.as_deref(),
+            sort_by,
+            page,
+            per_page,
+        )
+        .await?;
+
+    Ok(HttpResponse::Ok().json(ApiResponse::success(response)))
+}
+
+pub async fn get_trending_forums(
+    service: web::Data<ForumService>,
+    req: HttpRequest,
+) -> Result<HttpResponse, AppError> {
+    // Try to get current user ID from request if authenticated
+    let current_user_id = req
+        .extensions()
+        .get::<AuthenticatedUser>()
+        .map(|u| u.user_id);
+
+    let forums = service.get_trending_forums(current_user_id, 10).await?;
     Ok(HttpResponse::Ok().json(ApiResponse::success(forums)))
 }
 

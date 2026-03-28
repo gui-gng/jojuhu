@@ -211,6 +211,40 @@ pub struct ReplyResponse {
     pub created_at: DateTime<Utc>,
 }
 
+/// Query parameters for forum search and discovery
+#[derive(Debug, Deserialize)]
+pub struct ForumSearchQuery {
+    pub search: Option<String>,
+    pub sort_by: Option<ForumSortBy>,
+    pub page: Option<i32>,
+    pub per_page: Option<i32>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ForumSortBy {
+    Newest,
+    Popular,
+    MostMembers,
+    MostActive,
+}
+
+impl Default for ForumSortBy {
+    fn default() -> Self {
+        Self::Newest
+    }
+}
+
+/// Paginated forum list response
+#[derive(Debug, Serialize)]
+pub struct ForumListResponse {
+    pub forums: Vec<ForumResponse>,
+    pub total: i64,
+    pub page: i64,
+    pub per_page: i64,
+    pub has_more: bool,
+}
+
 #[derive(Debug, sqlx::FromRow)]
 pub struct ReplyResponseRow {
     pub id: Uuid,
