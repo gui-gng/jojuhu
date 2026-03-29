@@ -3,8 +3,7 @@
 //! These tests verify handler behavior including request/response handling,
 //! validation, and error responses.
 
-use actix_web::{http::StatusCode, test, web, App};
-use jojuhu_backend::auth::handlers::{login_handler, register_handler};
+use actix_web::web;
 use jojuhu_backend::config::{DatabaseSettings, JwtSettings, ServerSettings, Settings};
 
 fn create_test_settings() -> Settings {
@@ -20,6 +19,7 @@ fn create_test_settings() -> Settings {
             secret: "test_secret_key_for_testing_only_make_it_long_enough".to_string(),
             expiration_hours: 24,
         },
+        email: None,
         environment: "test".to_string(),
         cors: Some(jojuhu_backend::config::CorsSettings {
             allowed_origins: vec!["*".to_string()],

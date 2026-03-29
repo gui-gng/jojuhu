@@ -19,6 +19,7 @@ fn create_test_settings() -> Settings {
             secret: "test_secret_key_for_testing_only".to_string(),
             expiration_hours: 24,
         },
+        email: None,
         environment: "test".to_string(),
         cors: Some(jojuhu_backend::config::CorsSettings {
             allowed_origins: vec!["*".to_string()],

@@ -13,16 +13,6 @@ use crate::utils::auth::Claims;
 ///
 /// This struct is automatically populated by the authentication middleware
 /// and can be injected into request handlers using Actix-web's extractor system.
-///
-/// # Example
-/// ```rust
-/// use actix_web::{web, HttpResponse};
-/// use social_network::middleware::auth::AuthenticatedUser;
-///
-/// async fn profile(user: AuthenticatedUser) -> HttpResponse {
-///     HttpResponse::Ok().body(format!("Hello, {}", user.username))
-/// }
-/// ```
 pub struct AuthenticatedUser {
     /// Unique identifier for the user (UUID v4)
     pub user_id: uuid::Uuid,

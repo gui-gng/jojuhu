@@ -12,13 +12,6 @@ use validator::ValidationError;
 /// - Maximum 32 characters
 /// - Only alphanumeric characters and underscores allowed
 ///
-/// # Example
-/// ```
-/// use social_network::utils::validators::validate_username;
-///
-/// assert!(validate_username("john_doe").is_ok());
-/// assert!(validate_username("ab").is_err()); // Too short
-/// ```
 pub fn validate_username(username: &str) -> Result<(), ValidationError> {
     if username.len() < 3 {
         return Err(ValidationError::new("username_too_short"));

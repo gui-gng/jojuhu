@@ -88,7 +88,7 @@ impl ForumService {
         sort_by: &str,
         page: i64,
         per_page: i64,
-    ) -> Result<super::models::ForumListResponse, AppError> {
+    ) -> Result<ForumListResponse, AppError> {
         let offset = ((page - 1) * per_page) as i32;
         let limit = per_page as i32;
 
@@ -102,7 +102,7 @@ impl ForumService {
         let forums: Vec<ForumResponse> = rows.into_iter().map(Into::into).collect();
         let has_more = (page * per_page) < total;
 
-        Ok(super::models::ForumListResponse {
+        Ok(ForumListResponse {
             forums,
             total,
             page,

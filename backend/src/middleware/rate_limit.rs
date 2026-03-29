@@ -3,7 +3,7 @@ use actix_web::{Error, HttpMessage};
 use std::future::{ready, Ready};
 use std::pin::Pin;
 use std::sync::Arc;
-use std::task::{Context, Poll};
+
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use std::collections::HashMap;

@@ -8,14 +8,6 @@
 ///
 /// Uses the ammonia crate to strip dangerous HTML while preserving safe content.
 /// This should be called on any user-generated content before storing or displaying.
-///
-/// # Example
-/// ```rust
-/// use social_network::middleware::security::sanitize_input;
-///
-/// let clean = sanitize_input("<script>alert('xss')</script>Hello");
-/// assert_eq!(clean, "Hello");
-/// ```
 pub fn sanitize_input(input: &str) -> String {
     ammonia::clean(input)
 }

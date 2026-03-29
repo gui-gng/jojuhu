@@ -38,7 +38,7 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub server: ServerSettings,
     pub jwt: JwtSettings,
-    pub email: EmailSettings,
+    pub email: Option<EmailSettings>,
     pub cors: Option<CorsSettings>,
     #[allow(dead_code)]
     pub environment: String,
@@ -113,18 +113,22 @@ impl Settings {
 
         let cors = Some(CorsSettings { allowed_origins });
 
-        // Email settings with defaults for development
-        let email = EmailSettings {
-            smtp_host: std::env::var("SMTP_HOST").unwrap_or_else(|_| "smtp.gmail.com".into()),
-            smtp_port: std::env::var("SMTP_PORT")
+        // Email settings - only set if SMTP_HOST is provided
+        let email = std::env::var("SMTP_HOST").ok().map(|smtp_host| {
+            let smtp_port = std::env::var("SMTP_PORT")
                 .unwrap_or_else(|_| "587".into())
                 .parse::<u16>()
-                .map_err(|e| ConfigError::Message(format!("Invalid SMTP_PORT: {}", e)))?,
-            smtp_user: std::env::var("SMTP_USER").unwrap_or_else(|_| "".into()),
-            smtp_password: std::env::var("SMTP_PASSWORD").unwrap_or_else(|_| "".into()),
-            from_email: std::env::var("FROM_EMAIL").unwrap_or_else(|_| "noreply@jojuhu.com".into()),
-            from_name: std::env::var("FROM_NAME").unwrap_or_else(|_| "Jojuhu".into()),
-        };
+                .unwrap_or(587);
+            EmailSettings {
+                smtp_host,
+                smtp_port,
+                smtp_user: std::env::var("SMTP_USER").unwrap_or_default(),
+                smtp_password: std::env::var("SMTP_PASSWORD").unwrap_or_default(),
+                from_email: std::env::var("FROM_EMAIL")
+                    .unwrap_or_else(|_| "noreply@jojuhu.com".into()),
+                from_name: std::env::var("FROM_NAME").unwrap_or_else(|_| "Jojuhu".into()),
+            }
+        });
 
         Ok(Settings {
             database: DatabaseSettings { url: database_url },

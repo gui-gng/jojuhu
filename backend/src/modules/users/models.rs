@@ -98,18 +98,21 @@ mod tests {
         let request = UpdateProfileRequest {
             display_name: Some("a".repeat(101)),
             bio: None,
+            is_private: None,
         };
         assert!(request.validate().is_err());
 
         let request = UpdateProfileRequest {
             display_name: Some("Valid Name".to_string()),
             bio: Some("a".repeat(501)),
+            is_private: None,
         };
         assert!(request.validate().is_err());
 
         let request = UpdateProfileRequest {
             display_name: Some("Valid Name".to_string()),
             bio: Some("Valid bio".to_string()),
+            is_private: Some(false),
         };
         assert!(request.validate().is_ok());
     }

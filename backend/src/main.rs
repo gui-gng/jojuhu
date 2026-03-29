@@ -217,6 +217,7 @@ mod tests {
                 secret: "test_secret".to_string(),
                 expiration_hours: 24,
             },
+            email: None,
             environment: "test".to_string(),
             cors: Some(config::CorsSettings {
                 allowed_origins: vec!["*".to_string()],
