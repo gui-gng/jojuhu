@@ -223,6 +223,7 @@ impl UserService {
     }
 
     /// Check if a user is blocked
+    #[allow(dead_code)]
     pub async fn is_blocked(
         &self,
         blocker_id: Uuid,

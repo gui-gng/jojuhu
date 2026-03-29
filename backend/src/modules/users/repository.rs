@@ -170,7 +170,7 @@ impl UserRepository {
         )
         .bind(&request.display_name)
         .bind(&request.bio)
-        .bind(&request.is_private)
+        .bind(request.is_private)
         .bind(user_id)
         .execute(&self.pool)
         .await
@@ -459,6 +459,7 @@ impl UserRepository {
     }
 
     /// Check if a user is blocked
+    #[allow(dead_code)]
     pub async fn is_blocked(&self, blocker_id: Uuid, blocked_id: Uuid) -> Result<bool, AppError> {
         let result = sqlx::query_scalar::<_, bool>(
             r#"

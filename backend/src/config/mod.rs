@@ -24,6 +24,7 @@ pub struct CorsSettings {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(dead_code)]
 pub struct EmailSettings {
     pub smtp_host: String,
     pub smtp_port: u16,
@@ -38,6 +39,7 @@ pub struct Settings {
     pub database: DatabaseSettings,
     pub server: ServerSettings,
     pub jwt: JwtSettings,
+    #[allow(dead_code)]
     pub email: Option<EmailSettings>,
     pub cors: Option<CorsSettings>,
     #[allow(dead_code)]

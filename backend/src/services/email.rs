@@ -3,6 +3,7 @@ use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
 
+#[allow(dead_code)]
 pub struct EmailService {
     transport: AsyncSmtpTransport<Tokio1Executor>,
     from_email: String,
@@ -10,6 +11,7 @@ pub struct EmailService {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum EmailError {
     Transport(lettre::transport::smtp::Error),
     Message(lettre::error::Error),
@@ -38,6 +40,7 @@ impl From<lettre::error::Error> for EmailError {
     }
 }
 
+#[allow(dead_code)]
 impl EmailService {
     pub fn new(settings: &EmailSettings) -> Result<Self, lettre::transport::smtp::Error> {
         let creds = Credentials::new(

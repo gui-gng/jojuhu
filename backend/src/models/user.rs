@@ -50,6 +50,7 @@ pub struct CreateUserRequest {
 
 /// Request to update user profile information
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct UpdateUserRequest {
     /// New display name (optional)
     pub display_name: Option<String>,

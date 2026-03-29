@@ -220,19 +220,14 @@ pub struct ForumSearchQuery {
     pub per_page: Option<i32>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum ForumSortBy {
+    #[default]
     Newest,
     Popular,
     MostMembers,
     MostActive,
-}
-
-impl Default for ForumSortBy {
-    fn default() -> Self {
-        Self::Newest
-    }
 }
 
 /// Paginated forum list response
