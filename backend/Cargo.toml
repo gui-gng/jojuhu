@@ -9,10 +9,15 @@ description = "A social network backend built with Rust and Actix-web"
 # Web Framework
 actix-web = "4"
 actix-web-httpauth = "0.8"
+actix-ws = "0.3"
 futures = "0.3"
 actix-rt = "2"
 actix-cors = "0.7"
 actix-governor = "0.5"
+
+# Real-time & Caching
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
+serde_cbor = "0.11"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }

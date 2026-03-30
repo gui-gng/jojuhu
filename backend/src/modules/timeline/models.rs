@@ -43,7 +43,7 @@ pub struct UpdatePostRequest {
     pub is_public: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PostResponse {
     pub id: Uuid,
     pub author: PostAuthor,
