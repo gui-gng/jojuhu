@@ -5,7 +5,7 @@ use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
 
-use super::models::{CreateCommentRequest, CreatePostRequest, UpdatePostRequest};
+use super::models::{CreateCommentRequest, CreatePostRequest, FeedSort, TimelineFeedQuery, UpdatePostRequest};
 use super::service::TimelineService;
 
 pub async fn create_post(
@@ -20,24 +20,26 @@ pub async fn create_post(
 pub async fn get_feed(
     service: web::Data<TimelineService>,
     user: AuthenticatedUser,
-    query: web::Query<PaginationParams>,
+    query: web::Query<TimelineFeedQuery>,
 ) -> Result<HttpResponse, AppError> {
-    let offset = query.get_offset();
-    let limit = query.get_limit();
+    let offset = query.page.unwrap_or(1).saturating_sub(1) * query.per_page.unwrap_or(20);
+    let limit = query.per_page.unwrap_or(20);
+    let sort = query.sort.as_ref().unwrap_or(&FeedSort::Newest);
 
-    let posts = service.get_feed(user.user_id, offset, limit).await?;
+    let posts = service.get_feed(user.user_id, offset, limit, sort).await?;
     Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
 }
 
 pub async fn get_following_feed(
     service: web::Data<TimelineService>,
     user: AuthenticatedUser,
-    query: web::Query<PaginationParams>,
+    query: web::Query<TimelineFeedQuery>,
 ) -> Result<HttpResponse, AppError> {
-    let offset = query.get_offset();
-    let limit = query.get_limit();
+    let offset = query.page.unwrap_or(1).saturating_sub(1) * query.per_page.unwrap_or(20);
+    let limit = query.per_page.unwrap_or(20);
+    let sort = query.sort.as_ref().unwrap_or(&FeedSort::Newest);
 
-    let posts = service.get_following_feed(user.user_id, offset, limit).await?;
+    let posts = service.get_following_feed(user.user_id, offset, limit, sort).await?;
     Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
 }
 

@@ -5,7 +5,7 @@ use crate::middleware::security::{sanitize_input, validate_input_safety};
 use crate::middleware::validation::validate_content_length;
 
 use super::models::{
-    CommentResponse, CommentResponseRow, CreateCommentRequest, CreatePostRequest, PostResponse, PostResponseRow, UpdatePostRequest,
+    CommentResponse, CommentResponseRow, CreateCommentRequest, CreatePostRequest, FeedSort, PostResponse, PostResponseRow, UpdatePostRequest,
 };
 use super::repository::TimelineRepository;
 
@@ -59,8 +59,9 @@ impl TimelineService {
         user_id: Uuid,
         offset: i32,
         limit: i32,
+        sort: &FeedSort,
     ) -> Result<Vec<PostResponse>, AppError> {
-        let rows: Vec<PostResponseRow> = self.repository.get_feed(user_id, offset, limit).await?;
+        let rows: Vec<PostResponseRow> = self.repository.get_feed(user_id, offset, limit, sort).await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
@@ -69,8 +70,9 @@ impl TimelineService {
         user_id: Uuid,
         offset: i32,
         limit: i32,
+        sort: &FeedSort,
     ) -> Result<Vec<PostResponse>, AppError> {
-        let rows: Vec<PostResponseRow> = self.repository.get_following_feed(user_id, offset, limit).await?;
+        let rows: Vec<PostResponseRow> = self.repository.get_following_feed(user_id, offset, limit, sort).await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 

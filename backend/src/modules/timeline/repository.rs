@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::errors::AppError;
 
-use super::models::{Comment, CommentResponseRow, Like, Post, PostResponseRow};
+use super::models::{Comment, CommentResponseRow, FeedSort, Like, Post, PostResponseRow};
 
 pub struct TimelineRepository {
     pool: PgPool,
@@ -92,8 +92,15 @@ impl TimelineRepository {
         user_id: Uuid,
         offset: i32,
         limit: i32,
+        sort: &FeedSort,
     ) -> Result<Vec<PostResponseRow>, AppError> {
-        let posts = sqlx::query_as::<_, PostResponseRow>(
+        let order_clause = match sort {
+            FeedSort::Newest => "p.created_at DESC",
+            FeedSort::Oldest => "p.created_at ASC",
+            FeedSort::Popular => "p.likes_count DESC, p.created_at DESC",
+        };
+
+        let sql = format!(
             r#"
             SELECT 
                 p.id,
@@ -120,15 +127,18 @@ impl TimelineRepository {
                OR EXISTS(
                    SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = p.author_id
                )
-            ORDER BY p.created_at DESC
+            ORDER BY {}
             LIMIT $2 OFFSET $3
-            "#
-        )
-        .bind(user_id)
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&self.pool)
-        .await?;
+            "#,
+            order_clause
+        );
+
+        let posts = sqlx::query_as::<_, PostResponseRow>(&sql)
+            .bind(user_id)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(&self.pool)
+            .await?;
 
         Ok(posts)
     }
@@ -138,8 +148,15 @@ impl TimelineRepository {
         user_id: Uuid,
         offset: i32,
         limit: i32,
+        sort: &FeedSort,
     ) -> Result<Vec<PostResponseRow>, AppError> {
-        let posts = sqlx::query_as::<_, PostResponseRow>(
+        let order_clause = match sort {
+            FeedSort::Newest => "p.created_at DESC",
+            FeedSort::Oldest => "p.created_at ASC",
+            FeedSort::Popular => "p.likes_count DESC, p.created_at DESC",
+        };
+
+        let sql = format!(
             r#"
             SELECT 
                 p.id,
@@ -165,15 +182,18 @@ impl TimelineRepository {
                OR EXISTS(
                    SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = p.author_id
                )
-            ORDER BY p.created_at DESC
+            ORDER BY {}
             LIMIT $2 OFFSET $3
-            "#
-        )
-        .bind(user_id)
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&self.pool)
-        .await?;
+            "#,
+            order_clause
+        );
+
+        let posts = sqlx::query_as::<_, PostResponseRow>(&sql)
+            .bind(user_id)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(&self.pool)
+            .await?;
 
         Ok(posts)
     }

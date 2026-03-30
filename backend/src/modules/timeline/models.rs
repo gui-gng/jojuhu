@@ -158,4 +158,14 @@ impl From<CommentResponseRow> for CommentResponse {
 pub struct TimelineFeedQuery {
     pub page: Option<i32>,
     pub per_page: Option<i32>,
+    pub sort: Option<FeedSort>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum FeedSort {
+    #[default]
+    Newest,
+    Oldest,
+    Popular,
 }

@@ -41,7 +41,7 @@
 - [x] Edit posts (within time limit)
 - [x] Personal feed (posts from followed users)
 - [x] Global explore feed
-- [ ] Chronological sorting option
+- [x] Chronological sorting option (newest, oldest, popular)
 
 #### Forums (Communities)
 - [x] Create forums
