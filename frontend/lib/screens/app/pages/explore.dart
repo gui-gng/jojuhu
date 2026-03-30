@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jojuhu/models/post.dart';
 import 'package:jojuhu/services/api_service.dart';
 import 'package:jojuhu/theme/jojuhu_theme.dart';
+import 'package:jojuhu/widgets/skeleton_loaders.dart';
 import 'post_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -313,7 +314,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     required bool isForYou,
   }) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const FeedSkeletonList(itemCount: 5);
     }
 
     if (error != null) {
