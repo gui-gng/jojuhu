@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod hashtags;
 pub mod validators;
 
 use bcrypt::{hash, verify, DEFAULT_COST};
