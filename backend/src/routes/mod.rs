@@ -16,24 +16,10 @@ use crate::auth::handlers::{
 use crate::config::Settings;
 use crate::docs::{openapi_json, swagger_ui};
 use crate::modules::search;
-use crate::notifications::{handlers as notification_handlers, NotificationService};
 use crate::utils::auth::validator;
-use crate::websocket::{websocket_handler, WebSocketServer};
 
 /// Configure all application routes
-pub fn configure(
-    cfg: &mut web::ServiceConfig, 
-    pool: PgPool, 
-    _settings: Settings
-) {
-    // Initialize WebSocket server
-    let ws_server = WebSocketServer::new();
-    let ws_data = web::Data::new(ws_server);
-    
-    // Initialize notification service
-    let notification_service = NotificationService::new(pool.clone(), Some(ws_server));
-    let notification_data = web::Data::new(notification_service);
-    
+pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings) {
     // API Documentation (public)
     cfg.route("/docs", web::get().to(swagger_ui));
     cfg.route("/api-docs/openapi.json", web::get().to(openapi_json));
@@ -50,30 +36,16 @@ pub fn configure(
     
     // Health check (no auth required)
     cfg.route("/health", web::get().to(health_check));
-    
-    // WebSocket endpoint (auth required via bearer)
-    cfg.route("/ws", web::get().to(websocket_handler));
 
     // Protected routes (auth required)
     let auth = HttpAuthentication::bearer(validator);
-    let user_rate_limit = crate::middleware::rate_limit::UserRateLimit::new(100, 60);
-    
+    let user_rate_limit = crate::middleware::rate_limit::UserRateLimit::new(100, 60); // 100 requests per minute per user
     cfg.service(
         web::scope("/api/v1")
-            .app_data(notification_data.clone())
             .wrap(user_rate_limit)
             .wrap(auth)
             .route("/me", web::get().to(get_current_user_handler))
             .route("/me/resend-verification", web::post().to(resend_verification_handler))
-            // Notifications
-            .service(
-                web::scope("/notifications")
-                    .route("", web::get().to(notification_handlers::get_notifications))
-                    .route("/count", web::get().to(notification_handlers::get_unread_count))
-                    .route("/read-all", web::post().to(notification_handlers::mark_all_as_read))
-                    .route("/{id}/read", web::post().to(notification_handlers::mark_as_read))
-                    .route("/{id}", web::delete().to(notification_handlers::delete_notification))
-            )
             .configure(|c| crate::modules::users::configure(c, pool.clone()))
             .configure(|c| crate::modules::upload::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))

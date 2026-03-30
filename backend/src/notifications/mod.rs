@@ -4,7 +4,8 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::errors::AppError;
-use crate::websocket::{WebSocketServer, WsMessage, WsNotification};
+// TODO: v0.2.0 - Enable when WebSocket is integrated
+// use crate::websocket::{WebSocketServer, WsMessage, WsNotification};
 
 /// Notification types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]
@@ -48,12 +49,13 @@ pub struct CreateNotificationRequest {
 /// Notification service
 pub struct NotificationService {
     pool: PgPool,
-    ws_server: Option<WebSocketServer>,
+    // TODO: v0.2.0 - Enable when WebSocket is integrated
+    // ws_server: Option<WebSocketServer>,
 }
 
 impl NotificationService {
-    pub fn new(pool: PgPool, ws_server: Option<WebSocketServer>) -> Self {
-        Self { pool, ws_server }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
     
     /// Create a new notification
@@ -78,18 +80,17 @@ impl NotificationService {
         .fetch_one(&self.pool)
         .await?;
         
-        // Send real-time notification via WebSocket
-        if let Some(ref ws_server) = self.ws_server {
-            let ws_msg = WsMessage::Notification {
-                id: notification.id,
-                notification_type: notification.notification_type.clone(),
-                title: notification.title.clone(),
-                message: notification.message.clone(),
-                data: notification.data.clone(),
-            };
-            
-            ws_server.send_to_user(request.recipient_id, ws_msg).await;
-        }
+        // TODO: v0.2.0 - Send real-time notification via WebSocket
+        // if let Some(ref ws_server) = self.ws_server {
+        //     let ws_msg = WsMessage::Notification {
+        //         id: notification.id,
+        //         notification_type: notification.notification_type.clone(),
+        //         title: notification.title.clone(),
+        //         message: notification.message.clone(),
+        //         data: notification.data.clone(),
+        //     };
+        //     ws_server.send_to_user(request.recipient_id, ws_msg).await;
+        // }
         
         // TODO: Send push notification if user has tokens
         
