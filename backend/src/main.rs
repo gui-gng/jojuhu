@@ -15,9 +15,11 @@ mod errors;
 mod middleware;
 mod models;
 mod modules;
+mod notifications;
 mod routes;
 mod services;
 mod utils;
+mod websocket;
 
 use config::Settings;
 use middleware::logging::RequestLogger;

@@ -44,6 +44,110 @@ class JojuhuColors {
 
 /// Jojuhu Theme Data
 class JojuhuTheme {
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      
+      // Primary Colors
+      primaryColor: JojuhuColors.sol,
+      colorScheme: const ColorScheme.dark(
+        primary: JojuhuColors.sol,
+        secondary: JojuhuColors.lua,
+        tertiary: JojuhuColors.encontro,
+        surface: Color(0xFF1E1E1E),
+        background: Color(0xFF121212),
+        onPrimary: JojuhuColors.textoClaro,
+        onSecondary: JojuhuColors.textoClaro,
+        onSurface: JojuhuColors.textoClaro,
+        onBackground: JojuhuColors.textoClaro,
+      ),
+      
+      // Scaffold Background
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      
+      // App Bar Theme
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E),
+        foregroundColor: JojuhuColors.textoClaro,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      
+      // Bottom Navigation Bar
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF1E1E1E),
+        selectedItemColor: JojuhuColors.sol,
+        unselectedItemColor: Color(0xFF9E9E9E),
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+      
+      // Card Theme
+      cardTheme: CardThemeData(
+        color: const Color(0xFF1E1E1E),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      
+      // Input Decoration
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF2C2C2C),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF3E3E3E)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: JojuhuColors.sol, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      
+      // Elevated Button
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: JojuhuColors.sol,
+          foregroundColor: JojuhuColors.textoClaro,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      
+      // Text Theme
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          color: JojuhuColors.textoClaro,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineMedium: TextStyle(
+          color: JojuhuColors.textoClaro,
+          fontWeight: FontWeight.bold,
+        ),
+        titleLarge: TextStyle(
+          color: JojuhuColors.textoClaro,
+          fontWeight: FontWeight.w600,
+        ),
+        bodyLarge: TextStyle(
+          color: JojuhuColors.textoClaro,
+        ),
+        bodyMedium: TextStyle(
+          color: Color(0xFF9E9E9E),
+        ),
+      ),
+    );
+  }
+  
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
