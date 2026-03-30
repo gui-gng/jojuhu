@@ -169,3 +169,29 @@ pub enum FeedSort {
     Oldest,
     Popular,
 }
+
+/// Repost model
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Repost {
+    pub id: Uuid,
+    pub original_post_id: Uuid,
+    pub reposter_id: Uuid,
+    pub quote_text: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Request to create a repost
+#[derive(Debug, Deserialize)]
+pub struct CreateRepostRequest {
+    pub original_post_id: Uuid,
+    pub quote_text: Option<String>,
+}
+
+/// Response for repost operations
+#[derive(Debug, Serialize)]
+pub struct RepostResponse {
+    pub id: Uuid,
+    pub original_post: PostResponse,
+    pub quote_text: Option<String>,
+    pub created_at: DateTime<Utc>,
+}
