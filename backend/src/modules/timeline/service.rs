@@ -17,7 +17,7 @@ const MAX_COMMENT_LENGTH: usize = 1000;
 const MIN_CONTENT_LENGTH: usize = 1;
 
 pub struct TimelineService {
-    repository: TimelineRepository,
+    pub repository: TimelineRepository,
 }
 
 impl TimelineService {

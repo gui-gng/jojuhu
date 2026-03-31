@@ -170,8 +170,9 @@ pub enum FeedSort {
     Popular,
 }
 
-/// Repost model
+/// Repost model (prepared for v0.2.0 repost feature)
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+#[allow(dead_code)]
 pub struct Repost {
     pub id: Uuid,
     pub original_post_id: Uuid,
@@ -182,6 +183,7 @@ pub struct Repost {
 
 /// Request to create a repost
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct CreateRepostRequest {
     pub original_post_id: Uuid,
     pub quote_text: Option<String>,
@@ -189,6 +191,7 @@ pub struct CreateRepostRequest {
 
 /// Response for repost operations
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct RepostResponse {
     pub id: Uuid,
     pub original_post: PostResponse,
