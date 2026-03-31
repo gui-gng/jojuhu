@@ -52,8 +52,8 @@ pub fn configure(
     // WebSocket server for app data
     cfg.app_data(web::Data::new(ws_server.clone()));
 
-    // Notification service
-    let notification_service = NotificationService::new(pool.clone());
+    // Notification service with WebSocket support
+    let notification_service = NotificationService::new(pool.clone(), Some(ws_server.clone()));
     cfg.app_data(web::Data::new(notification_service));
 
     // Redis cache (optional)

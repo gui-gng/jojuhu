@@ -4,6 +4,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::errors::AppError;
+use crate::websocket::{WebSocketServer, WsMessage};
 
 pub mod handlers;
 
@@ -49,13 +50,12 @@ pub struct CreateNotificationRequest {
 /// Notification service
 pub struct NotificationService {
     pool: PgPool,
-    // TODO: v0.2.0 - Enable when WebSocket is integrated
-    // ws_server: Option<WebSocketServer>,
+    ws_server: Option<WebSocketServer>,
 }
 
 impl NotificationService {
-    pub fn new(pool: PgPool) -> Self {
-        Self { pool }
+    pub fn new(pool: PgPool, ws_server: Option<WebSocketServer>) -> Self {
+        Self { pool, ws_server }
     }
     
     /// Create a new notification
@@ -80,19 +80,17 @@ impl NotificationService {
         .fetch_one(&self.pool)
         .await?;
         
-        // TODO: v0.2.0 - Send real-time notification via WebSocket
-        // if let Some(ref ws_server) = self.ws_server {
-        //     let ws_msg = WsMessage::Notification {
-        //         id: notification.id,
-        //         notification_type: notification.notification_type.clone(),
-        //         title: notification.title.clone(),
-        //         message: notification.message.clone(),
-        //         data: notification.data.clone(),
-        //     };
-        //     ws_server.send_to_user(request.recipient_id, ws_msg).await;
-        // }
-        
-        // TODO: Send push notification if user has tokens
+        // Send real-time notification via WebSocket
+        if let Some(ref ws_server) = self.ws_server {
+            let ws_msg = WsMessage::Notification {
+                id: notification.id,
+                notification_type: notification.notification_type.clone(),
+                title: notification.title.clone(),
+                message: notification.message.clone(),
+                data: notification.data.clone(),
+            };
+            ws_server.send_to_user(request.recipient_id, ws_msg).await;
+        }
         
         Ok(notification)
     }
