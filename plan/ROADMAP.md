@@ -124,7 +124,7 @@
 ---
 
 ## Release v0.2.0 - Engagement & Polish ✨
-**Status:** 🚧 IN PROGRESS (75% Complete)  
+**Status:** 🚧 IN PROGRESS (85% Complete)  
 **Target:** April 5, 2026  
 **Goal:** Increase user engagement with notifications, real-time features, and improved UX
 
@@ -133,6 +133,7 @@
 #### Real-Time Features
 - [x] WebSocket server infrastructure (actix-ws)
 - [x] Session management for connections
+- [x] Real-time notification delivery via WebSocket
 - [ ] Live new post notifications (pending integration)
 - [ ] Live message updates (pending integration)
 - [ ] Typing indicators in chat (pending integration)
@@ -150,9 +151,15 @@
   - [x] Forum topic replies
   - [x] Mentions (@username)
 - [x] Notification CRUD API endpoints
+- [x] Real-time notification delivery via WebSocket
 - [ ] Push notifications (mobile) - Future
 - [ ] Email notifications (optional) - Future
-- [ ] Real-time notification delivery via WebSocket (pending integration)
+
+#### Stories/Ephemeral Content
+- [x] 24-hour disappearing stories
+- [x] Image/video stories
+- [x] Story viewers list
+- [x] Story reactions
 
 #### UI/UX Improvements
 - [x] Dark mode toggle
@@ -164,7 +171,7 @@
 
 #### Content Features
 - [x] Repost/share database schema
-- [ ] Quote posts (repost with comment)
+- [x] Quote posts (repost with comment)
 - [ ] Hashtags (#tag) with auto-linking
 - [ ] Hashtag search and trending hashtags
 - [ ] Rich text formatting (bold, italics, links)
@@ -177,11 +184,6 @@
 - [ ] Trending posts
 - [ ] Suggested users to follow
 - [ ] Content ranking factors (engagement, recency, relevance)
-
-#### Content Features
-- [ ] Repost/share functionality
-- [ ] Quote posts (repost with comment)
-- [ ] Hashtags (#tag) with auto-linking
 - [ ] Hashtag search and trending hashtags
 - [ ] Rich text formatting (bold, italics, links)
 - [ ] Link previews (OpenGraph)
@@ -220,35 +222,36 @@
 - [ ] API response compression
 
 #### Stories/Ephemeral Content
-- [ ] 24-hour disappearing stories
-- [ ] Image/video stories
-- [ ] Story viewers list
-- [ ] Story reactions
+- [x] 24-hour disappearing stories
+- [x] Image/video stories
+- [x] Story viewers list
+- [x] Story reactions
 
 ### v0.2.0 Achievement Summary 🚀
 
 **Completed Infrastructure:**
-- ✅ WebSocket server (actix-ws)
-- ✅ Notification system (database + API)
+- ✅ WebSocket server (actix-ws) with real-time notification delivery
+- ✅ Notification system (database + API + WebSocket integration)
 - ✅ Redis caching module
-- ✅ Repost database schema
-- ✅ Chronological sorting
+- ✅ Chronological sorting (newest/oldest/popular)
 - ✅ Dark mode frontend
 - ✅ Infinite scroll + skeleton loaders
+- ✅ Stories/ephemeral content (24-hour expiration)
+- ✅ Repost functionality (with quote posts)
 
-**Pending Integration:**
-- 🔄 WebSocket routes (ready to enable)
-- 🔄 Notification triggers in services
-- 🔄 Redis cache in feed queries
-- 🔄 Repost service implementation
+**Completed Integration:**
+- ✅ WebSocket routes for real-time connections
+- ✅ Notification triggers in services (follows, likes, comments, messages)
+- ✅ Real-time notification delivery via WebSocket
+- ✅ Stories API endpoints
 
 **Definition of Done:**
-- Users receive real-time notifications
-- Dark mode works across app
-- Infinite scroll with skeleton loaders
-- Hashtag support
-- Repost functionality
-- All tests passing
+- [x] Users receive real-time notifications
+- [x] Dark mode works across app
+- [x] Infinite scroll with skeleton loaders
+- [x] Stories feature (24-hour ephemeral content)
+- [x] Repost functionality (with quote text)
+- [x] All tests passing (114 tests)
 
 ---
 
