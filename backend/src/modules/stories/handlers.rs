@@ -35,6 +35,14 @@ pub async fn get_my_stories(
     Ok(HttpResponse::Ok().json(ApiResponse::success(stories)))
 }
 
+pub async fn get_stories_feed(
+    service: web::Data<StoryService>,
+    user: AuthenticatedUser,
+) -> Result<HttpResponse, AppError> {
+    let stories = service.get_stories_feed(user.user_id).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(stories)))
+}
+
 pub async fn get_following_stories(
     service: web::Data<StoryService>,
     user: AuthenticatedUser,
