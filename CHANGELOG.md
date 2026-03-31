@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Stories feature infrastructure (ephemeral 24-hour content)
+- Placeholder for future features
 
 ## [0.2.0] - 2026-04-XX
 
@@ -28,6 +28,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New messages
   - Mentions (@username)
 - WebSocket route at `/api/v1/ws` for real-time updates
+
+#### Stories/Ephemeral Content
+- Complete stories feature with 24-hour expiration
+- Stories API endpoints:
+  - `POST /api/v1/stories` - create new story
+  - `GET /api/v1/stories/feed` - get stories feed
+  - `GET /api/v1/stories/following` - get stories from followed users
+  - `GET /api/v1/stories/me` - get current user's stories
+  - `GET /api/v1/stories/user/{id}` - get user's stories
+  - `DELETE /api/v1/stories/{id}` - delete story
+  - `POST /api/v1/stories/{id}/view` - view story with optional reaction
+  - `GET /api/v1/stories/{id}/viewers` - get story viewers (owner only)
+- Support for image and video media types
+- View count and viewer tracking
+- Reaction support (like, heart, laugh, wow, sad, angry)
 
 #### Real-Time Infrastructure
 - Redis cache module for feed caching
@@ -49,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabled WebSocket and notification routes in main.rs
 - Made timeline repository public for handler access
 - Added `get_profile_by_id` and `find_by_username` to UserRepository
+- Improved story responses to include user details (username, display_name, avatar)
 
 ### Fixed
 - Clippy warnings throughout codebase
