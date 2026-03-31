@@ -406,4 +406,176 @@ impl TimelineRepository {
 
         Ok(())
     }
+
+    // ==================== Repost operations ====================
+
+    pub async fn create_repost(
+        &self,
+        original_post_id: Uuid,
+        reposter_id: Uuid,
+        quote_text: Option<&str>,
+    ) -> Result<super::models::Repost, AppError> {
+        let repost = sqlx::query_as::<_, super::models::Repost>(
+            r#"
+            INSERT INTO reposts (original_post_id, reposter_id, quote_text)
+            VALUES ($1, $2, $3)
+            RETURNING *
+            "#
+        )
+        .bind(original_post_id)
+        .bind(reposter_id)
+        .bind(quote_text)
+        .fetch_one(&self.pool)
+        .await?;
+
+        // Update repost count on original post
+        sqlx::query(
+            "UPDATE posts SET reposts_count = reposts_count + 1 WHERE id = $1"
+        )
+        .bind(original_post_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(repost)
+    }
+
+    pub async fn delete_repost(&self, original_post_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        let result = sqlx::query(
+            "DELETE FROM reposts WHERE original_post_id = $1 AND reposter_id = $2"
+        )
+        .bind(original_post_id)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(AppError::NotFoundError("Repost not found".to_string()));
+        }
+
+        // Update repost count on original post
+        sqlx::query(
+            "UPDATE posts SET reposts_count = GREATEST(reposts_count - 1, 0) WHERE id = $1"
+        )
+        .bind(original_post_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_user_reposts(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<super::models::RepostResponse>, AppError> {
+        let reposts = sqlx::query_as::<_, RepostWithPostRow>(
+            r#"
+            SELECT 
+                r.id,
+                r.original_post_id,
+                r.reposter_id,
+                r.quote_text,
+                r.created_at,
+                p.id as post_id,
+                p.content as post_content,
+                p.media_urls as post_media_urls,
+                p.likes_count as post_likes_count,
+                p.comments_count as post_comments_count,
+                p.shares_count as post_shares_count,
+                p.is_public as post_is_public,
+                p.created_at as post_created_at,
+                p.author_id as post_author_id,
+                pu.username as post_author_username,
+                pu.display_name as post_author_display_name,
+                pu.avatar_url as post_author_avatar_url,
+                rp.username as reposter_username,
+                rp.display_name as reposter_display_name,
+                rp.avatar_url as reposter_avatar_url,
+                EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as post_is_liked
+            FROM reposts r
+            JOIN posts p ON r.original_post_id = p.id
+            JOIN users pu ON p.author_id = pu.id
+            JOIN users rp ON r.reposter_id = rp.id
+            WHERE r.reposter_id = $1
+            ORDER BY r.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#
+        )
+        .bind(user_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(reposts.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn is_reposted(&self, post_id: Uuid, user_id: Uuid) -> Result<bool, AppError> {
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM reposts WHERE original_post_id = $1 AND reposter_id = $2)"
+        )
+        .bind(post_id)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(exists)
+    }
+}
+
+/// Database row for repost with post details
+#[derive(Debug, sqlx::FromRow)]
+#[allow(dead_code)]
+struct RepostWithPostRow {
+    id: Uuid,
+    original_post_id: Uuid,
+    reposter_id: Uuid,
+    quote_text: Option<String>,
+    created_at: chrono::DateTime<chrono::Utc>,
+    post_id: Uuid,
+    post_content: String,
+    post_media_urls: Option<Vec<String>>,
+    post_likes_count: i32,
+    post_comments_count: i32,
+    post_shares_count: i32,
+    post_is_public: bool,
+    post_created_at: chrono::DateTime<chrono::Utc>,
+    post_author_id: Uuid,
+    post_author_username: String,
+    post_author_display_name: Option<String>,
+    post_author_avatar_url: Option<String>,
+    reposter_username: String,
+    reposter_display_name: Option<String>,
+    reposter_avatar_url: Option<String>,
+    post_is_liked: bool,
+}
+
+impl From<RepostWithPostRow> for super::models::RepostResponse {
+    fn from(row: RepostWithPostRow) -> Self {
+        use super::models::{PostAuthor, PostResponse, RepostResponse};
+        
+        RepostResponse {
+            id: row.id,
+            original_post: PostResponse {
+                id: row.post_id,
+                author: PostAuthor {
+                    id: row.post_author_id,
+                    username: row.post_author_username,
+                    display_name: row.post_author_display_name,
+                    avatar_url: row.post_author_avatar_url,
+                },
+                content: row.post_content,
+                media_urls: row.post_media_urls,
+                likes_count: row.post_likes_count,
+                comments_count: row.post_comments_count,
+                shares_count: row.post_shares_count,
+                is_public: row.post_is_public,
+                created_at: row.post_created_at,
+                is_liked: row.post_is_liked,
+            },
+            quote_text: row.quote_text,
+            created_at: row.created_at,
+        }
+    }
 }

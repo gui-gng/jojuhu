@@ -36,6 +36,13 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route(
                 "/posts/{post_id}/comments/{comment_id}",
                 web::delete().to(handlers::delete_comment),
+            )
+            // Reposts
+            .route("/reposts", web::post().to(handlers::create_repost))
+            .route("/reposts/me", web::get().to(handlers::get_my_reposts))
+            .route(
+                "/reposts/{post_id}",
+                web::delete().to(handlers::delete_repost),
             ),
     );
 }

@@ -7,7 +7,7 @@ use crate::models::{ApiResponse, PaginationParams};
 use crate::notifications::NotificationService;
 use crate::modules::users::repository::UserRepository;
 
-use super::models::{CreateCommentRequest, CreatePostRequest, FeedSort, TimelineFeedQuery, UpdatePostRequest};
+use super::models::{CreateCommentRequest, CreatePostRequest, CreateRepostRequest, FeedSort, TimelineFeedQuery, UpdatePostRequest};
 use super::service::TimelineService;
 
 pub async fn create_post(
@@ -234,4 +234,37 @@ async fn check_and_notify_mentions(
     }
     
     Ok(())
+}
+
+// ==================== Repost handlers ====================
+
+pub async fn create_repost(
+    service: web::Data<TimelineService>,
+    user: AuthenticatedUser,
+    request: web::Json<CreateRepostRequest>,
+) -> Result<HttpResponse, AppError> {
+    let repost = service.create_repost(user.user_id, request.into_inner()).await?;
+    Ok(HttpResponse::Created().json(ApiResponse::success(repost)))
+}
+
+pub async fn delete_repost(
+    service: web::Data<TimelineService>,
+    user: AuthenticatedUser,
+    path: web::Path<Uuid>,
+) -> Result<HttpResponse, AppError> {
+    let post_id = path.into_inner();
+    service.delete_repost(user.user_id, post_id).await?;
+    Ok(HttpResponse::NoContent().finish())
+}
+
+pub async fn get_my_reposts(
+    service: web::Data<TimelineService>,
+    user: AuthenticatedUser,
+    query: web::Query<PaginationParams>,
+) -> Result<HttpResponse, AppError> {
+    let offset = query.get_offset();
+    let limit = query.get_limit();
+    
+    let reposts = service.get_user_reposts(user.user_id, offset, limit).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(reposts)))
 }
