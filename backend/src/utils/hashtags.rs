@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 /// Extract hashtags from text
 /// Returns a set of unique hashtag names (without # symbol)
+#[allow(dead_code)]
 pub fn extract_hashtags(text: &str) -> Vec<String> {
     lazy_static::lazy_static! {
         static ref HASHTAG_REGEX: Regex = Regex::new(
@@ -26,6 +27,7 @@ pub fn extract_hashtags(text: &str) -> Vec<String> {
 
 /// Convert hashtags in text to clickable links
 /// Returns HTML string with linked hashtags
+#[allow(dead_code)]
 pub fn link_hashtags(text: &str) -> String {
     lazy_static::lazy_static! {
         static ref HASHTAG_REGEX: Regex = Regex::new(
@@ -47,6 +49,7 @@ pub fn link_hashtags(text: &str) -> String {
 
 /// Extract mentions from text (@username)
 /// Returns a set of unique usernames (without @ symbol)
+#[allow(dead_code)]
 pub fn extract_mentions(text: &str) -> Vec<String> {
     lazy_static::lazy_static! {
         static ref MENTION_REGEX: Regex = Regex::new(
