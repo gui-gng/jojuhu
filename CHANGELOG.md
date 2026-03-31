@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 #### Notifications System
 - WebSocket server for real-time connections with session management
+- Real-time notification delivery via WebSocket when notifications are created
 - Notification API endpoints:
   - `GET /api/v1/notifications` - list user notifications
   - `GET /api/v1/notifications/count` - get unread count
@@ -44,6 +45,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - View count and viewer tracking
 - Reaction support (like, heart, laugh, wow, sad, angry)
 
+#### Repost/Quote Posts
+- Repost functionality with optional quote text
+- Repost API endpoints:
+  - `POST /api/v1/timeline/reposts` - create repost with optional quote
+  - `DELETE /api/v1/timeline/reposts/{post_id}` - remove repost
+  - `GET /api/v1/timeline/reposts/me` - list current user's reposts
+- Prevention of duplicate reposts
+- Automatic reposts_count tracking on posts
+
 #### Real-Time Infrastructure
 - Redis cache module for feed caching
 - WebSocket infrastructure for live updates
@@ -57,7 +67,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Backend
 - Hashtags utility with auto-linking support
 - Mention detection in comments
-- Repost database schema and models
 - Chronological sorting for posts (newest/oldest/popular)
 
 ### Changed
@@ -65,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made timeline repository public for handler access
 - Added `get_profile_by_id` and `find_by_username` to UserRepository
 - Improved story responses to include user details (username, display_name, avatar)
+- NotificationService now accepts WebSocketServer for real-time delivery
 
 ### Fixed
 - Clippy warnings throughout codebase
