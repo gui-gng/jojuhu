@@ -532,4 +532,63 @@ impl UserRepository {
 
         Ok((users, total))
     }
+
+    /// Get minimal user info by ID (for notifications)
+    pub async fn get_profile_by_id(&self, user_id: Uuid) -> Result<UserInfo, AppError> {
+        let row = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.avatar_url
+            FROM users u
+            WHERE u.id = $1
+            "#,
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(UserInfo {
+            id: row.get("id"),
+            username: row.get("username"),
+            display_name: row.get("display_name"),
+            avatar_url: row.get("avatar_url"),
+            is_following: false,
+            mutual_friends_count: 0,
+        })
+    }
+
+    /// Find user by username
+    pub async fn find_by_username(&self, username: &str) -> Result<Option<UserInfo>, AppError> {
+        let row = sqlx::query(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.avatar_url
+            FROM users u
+            WHERE u.username = $1
+            "#,
+        )
+        .bind(username)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        match row {
+            Some(r) => Ok(Some(UserInfo {
+                id: r.get("id"),
+                username: r.get("username"),
+                display_name: r.get("display_name"),
+                avatar_url: r.get("avatar_url"),
+                is_following: false,
+                mutual_friends_count: 0,
+            })),
+            None => Ok(None),
+        }
+    }
 }

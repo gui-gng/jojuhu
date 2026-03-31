@@ -4,6 +4,7 @@ use uuid::Uuid;
 use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
+use crate::notifications::NotificationService;
 
 use super::service::UserService;
 
@@ -67,9 +68,21 @@ pub async fn follow_user(
     path: web::Path<Uuid>,
     user: AuthenticatedUser,
     service: web::Data<UserService>,
+    notification_service: web::Data<NotificationService>,
 ) -> Result<HttpResponse, AppError> {
     let target_user_id = path.into_inner();
     service.follow_user(user.user_id, target_user_id).await?;
+    
+    // Get follower's display name for notification
+    let follower_profile = service.get_my_profile(user.user_id).await?;
+    let follower_name = follower_profile.display_name
+        .unwrap_or(follower_profile.username);
+    
+    // Send notification to the followed user
+    let _ = notification_service
+        .notify_new_follower(user.user_id, &follower_name, target_user_id)
+        .await;
+    
     Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({"following": true}))))
 }
 
