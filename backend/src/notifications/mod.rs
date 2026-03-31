@@ -4,8 +4,8 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::errors::AppError;
-// TODO: v0.2.0 - Enable when WebSocket is integrated
-// use crate::websocket::{WebSocketServer, WsMessage, WsNotification};
+
+pub mod handlers;
 
 /// Notification types
 #[derive(Debug, Clone, Copy, PartialEq, Eq, sqlx::Type, Serialize, Deserialize)]

@@ -13,17 +13,29 @@ use crate::auth::handlers::{
     register_handler, request_password_reset_handler, resend_verification_handler,
     verify_email_handler,
 };
+use crate::cache::RedisCache;
 use crate::config::Settings;
 use crate::docs::{openapi_json, swagger_ui};
 use crate::modules::search;
+use crate::notifications::handlers::{
+    delete_notification, get_notifications, get_unread_count, mark_all_as_read, mark_as_read,
+};
+use crate::notifications::NotificationService;
 use crate::utils::auth::validator;
+use crate::websocket::WebSocketServer;
 
 /// Configure all application routes
-pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings) {
+pub fn configure(
+    cfg: &mut web::ServiceConfig,
+    pool: PgPool,
+    _settings: Settings,
+    redis_cache: Option<RedisCache>,
+    ws_server: WebSocketServer,
+) {
     // API Documentation (public)
     cfg.route("/docs", web::get().to(swagger_ui));
     cfg.route("/api-docs/openapi.json", web::get().to(openapi_json));
-    
+
     // Public routes (no auth required)
     cfg.service(
         web::scope("/api/v1/auth")
@@ -31,11 +43,23 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
             .route("/login", web::post().to(login_handler))
             .route("/password-reset", web::post().to(request_password_reset_handler))
             .route("/password-reset/confirm", web::post().to(confirm_password_reset_handler))
-            .route("/verify-email", web::post().to(verify_email_handler))
+            .route("/verify-email", web::post().to(verify_email_handler)),
     );
-    
+
     // Health check (no auth required)
     cfg.route("/health", web::get().to(health_check));
+
+    // WebSocket server for app data
+    cfg.app_data(web::Data::new(ws_server.clone()));
+
+    // Notification service
+    let notification_service = NotificationService::new(pool.clone());
+    cfg.app_data(web::Data::new(notification_service));
+
+    // Redis cache (optional)
+    if let Some(cache) = redis_cache {
+        cfg.app_data(web::Data::new(cache));
+    }
 
     // Protected routes (auth required)
     let auth = HttpAuthentication::bearer(validator);
@@ -46,12 +70,27 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool, _settings: Settings
             .wrap(auth)
             .route("/me", web::get().to(get_current_user_handler))
             .route("/me/resend-verification", web::post().to(resend_verification_handler))
+            .route(
+                "/ws",
+                web::get().to(|req, payload, srv, user| async {
+                    crate::websocket::websocket_handler(req, payload, srv, user).await
+                }),
+            )
+            .service(
+                web::scope("/notifications")
+                    .route("", web::get().to(get_notifications))
+                    .route("/count", web::get().to(get_unread_count))
+                    .route("/{id}/read", web::post().to(mark_as_read))
+                    .route("/read-all", web::post().to(mark_all_as_read))
+                    .route("/{id}", web::delete().to(delete_notification)),
+            )
             .configure(|c| crate::modules::users::configure(c, pool.clone()))
             .configure(|c| crate::modules::upload::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::timeline::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
-            .configure(search::configure_routes)
+            .configure(|c| crate::modules::stories::configure_module(c, pool.clone()))
+            .configure(search::configure_routes),
     );
 }
 

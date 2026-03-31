@@ -1,4 +1,4 @@
-use actix_web::{delete, get, post, put, web, HttpResponse};
+use actix_web::{web, HttpResponse};
 use uuid::Uuid;
 
 use crate::errors::AppError;
@@ -7,7 +7,6 @@ use crate::models::ApiResponse;
 use crate::notifications::NotificationService;
 
 /// Get user notifications
-#[get("")]
 pub async fn get_notifications(
     service: web::Data<NotificationService>,
     user: AuthenticatedUser,
@@ -25,7 +24,6 @@ pub async fn get_notifications(
 }
 
 /// Get unread notification count
-#[get("/count")]
 pub async fn get_unread_count(
     service: web::Data<NotificationService>,
     user: AuthenticatedUser,
@@ -38,7 +36,6 @@ pub async fn get_unread_count(
 }
 
 /// Mark notification as read
-#[post("/{id}/read")]
 pub async fn mark_as_read(
     service: web::Data<NotificationService>,
     user: AuthenticatedUser,
@@ -53,7 +50,6 @@ pub async fn mark_as_read(
 }
 
 /// Mark all notifications as read
-#[post("/read-all")]
 pub async fn mark_all_as_read(
     service: web::Data<NotificationService>,
     user: AuthenticatedUser,
@@ -66,7 +62,6 @@ pub async fn mark_all_as_read(
 }
 
 /// Delete notification
-#[delete("/{id}")]
 pub async fn delete_notification(
     service: web::Data<NotificationService>,
     user: AuthenticatedUser,

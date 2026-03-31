@@ -9,6 +9,7 @@ use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod auth;
+mod cache;
 mod config;
 mod docs;
 mod errors;
@@ -21,9 +22,11 @@ mod services;
 mod utils;
 mod websocket;
 
+use cache::RedisCache;
 use config::Settings;
 use middleware::logging::RequestLogger;
 use routes::configure;
+use websocket::WebSocketServer;
 
 /// CORS allowed origins - in production, this should be restricted
 const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &["*", "http://localhost:3000"];
@@ -110,7 +113,34 @@ async fn main() -> std::io::Result<()> {
     info!("  Protected: /api/v1/messages/*");
     info!("  Protected: /api/v1/timeline/*");
     info!("  Protected: /api/v1/forums/*");
+    info!("  Protected: /api/v1/notifications/*");
     info!("  Protected: /api/v1/search");
+
+    // Initialize WebSocket server for real-time connections
+    let ws_server = WebSocketServer::new();
+    info!("WebSocket server initialized");
+
+    // Initialize Redis cache (optional)
+    let redis_cache = match std::env::var("REDIS_URL") {
+        Ok(redis_url) => {
+            match RedisCache::new(&redis_url) {
+                Ok(cache) => {
+                    info!("Redis cache connected");
+                    Some(cache)
+                }
+                Err(e) => {
+                    info!("Failed to connect to Redis (running without cache): {}", e);
+                    None
+                }
+            }
+        }
+        Err(_) => {
+            info!("REDIS_URL not set, running without cache");
+            None
+        }
+    };
+
+    let ws_server_data = web::Data::new(ws_server.clone());
 
     HttpServer::new(move || {
         let mut cors = Cors::default()
@@ -131,6 +161,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(pool_data.clone())
             .app_data(settings_data.clone())
+            .app_data(ws_server_data.clone())
             // Rate limiting middleware
             .wrap(Governor::new(&governor_conf))
             // Request logger
@@ -192,7 +223,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             // Request body size limit - 10MB
             .app_data(web::JsonConfig::default().limit(10_485_760))
-            .configure(|cfg| configure(cfg, pool.clone(), settings.clone()))
+            .configure(|cfg| configure(cfg, pool.clone(), settings.clone(), redis_cache.clone(), ws_server.clone()))
     })
     .bind(server_address)?
     .run()

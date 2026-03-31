@@ -3,10 +3,13 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::time::Duration;
 
 /// Redis cache wrapper
+#[derive(Clone)]
+#[allow(dead_code)]
 pub struct RedisCache {
     client: Client,
 }
 
+#[allow(dead_code)]
 impl RedisCache {
     pub fn new(redis_url: &str) -> RedisResult<Self> {
         let client = Client::open(redis_url)?;
@@ -54,7 +57,7 @@ impl RedisCache {
             .arg(key)
             .arg(ttl.as_secs() as usize)
             .arg(serialized)
-            .query_async(&mut conn)
+            .query_async::<_, ()>(&mut conn)
             .await?;
         
         Ok(())
@@ -67,7 +70,7 @@ impl RedisCache {
         let mut conn = self.get_connection().await?;
         redis::cmd("DEL")
             .arg(key)
-            .query_async(&mut conn)
+            .query_async::<_, ()>(&mut conn)
             .await?;
         Ok(())
     }
@@ -91,7 +94,7 @@ impl RedisCache {
         posts: &Vec<crate::modules::timeline::models::PostResponse>,
     ) -> RedisResult<()> {
         let key = format!("feed:user:{}", user_id);
-        self.set(&key, posts, Duration::from_secs(300)).await // 5 minutes
+        self.set(&key, posts, Duration::from_secs(300)).await
     }
     
     /// Get cached feed for user
@@ -119,7 +122,7 @@ impl RedisCache {
         profile: &crate::modules::users::models::UserProfile,
     ) -> RedisResult<()> {
         let key = format!("profile:user:{}", user_id);
-        self.set(&key, profile, Duration::from_secs(600)).await // 10 minutes
+        self.set(&key, profile, Duration::from_secs(600)).await
     }
     
     /// Get cached user profile

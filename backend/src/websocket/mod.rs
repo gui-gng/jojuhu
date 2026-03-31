@@ -12,7 +12,7 @@ use actix_ws::{Message, Session};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio::sync::{mpsc, RwLock};
+use tokio::sync::RwLock;
 use uuid::Uuid;
 
 use crate::middleware::auth::AuthenticatedUser;
@@ -81,16 +81,14 @@ pub enum WsMessage {
 }
 
 /// WebSocket server managing all connections
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct WebSocketServer {
-    sessions: Arc<RwLock<HashMap<Uuid, (Uuid, Session)>>>, // session_id -> (user_id, session)
+    sessions: Arc<RwLock<HashMap<Uuid, (Uuid, Session)>>>,
 }
 
 impl WebSocketServer {
     pub fn new() -> Self {
-        Self {
-            sessions: Arc::new(RwLock::new(HashMap::new())),
-        }
+        Self::default()
     }
     
     /// Add a new session
@@ -108,6 +106,7 @@ impl WebSocketServer {
     }
     
     /// Send message to a specific user
+    #[allow(dead_code)]
     pub async fn send_to_user(
         &self, 
         user_id: Uuid, 
@@ -132,8 +131,8 @@ pub async fn websocket_handler(
     srv: web::Data<WebSocketServer>,
     user: AuthenticatedUser,
 ) -> Result<HttpResponse, AppError> {
-    let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body
-    ).map_err(|e| AppError::InternalError(format!("WebSocket error: {}", e)))?;
+    let (response, mut session, mut msg_stream) = actix_ws::handle(&req, body)
+        .map_err(|e| AppError::InternalError(format!("WebSocket error: {}", e)))?;
     
     let session_id = Uuid::new_v4();
     let user_id = user.user_id;
@@ -141,20 +140,14 @@ pub async fn websocket_handler(
     
     srv.add_session(session_id, user_id, session.clone()).await;
     
-    // Spawn task to handle messages
     actix_rt::spawn(async move {
         while let Some(Ok(msg)) = msg_stream.recv().await {
             match msg {
                 Message::Text(text) => {
-                    if let Ok(ws_msg) = serde_json::from_str::<WsMessage>(&text) {
-                        match ws_msg {
-                            WsMessage::Ping => {
-                                let _ = session.text(
-                                    serde_json::to_string(&WsMessage::Pong).unwrap()
-                                ).await;
-                            }
-                            _ => {}
-                        }
+                    if let Ok(WsMessage::Ping) = serde_json::from_str::<WsMessage>(&text) {
+                        let _ = session.text(
+                            serde_json::to_string(&WsMessage::Pong).unwrap()
+                        ).await;
                     }
                 }
                 Message::Close(_) => {
