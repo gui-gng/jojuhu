@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import Button from '../components/ui/Button.astro';
+
+const title = "404 - Página não encontrada";
+const description = "A página que você procura não foi encontrada.";
+---
+
+<Base title={title} description={description}>
+  
+  <Header />
+  
+  <main class="pt-16 md:pt-20 min-h-[70vh] flex items-center">
+    
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      
+      <div class="text-9xl font-bold font-display text-gradient bg-gradient-to-r from-sol via-encontro to-lua mb-8">
+        404
+      </div>
+      
+      <h1 class="text-3xl md:text-4xl font-bold font-display text-texto dark:text-texto-dark mb-4">
+        Página não encontrada
+      </h1>
+      
+      <p class="text-lg text-texto-secundario dark:text-gray-400 mb-8">
+        Parece que você se perdeu na corrente. A página que procura não existe ou foi movida.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <Button href="/" variant="primary" size="md">
+          Voltar para Home
+        </Button>
+        
+        <Button href="/funcionalidades" variant="outline" size="md">
+          Ver Funcionalidades
+        </Button>
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+
+</Base>

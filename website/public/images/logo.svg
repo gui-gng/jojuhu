@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#F5F5F0"/>
+  
+  <!-- Rio Solimões (top half) - Orange/Yellow flowing water -->
+  <path 
+    d="M100 10 
+       C140 10, 170 40, 170 80
+       C170 95, 160 100, 150 100
+       C130 100, 120 90, 100 90
+       C80 90, 70 100, 50 100
+       C40 100, 30 95, 30 80
+       C30 40, 60 10, 100 10Z" 
+    fill="#FF6B35"
+    opacity="0.9"
+  />
+  
+  <!-- Rio Negro (bottom half) - Deep Blue/Black flowing water -->
+  <path 
+    d="M100 190
+       C60 190, 30 160, 30 120
+       C30 105, 40 100, 50 100
+       C70 100, 80 110, 100 110
+       C120 110, 130 100, 150 100
+       C160 100, 170 105, 170 120
+       C170 160, 140 190, 100 190Z" 
+    fill="#004E89"
+    opacity="0.9"
+  />
+  
+  <!-- The J - Handwritten style, flowing like water -->
+  <path 
+    d="M75 45
+       C85 40, 95 35, 105 40
+       C115 45, 120 55, 118 70
+       C116 90, 110 110, 105 130
+       C102 145, 95 160, 85 165
+       C75 170, 65 165, 60 155
+       C58 150, 60 145, 65 143
+       C70 141, 75 145, 78 150
+       C82 155, 88 150, 92 135
+       C96 120, 100 95, 102 75
+       C103 60, 100 55, 95 52
+       C90 49, 82 52, 75 58
+       C70 62, 68 58, 70 52
+       C72 48, 73 46, 75 45Z"
+    fill="#1A1A1A"
+    stroke="#1A1A1A"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  
+  <!-- Decorative dots representing the meeting point -->
+  <circle cx="100" cy="85" r="4" fill="#9B59B6"/>
+  <circle cx="100" cy="115" r="4" fill="#9B59B6"/>
+  
+  <!-- Flow lines - Solimões side -->
+  <path d="M40 50 Q60 45, 70 55" stroke="#FFB347" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M45 65 Q65 60, 72 68" stroke="#FFB347" stroke-width="2" fill="none" opacity="0.6"/>
+  
+  <!-- Flow lines - Negro side -->
+  <path d="M130 130 Q150 135, 160 125" stroke="#336791" stroke-width="2" fill="none" opacity="0.6"/>
+  <path d="M128 145 Q148 150, 158 140" stroke="#336791" stroke-width="2" fill="none" opacity="0.6"/>
+</svg>

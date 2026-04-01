@@ -1,0 +1,275 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import Button from '../components/ui/Button.astro';
+import Card from '../components/ui/Card.astro';
+
+const title = "Baixar - Jojuhu";
+const description = "Baixe o Jojuhu para iOS, Android ou acesse pela web. Gratuito e código aberto.";
+
+const platforms = [
+  {
+    icon: "🍎",
+    name: "iPhone e iPad",
+    status: "Em breve",
+    statusColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+    requirements: "iOS 14 ou superior",
+    buttonText: "Notifique-me",
+    buttonVariant: "outline" as const,
+    comingSoon: true
+  },
+  {
+    icon: "🤖",
+    name: "Android",
+    status: "Em breve",
+    statusColor: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+    requirements: "Android 8 ou superior",
+    buttonText: "Notifique-me",
+    buttonVariant: "outline" as const,
+    comingSoon: true
+  },
+  {
+    icon: "🌐",
+    name: "Versão Web",
+    status: "Disponível",
+    statusColor: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    requirements: "Qualquer navegador moderno",
+    buttonText: "Acessar Web App",
+    buttonVariant: "primary" as const,
+    link: "https://app.jojuhu.com",
+    comingSoon: false
+  }
+];
+---
+
+<Base title={title} description={description}>
+  <Header />
+  
+  <main class="pt-16 md:pt-20">
+    
+    <!-- HERO SECTION -->
+    <section class="py-20 md:py-32 bg-gradient-to-b from-sol/5 to-transparent">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        
+        <span class="inline-block px-4 py-2 rounded-full bg-sol/10 text-sol text-sm font-medium mb-6">
+          Download
+        </span>
+        
+        <h1 class="text-4xl md:text-6xl font-bold font-display text-texto dark:text-texto-dark mb-6">
+          Comece sua jornada
+        </h1>
+        
+        <p class="text-lg md:text-xl text-texto-secundario dark:text-gray-400 max-w-2xl mx-auto">
+          Disponível para todas as plataformas. Escolha a sua e entre na corrente.
+        </p>
+      </div>
+    </section>
+
+    <!-- PLATFORMS GRID -->
+    <section class="py-20 md:py-32 bg-white dark:bg-surface-dark">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="grid md:grid-cols-3 gap-8">
+          {platforms.map((platform, index) => (
+            <Card key={index} variant="feature" class={`h-full ${platform.comingSoon ? 'opacity-90' : ''}`}>
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-sol/10 to-lua/10 flex items-center justify-center text-3xl">
+                    {platform.icon}
+                  </div>
+                  <div>
+                    <h3 class="text-xl font-bold text-texto dark:text-texto-dark">{platform.name}</h3>
+                    <span class={`inline-block px-3 py-1 rounded-full text-xs font-medium ${platform.statusColor}`}>
+                      {platform.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <p class="text-texto-secundario dark:text-gray-400 mb-6">
+                <span class="font-medium text-texto dark:text-texto-dark">Requisitos:</span> {platform.requirements}
+              </p>
+              
+              <Button 
+                href={platform.link || "#"} 
+                variant={platform.buttonVariant}
+                size="md"
+                class="w-full"
+                {...(platform.comingSoon && { onclick: "event.preventDefault(); alert('Em breve! Deixe seu email na seção abaixo para ser notificado.')" })}
+              >
+                {platform.buttonText}
+              </Button>
+            </Card>
+          ))}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- QR CODE SECTION -->
+    <section class="py-20 md:py-32 bg-fundo dark:bg-fundo-dark">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        
+        <span class="inline-block px-4 py-2 rounded-full bg-encontro/10 text-encontro text-sm font-medium mb-6">
+          Download Rápido
+        </span>
+        
+        <h2 class="text-3xl md:text-4xl font-bold font-display text-texto dark:text-texto-dark mb-4">
+          Aponte a câmera do celular
+        </h2>
+        
+        <p class="text-lg text-texto-secundario dark:text-gray-400 mb-10 max-w-2xl mx-auto">
+          Detectamos automaticamente sua plataforma e redirecionamos para o download correto.
+        </p>
+
+        <div class="bg-white dark:bg-surface-dark rounded-3xl p-8 shadow-xl inline-block">
+          <div class="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-sol via-encontro to-lua rounded-2xl flex items-center justify-center">
+            <div class="text-center text-white">
+              <div class="text-6xl mb-2">📱</div>
+              <p class="font-medium">QR Code</p>
+              <p class="text-sm opacity-80">em breve</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- BETA PROGRAM SECTION -->
+    <section class="py-20 md:py-32 bg-white dark:bg-surface-dark">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-12">
+          <span class="inline-block px-4 py-2 rounded-full bg-lua/10 text-lua text-sm font-medium mb-4">
+            Programa Beta
+          </span>
+          
+          <h2 class="text-3xl md:text-4xl font-bold font-display text-texto dark:text-texto-dark mb-4">
+            Quer testar antes de todo mundo?
+          </h2>
+          
+          <p class="text-lg text-texto-secundario dark:text-gray-400">
+            Entre no programa beta e ajude a moldar o futuro do Jojuhu. 
+            Suas sugestões serão ouvidas e poderão influenciar o produto final.
+          </p>
+        </div>
+
+        <form 
+          class="bg-fundo dark:bg-fundo-dark rounded-2xl p-8 shadow-lg"
+          onsubmit="event.preventDefault(); alert('Obrigado pelo interesse! Entraremos em contato em breve.');"
+        >
+          <div class="space-y-6">
+            
+            <div>
+              <label class="block text-sm font-medium text-texto dark:text-texto-dark mb-2">
+                Email
+              </label>
+              <input 
+                type="email" 
+                placeholder="seu@email.com"
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-texto dark:text-texto-dark placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sol/50"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-texto dark:text-texto-dark mb-2">
+                Plataforma preferida
+              </label>
+              <select 
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-texto dark:text-texto-dark focus:outline-none focus:ring-2 focus:ring-sol/50"
+                required
+              >
+                <option value="">Selecione...</option>
+                <option value="ios">iOS (iPhone/iPad)</option>
+                <option value="android">Android</option>
+                <option value="web">Web</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-texto dark:text-texto-dark mb-2">
+                Por que quer participar?
+              </label>
+              <textarea 
+                rows={4}
+                placeholder="Conte-nos um pouco sobre você e por que quer testar o Jojuhu..."
+                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-texto dark:text-texto-dark placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sol/50 resize-none"
+              ></textarea>
+            </div>
+
+            <Button type="submit" variant="primary" size="lg" class="w-full">
+              Quero ser beta tester
+            </Button>
+
+          </div>
+        </form>
+
+      </div>
+    </section>
+
+    <!-- REQUIREMENTS SECTION -->
+    <section class="py-20 md:py-32 bg-fundo dark:bg-fundo-dark">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold font-display text-texto dark:text-texto-dark mb-4">
+            Requisitos técnicos
+          </h2>
+          <p class="text-lg text-texto-secundario dark:text-gray-400">
+            Tudo o que você precisa para rodar o Jojuhu
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          {[
+            { icon: "🌐", title: "Conexão com internet", desc: "WiFi ou dados móveis para sincronização em tempo real" },
+            { icon: "💾", title: "50MB de espaço livre", desc: "Armazenamento mínimo necessário no dispositivo" },
+            { icon: "🌍", title: "Navegador moderno", desc: "Chrome, Firefox, Safari, Edge (últimas versões)" },
+            { icon: "📴", title: "Modo offline", desc: "Acesse conteúdo salvo mesmo sem conexão" },
+          ].map((item, index) => (
+            <div key={index} class="flex items-start gap-4 p-6 bg-white dark:bg-surface-dark rounded-xl shadow-sm">
+              <div class="text-3xl">{item.icon}</div>
+              <div>
+                <h3 class="font-bold text-texto dark:text-texto-dark mb-1">{item.title}</h3>
+                <p class="text-texto-secundario dark:text-gray-400 text-sm">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="py-20 md:py-32 bg-gradient-to-br from-sol via-encontro to-lua text-white">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        
+        <h2 class="text-3xl md:text-5xl font-bold font-display mb-6">
+          Pronto para começar?
+        </h2>
+        
+        <p class="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto">
+          Junte-se à revolução das redes sociais. Conexões autênticas, 
+          privacidade real, código aberto.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Button href="#" variant="primary" size="lg" class="bg-white text-sol hover:bg-white/90" onclick="event.preventDefault(); window.scrollTo({top: 0, behavior: 'smooth'});">
+            Escolher plataforma
+          </Button>
+          
+          <Button href="/sobre" variant="outline" size="lg" class="border-white text-white hover:bg-white/10">
+            Conhecer mais
+          </Button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+
+</Base>

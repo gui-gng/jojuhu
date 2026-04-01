@@ -1,0 +1,32 @@
+---
+interface Props {
+  variant?: 'default' | 'feature' | 'testimonial';
+  icon?: string;
+  class?: string;
+}
+
+const { 
+  variant = 'default', 
+  icon,
+  class: className = ''
+} = Astro.props;
+
+const baseStyles = 'bg-white dark:bg-surface-dark rounded-2xl p-8 shadow-lg border border-gray-100 dark:border-gray-800';
+
+const variants = {
+  default: baseStyles,
+  feature: `${baseStyles} card-hover hover:border-sol/30 dark:hover:border-sol/30`,
+  testimonial: `${baseStyles} hover:shadow-xl transition-shadow duration-300`
+};
+
+const classes = `${variants[variant]} ${className}`;
+---
+
+<div class={classes}>
+  {icon && (
+    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-sol/20 to-lua/20 flex items-center justify-center mb-6">
+      <span class="text-2xl">{icon}</span>
+    </div>
+  )}
+  <slot />
+</div>

@@ -1,0 +1,49 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+
+const { 
+  title,
+  description = "Jojuhu é a rede social que celebra quem você é. Conecte-se de forma autêntica, sem algoritmos manipulativos, com privacidade real e código aberto."
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#FF6B35" />
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jojuhu.com" />
+    <meta property="og:image" content="https://jojuhu.com/og-image.jpg" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="https://jojuhu.com/og-image.jpg" />
+    
+    <title>{title}</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    
+    <!-- Preconnect para fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <style is:global>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+    </style>
+  </head>
+  <body class="font-sans antialiased bg-fundo text-texto dark:bg-fundo-dark dark:text-texto-dark transition-colors duration-300">
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: jojuhu
+  labels:
+    app: minio
+    app.kubernetes.io/name: jojuhu
+    app.kubernetes.io/component: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio:latest
+        ports:
+        - name: api
+          containerPort: 9000
+          protocol: TCP
+        - name: console
+          containerPort: 9001
+          protocol: TCP
+        env:
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: jojuhu-secret
+              key: MINIO_ROOT_USER
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jojuhu-secret
+              key: MINIO_ROOT_PASSWORD
+        command:
+        - /bin/bash
+        - -c
+        - |
+          minio server /data --console-address ':9001' &
+          sleep 10
+          mc alias set local http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}
+          mc mb local/jojuhu-uploads --ignore-existing || true
+          mc anonymous set download local/jojuhu-uploads || true
+          tail -f /dev/null
+        volumeMounts:
+        - name: minio-data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: minio-data
+        emptyDir: {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: jojuhu
+  labels:
+    app: minio
+    app.kubernetes.io/name: jojuhu
+    app.kubernetes.io/component: storage
+spec:
+  type: ClusterIP
+  ports:
+  - name: api
+    port: 9000
+    targetPort: 9000
+    protocol: TCP
+  - name: console
+    port: 9001
+    targetPort: 9001
+    protocol: TCP
+  selector:
+    app: minio

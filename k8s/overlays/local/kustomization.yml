@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: jojuhu
+
+resources:
+- ../../base
+- ../../services
+- ../../monitoring
+
+commonLabels:
+  environment: local
+
+images:
+- name: jojuhu-backend
+  newName: localhost:5000/jojuhu-backend
+  newTag: latest
+- name: jojuhu-frontend
+  newName: localhost:5000/jojuhu-frontend
+  newTag: latest

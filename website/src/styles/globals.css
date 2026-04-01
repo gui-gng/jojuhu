@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fontes */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* Animações customizadas */
+@layer utilities {
+  .animate-water-flow {
+    background: linear-gradient(
+      -45deg,
+      #FF6B35,
+      #9B59B6,
+      #004E89,
+      #FF6B35
+    );
+    background-size: 400% 400%;
+    animation: waterFlow 15s ease infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+}
+
+/* Animação ao scroll */
+.intersection-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.intersection-hidden {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
+}
+
+/* Gradientes especiais */
+.gradient-sol-lua {
+  background: linear-gradient(90deg, #FF6B35 0%, #004E89 100%);
+}
+
+.gradient-encontro {
+  background: linear-gradient(135deg, #FF6B35 0%, #9B59B6 50%, #004E89 100%);
+}
+
+/* Utilitários de texto gradiente */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Seleção de texto */
+::selection {
+  background: rgba(255, 107, 53, 0.3);
+  color: inherit;
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9B59B6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B35;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1A1A1A;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #004E89;
+}

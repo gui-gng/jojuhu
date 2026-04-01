@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jojuhu
+  labels:
+    app.kubernetes.io/name: jojuhu
+    app.kubernetes.io/component: platform
+    app.kubernetes.io/managed-by: kubectl

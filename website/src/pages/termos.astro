@@ -1,0 +1,171 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+
+const title = "Termos de Uso - Jojuhu";
+const description = "Termos e condições de uso do Jojuhu. Regras claras para uma comunidade saudável.";
+---
+
+<Base title={title} description={description}>
+  <Header />
+  
+  <main class="pt-16 md:pt-20">
+    
+    <section class="py-20 md:py-32 bg-fundo dark:bg-fundo-dark">
+      
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-16">
+          <span class="inline-block px-4 py-2 rounded-full bg-sol/10 text-sol text-sm font-medium mb-4">
+            Legal
+          </span>
+          
+          <h1 class="text-4xl md:text-5xl font-bold font-display text-texto dark:text-texto-dark">
+            Termos de Uso
+          </h1>
+          
+          <p class="mt-4 text-texto-secundario dark:text-gray-400">
+            Última atualização: Março de 2026
+          </p>
+        </div>
+
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+          
+          <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-6 rounded-r-xl mb-8">
+            <p class="font-medium text-blue-800 dark:text-blue-400 m-0">
+              📋 Resumo: Seja legal, respeite os outros, não faça spam. 
+              Queremos uma comunidade onde todos se sintam bem-vindos.
+            </p>
+          </div>
+
+          <h2>1. Aceitação dos Termos</h2>
+          
+          <p>
+            Ao acessar ou usar o Jojuhu, você concorda em cumprir estes Termos de Uso. 
+            Se não concordar, por favor, não use nossos serviços.
+          </p>
+
+          <h2>2. Elegibilidade</h2>
+          
+          <p>Para usar o Jojuhu, você deve:</p>
+          
+          <ul>
+            <li>Ter pelo menos 13 anos de idade</li>
+            <li>Fornecer informações verdadeiras no cadastro</li>
+            <li>Ter capacidade legal para aceitar estes termos</li>
+          </ul>
+
+          <h2>3. Conta de Usuário</h2>
+          
+          <h3>3.1 Cadastro</h3>
+          
+          <ul>
+            <li>Você é responsável por manter sua senha segura</li>
+            <li>Notifique-nos imediatamente sobre uso não autorizado</li>
+            <li>Uma pessoa = uma conta (sem contas falsas)</li>
+          </ul>
+
+          <h3>3.2 Exclusão</h3>
+          
+          <p>Você pode excluir sua conta a qualquer momento. Seus dados serão removidos conforme nossa Política de Privacidade.</p>
+
+          <h2>4. Conduta do Usuário</h2>
+          
+          <h3>4.1 O que é permitido ✅</h3>
+          
+          <ul>
+            <li>Compartilhar conteúdo original e relevante</li>
+            <li>Engajar em discussões respeitosas</li>
+            <li>Criar comunidades e grupos</li>
+            <li>Dar crédito a autores de conteúdo compartilhado</li>
+          </ul>
+
+          <h3>4.2 O que é proibido ❌</h3>
+          
+          <ul>
+            <li>Assédio, bullying ou discriminação de qualquer tipo</li>
+            <li>Conteúdo ilegal ou que incentive violência</li>
+            <li>Spam ou conteúdo indesejado em massa</li>
+            <li>Desinformação deliberada (fake news)</li>
+            <li>Conteúdo sexual explícito sem marcação apropriada</li>
+            <li>Violação de direitos autorais</li>
+            <li>Automatização maliciosa (bots, crawlers)</li>
+            <li>Tentativas de phishing ou fraude</li>
+          </ul>
+
+          <h2>5. Conteúdo do Usuário</h2>
+          
+          <h3>5.1 Propriedade</h3>
+          
+          <p>Você mantém os direitos sobre o conteúdo que cria. Ao postar no Jojuhu, você nos concede uma licença para exibir e distribuir esse conteúdo na plataforma.</p>
+
+          <h3>5.2 Remoção</h3>
+          
+          <p>Podemos remover conteúdo que viole estes termos ou que seja reportado como inadequado.</p>
+
+          <h2>6. Moderação</h2>
+          
+          <p>Nossa abordagem de moderação:</p>
+          
+          <ul>
+            <li><strong>Transparência:</strong> Ações de moderação são documentadas</li>
+            <li><strong>Apelação:</strong> Você pode contestar decisões de moderação</li>
+            <li><strong>Escada:</strong> Advertência → Suspensão temporária → Banimento (para violações graves)</li>
+          </ul>
+
+          <h2>7. Limitação de Responsabilidade</h2>
+          
+          <p>O Jojuhu é fornecido "como está". Não garantimos:</p>
+          
+          <ul>
+            <li>Disponibilidade ininterrupta do serviço</li>
+            <li>Precisão de conteúdo de outros usuários</li>
+            <li>Resultados específicos do uso da plataforma</li>
+          </ul>
+
+          <h2>8. Código Aberto</h2>
+          
+          <p>O Jojuhu é software de código aberto sob licença MIT. Você pode:</p>
+          
+          <ul>
+            <li>Usar, modificar e distribuir o código</li>
+            <li>Criar instâncias próprias</li>
+            <li>Contribuir com melhorias</li>
+          </ul>
+
+          <p>Sujeito aos termos da licença MIT.</p>
+
+          <h2>9. Alterações nos Termos</h2>
+          
+          <p>Podemos atualizar estes termos. Notificaremos você sobre mudanças significativas por email ou na plataforma.</p>
+
+          <h2>10. Lei Aplicável</h2>
+          
+          <p>Estes termos são regidos pelas leis do Brasil. Qualquer disputa será resolvida nos tribunais brasileiros.</p>
+
+          <h2>11. Contato</h2>
+          
+          <p>Dúvidas sobre estes termos:</p>
+          
+          <ul>
+            <li>Email: legal@jojuhu.com</li>
+            <li>GitHub: github.com/jojuhu</li>
+          </ul>
+
+          <hr class="my-12 border-gray-200 dark:border-gray-800" />
+
+          <p class="text-center text-texto-secundario dark:text-gray-400">
+            Ao usar o Jojuhu, você concorda com estes termos.
+          </p>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+
+</Base>

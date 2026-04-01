@@ -33,3 +33,14 @@ go.work.sum
 
 data/
 target/
+
+# Website
+website/node_modules/
+website/.astro/
+website/dist/
+website/.env
+website/.env.local
+
+# pnpm
+.pnpm-store/
+*.log

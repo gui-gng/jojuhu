@@ -1,0 +1,163 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+
+const title = "Política de Privacidade - Jojuhu";
+const description = "Como tratamos seus dados no Jojuhu. Transparência total, sem segredos.";
+---
+
+<Base title={title} description={description}>
+  <Header />
+  
+  <main class="pt-16 md:pt-20">
+    
+    <section class="py-20 md:py-32 bg-fundo dark:bg-fundo-dark">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-16">
+          <span class="inline-block px-4 py-2 rounded-full bg-lua/10 text-lua text-sm font-medium mb-4">
+            Legal
+          </span>
+          
+          <h1 class="text-4xl md:text-5xl font-bold font-display text-texto dark:text-texto-dark">
+            Política de Privacidade
+          </h1>
+          
+          <p class="mt-4 text-texto-secundario dark:text-gray-400">
+            Última atualização: Março de 2026
+          </p>
+        </div>
+
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+          
+          <div class="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-6 rounded-r-xl mb-8">
+            <p class="font-medium text-green-800 dark:text-green-400 m-0">
+              🌟 Compromisso Jojuhu: Seus dados são seus. Nunca venderemos suas informações 
+              para terceiros. Nossa política é simples: transparência total.
+            </p>
+          </div>
+
+          <h2>1. Dados que Coletamos</h2>
+          
+          <h3>1.1 Informações de Cadastro</h3>
+          <ul>
+            <li>Nome de usuário e email</li>
+            <li>Senha (criptografada com bcrypt)</li>
+            <li>Foto de perfil (opcional)</li>
+            <li>Biografia (opcional)</li>
+          </ul>
+
+          <h3>1.2 Conteúdo Gerado</h3>
+          <ul>
+            <li>Posts, comentários e mensagens</li>
+            <li>Fotos e mídia compartilhada</li>
+            <li>Interações (curtidas, seguidores)</li>
+          </ul>
+
+          <h3>1.3 Dados Técnicos</h3>
+          <ul>
+            <li>Endereço IP (para segurança)</li>
+            <li>Tipo de dispositivo e navegador</li>
+            <li>Logs de acesso (anonimizados após 30 dias)</li>
+          </ul>
+
+          <h2>2. Como Usamos Seus Dados</h2>
+          
+          <p>Usamos seus dados exclusivamente para:</p>
+          
+          <ul>
+            <li>✅ Fornecer os serviços do Jojuhu</li>
+            <li>✅ Melhorar a experiência do usuário</li>
+            <li>✅ Segurança e prevenção de fraudes</li>
+            <li>✅ Suporte ao cliente</li>
+          </ul>
+
+          <p class="font-semibold text-sol">NÃO usamos seus dados para:</p>
+          
+          <ul>
+            <li>❌ Vender para anunciantes</li>
+            <li>❌ Criar perfis para targeting</li>
+            <li>❌ Compartilhar com terceiros sem consentimento</li>
+          </ul>
+
+          <h2>3. Seus Direitos (GDPR/LGPD)</h2>
+          
+          <p>Você tem direito a:</p>
+          
+          <ul>
+            <li><strong>Acesso:</strong> Solicitar cópia de todos os seus dados</li>
+            <li><strong>Correção:</strong> Atualizar informações incorretas</li>
+            <li><strong>Exclusão:</strong> Deletar sua conta e dados (direito ao esquecimento)</li>
+            <li><strong>Portabilidade:</strong> Exportar seus dados em formato aberto</li>
+            <li><strong>Oposição:</strong> Opt-out de processamentos específicos</li>
+          </ul>
+
+          <h2>4. Segurança</h2>
+          
+          <p>Implementamos:</p>
+          
+          <ul>
+            <li>Criptografia TLS/SSL em todas as conexões</li>
+            <li>Hashing de senhas com bcrypt</li>
+            <li>Tokens JWT para autenticação segura</li>
+            <li>Código aberto para auditoria pública</li>
+          </ul>
+
+          <h2>5. Cookies</h2>
+          
+          <p>Usamos apenas cookies essenciais:</p>
+          
+          <ul>
+            <li><strong>Autenticação:</strong> Manter você logado</li>
+            <li><strong>Preferências:</strong> Tema escuro/claro, idioma</li>
+            <li><strong>Segurança:</strong> Prevenção de CSRF</li>
+          </ul>
+
+          <p><strong>Não usamos:</strong> Cookies de rastreamento, analytics de terceiros, ou publicidade.</p>
+
+          <h2>6. Código Aberto</h2>
+          
+          <p>
+            Todo nosso código está disponível no GitHub. Você pode:
+          </p>
+          
+          <ul>
+            <li>Auditar como processamos dados</li>
+            <li>Verificar nossas práticas de segurança</li>
+            <li>Contribuir com melhorias</li>
+            <li>Criar sua própria instância</li>
+          </ul>
+
+          <h2>7. Contato</h2>
+          
+          <p>Para exercer seus direitos ou tirar dúvidas:</p>
+          
+          <ul>
+            <li>Email: privacidade@jojuhu.com</li>
+            <li>GitHub Issues: github.com/jojuhu/privacy</li>
+          </ul>
+
+          <h2>8. Alterações</h2>
+          
+          <p>
+            Podemos atualizar esta política. Notificaremos você por email sobre mudanças significativas. 
+            O uso continuado do Jojuhu após alterações constitui aceitação.
+          </p>
+
+          <hr class="my-12 border-gray-200 dark:border-gray-800" />
+
+          <p class="text-center text-texto-secundario dark:text-gray-400">
+            Ao usar o Jojuhu, você concorda com esta política de privacidade.
+          </p>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+
+</Base>
