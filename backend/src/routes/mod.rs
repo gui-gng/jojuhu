@@ -90,6 +90,7 @@ pub fn configure(
             .configure(|c| crate::modules::timeline::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::stories::configure_module(c, pool.clone()))
+            .configure(|c| crate::modules::hashtag::configure_module(c, pool.clone()))
             .configure(search::configure_routes),
     );
 }
