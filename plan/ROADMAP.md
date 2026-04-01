@@ -232,18 +232,20 @@
 **Completed Infrastructure:**
 - ✅ WebSocket server (actix-ws) with real-time notification delivery
 - ✅ Notification system (database + API + WebSocket integration)
-- ✅ Redis caching module
+- ✅ Redis caching module (integrated in feed queries)
 - ✅ Chronological sorting (newest/oldest/popular)
 - ✅ Dark mode frontend
 - ✅ Infinite scroll + skeleton loaders
 - ✅ Stories/ephemeral content (24-hour expiration)
-- ✅ Repost functionality (with quote posts)
+- ✅ Repost functionality (with quote text)
+- ✅ Hashtag search and trending
 
 **Completed Integration:**
 - ✅ WebSocket routes for real-time connections
 - ✅ Notification triggers in services (follows, likes, comments, messages)
 - ✅ Real-time notification delivery via WebSocket
 - ✅ Stories API endpoints
+- ✅ Feed caching with Redis
 
 **Definition of Done:**
 - [x] Users receive real-time notifications
