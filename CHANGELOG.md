@@ -54,6 +54,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevention of duplicate reposts
 - Automatic reposts_count tracking on posts
 
+#### Hashtags
+- Hashtag search and trending functionality
+- Hashtag API endpoints:
+  - `GET /api/v1/hashtag/search?q=query` - search hashtags
+  - `GET /api/v1/hashtag/trending` - get trending hashtags
+  - `GET /api/v1/hashtag/{name}` - get hashtag stats
+- Hashtag extraction from post content
+- Usage count tracking
+
 #### Real-Time Infrastructure
 - Redis cache module for feed caching
 - WebSocket infrastructure for live updates
