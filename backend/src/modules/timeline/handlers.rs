@@ -1,6 +1,7 @@
 use actix_web::{web, HttpResponse};
 use uuid::Uuid;
 
+use crate::cache::RedisCache;
 use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
@@ -12,15 +13,23 @@ use super::service::TimelineService;
 
 pub async fn create_post(
     service: web::Data<TimelineService>,
+    cache: Option<web::Data<RedisCache>>,
     user: AuthenticatedUser,
     request: web::Json<CreatePostRequest>,
 ) -> Result<HttpResponse, AppError> {
     let post = service.create_post(user.user_id, request.into_inner()).await?;
+    
+    // Invalidate following feed cache for user's followers
+    if let Some(cache) = cache {
+        let _ = cache.invalidate_feed(user.user_id).await;
+    }
+    
     Ok(HttpResponse::Created().json(ApiResponse::success(post)))
 }
 
 pub async fn get_feed(
     service: web::Data<TimelineService>,
+    cache: Option<web::Data<RedisCache>>,
     user: AuthenticatedUser,
     query: web::Query<TimelineFeedQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -28,12 +37,30 @@ pub async fn get_feed(
     let limit = query.per_page.unwrap_or(20);
     let sort = query.sort.as_ref().unwrap_or(&FeedSort::Newest);
 
+    // Only cache first page of feed
+    if offset == 0 {
+        if let Some(ref cache) = cache {
+            if let Ok(Some(posts)) = cache.get_cached_feed(user.user_id).await {
+                return Ok(HttpResponse::Ok().json(ApiResponse::success(posts)));
+            }
+        }
+    }
+
     let posts = service.get_feed(user.user_id, offset, limit, sort).await?;
+    
+    // Cache first page
+    if offset == 0 {
+        if let Some(cache) = cache {
+            let _ = cache.cache_user_feed(user.user_id, &posts).await;
+        }
+    }
+    
     Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
 }
 
 pub async fn get_following_feed(
     service: web::Data<TimelineService>,
+    cache: Option<web::Data<RedisCache>>,
     user: AuthenticatedUser,
     query: web::Query<TimelineFeedQuery>,
 ) -> Result<HttpResponse, AppError> {
@@ -41,7 +68,27 @@ pub async fn get_following_feed(
     let limit = query.per_page.unwrap_or(20);
     let sort = query.sort.as_ref().unwrap_or(&FeedSort::Newest);
 
+    // Cache key for following feed
+    let cache_key = format!("following:{}", user.user_id);
+
+    // Only cache first page
+    if offset == 0 {
+        if let Some(ref cache) = cache {
+            if let Ok(Some(posts)) = cache.get::<Vec<super::models::PostResponse>>(&cache_key).await {
+                return Ok(HttpResponse::Ok().json(ApiResponse::success(posts)));
+            }
+        }
+    }
+
     let posts = service.get_following_feed(user.user_id, offset, limit, sort).await?;
+    
+    // Cache first page
+    if offset == 0 {
+        if let Some(cache) = cache {
+            let _ = cache.set(&cache_key, &posts, std::time::Duration::from_secs(120)).await;
+        }
+    }
+
     Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
 }
 

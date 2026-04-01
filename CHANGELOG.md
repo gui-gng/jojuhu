@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redis cache module for feed caching
 - WebSocket infrastructure for live updates
 - Connection session management
+- Feed caching with automatic cache invalidation on new posts
 
 #### Frontend
 - Dark mode support with theme toggle
