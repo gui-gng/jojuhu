@@ -131,12 +131,16 @@ kubectl cluster-info
 #### 2.2 Frontend Astro
 ```dockerfile
 # website/Dockerfile
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.0
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM nginx:alpine AS runtime
 COPY --from=builder /app/dist /usr/share/nginx/html

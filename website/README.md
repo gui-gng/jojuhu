@@ -8,6 +8,7 @@ Website institucional da rede social Jojuhu.
 - **Tailwind CSS 3.x** - Framework CSS utility-first
 - **TypeScript** - Tipagem estática
 - **pnpm** - Package manager rápido e eficiente
+- **Node.js 24** - Runtime JavaScript
 
 ## 📁 Estrutura
 
@@ -46,7 +47,7 @@ website/
 
 ### Pré-requisitos
 
-- Node.js >= 18.0.0
+- Node.js >= 24.0.0
 - pnpm >= 8.0.0
 
 ```bash

@@ -1,12 +1,16 @@
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
+
+# Install pnpm
+RUN npm install -g pnpm@10.33.0
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM nginx:alpine AS runtime
 
