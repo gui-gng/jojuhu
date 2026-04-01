@@ -8,6 +8,8 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             // Feed
             .route("/feed", web::get().to(handlers::get_feed))
             .route("/following", web::get().to(handlers::get_following_feed))
+            .route("/for-you", web::get().to(handlers::get_for_you_feed))
+            .route("/trending", web::get().to(handlers::get_trending_posts))
             // Posts
             .route("/posts", web::post().to(handlers::create_post))
             .route("/posts/{post_id}", web::get().to(handlers::get_post))
@@ -43,6 +45,11 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route(
                 "/reposts/{post_id}",
                 web::delete().to(handlers::delete_repost),
+            )
+            // Suggestions
+            .route(
+                "/suggestions/users",
+                web::get().to(handlers::get_suggested_users),
             ),
     );
 }

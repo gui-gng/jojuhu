@@ -264,4 +264,37 @@ impl TimelineService {
     ) -> Result<Vec<RepostResponse>, AppError> {
         self.repository.get_user_reposts(user_id, offset, limit).await
     }
+
+    // ==================== Algorithmic Feed ====================
+
+    /// Get personalized "For You" feed with engagement-based ranking
+    pub async fn get_for_you_feed(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<PostResponse>, AppError> {
+        let rows = self.repository.get_for_you_feed(user_id, offset, limit).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    /// Get trending posts from the last 7 days
+    pub async fn get_trending_posts(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<PostResponse>, AppError> {
+        let rows = self.repository.get_trending_posts(user_id, offset, limit).await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    /// Get suggested users to follow
+    pub async fn get_suggested_users(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+    ) -> Result<Vec<super::repository::SuggestedUser>, AppError> {
+        self.repository.get_suggested_users(user_id, limit).await
+    }
 }

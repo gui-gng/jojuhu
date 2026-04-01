@@ -1,3 +1,4 @@
+use serde::Serialize;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -522,6 +523,132 @@ impl TimelineRepository {
 
         Ok(exists)
     }
+
+    // ==================== Algorithmic Feed ====================
+
+    /// Get "For You" feed with engagement-based ranking
+    pub async fn get_for_you_feed(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<PostResponseRow>, AppError> {
+        let posts = sqlx::query_as::<_, PostResponseRow>(
+            r#"
+            SELECT 
+                p.id,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name,
+                    'avatar_url', u.avatar_url
+                ) as author,
+                p.content,
+                p.media_urls,
+                p.likes_count,
+                p.comments_count,
+                p.shares_count,
+                p.is_public,
+                p.created_at,
+                EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as is_liked
+            FROM posts p
+            JOIN users u ON p.author_id = u.id
+            WHERE p.is_public = true
+               OR p.author_id = $1
+               OR EXISTS(SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = p.author_id)
+            ORDER BY 
+                (p.likes_count * 3 + p.comments_count * 5 + p.shares_count * 2)
+                * CASE WHEN EXISTS(SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = p.author_id) THEN 2 ELSE 1 END
+                / (EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 + 1) DESC,
+                p.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#
+        )
+        .bind(user_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(posts)
+    }
+
+    /// Get trending posts from the last 7 days
+    pub async fn get_trending_posts(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<PostResponseRow>, AppError> {
+        let posts = sqlx::query_as::<_, PostResponseRow>(
+            r#"
+            SELECT 
+                p.id,
+                json_build_object(
+                    'id', u.id,
+                    'username', u.username,
+                    'display_name', u.display_name,
+                    'avatar_url', u.avatar_url
+                ) as author,
+                p.content,
+                p.media_urls,
+                p.likes_count,
+                p.comments_count,
+                p.shares_count,
+                p.is_public,
+                p.created_at,
+                EXISTS(SELECT 1 FROM likes WHERE post_id = p.id AND user_id = $1) as is_liked
+            FROM posts p
+            JOIN users u ON p.author_id = u.id
+            WHERE p.is_public = true
+               AND p.created_at > NOW() - INTERVAL '7 days'
+            ORDER BY (p.likes_count + p.comments_count * 2) DESC, p.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#
+        )
+        .bind(user_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(posts)
+    }
+
+    /// Get suggested users to follow based on mutual connections
+    pub async fn get_suggested_users(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+    ) -> Result<Vec<SuggestedUser>, AppError> {
+        let users = sqlx::query_as::<_, SuggestedUser>(
+            r#"
+            SELECT 
+                u.id,
+                u.username,
+                u.display_name,
+                u.avatar_url,
+                u.bio,
+                COUNT(DISTINCT f.follower_id) as mutual_followers_count,
+                COUNT(DISTINCT p.id) as posts_count
+            FROM users u
+            LEFT JOIN follows f ON f.following_id = u.id 
+                AND f.follower_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
+            LEFT JOIN posts p ON p.author_id = u.id
+            WHERE u.id != $1
+                AND u.id NOT IN (SELECT following_id FROM follows WHERE follower_id = $1)
+            GROUP BY u.id, u.username, u.display_name, u.avatar_url, u.bio
+            ORDER BY mutual_followers_count DESC, posts_count DESC
+            LIMIT $2
+            "#
+        )
+        .bind(user_id)
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(users)
+    }
 }
 
 /// Database row for repost with post details
@@ -578,4 +705,16 @@ impl From<RepostWithPostRow> for super::models::RepostResponse {
             created_at: row.created_at,
         }
     }
+}
+
+/// Suggested user for recommendations
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct SuggestedUser {
+    pub id: Uuid,
+    pub username: String,
+    pub display_name: Option<String>,
+    pub avatar_url: Option<String>,
+    pub bio: Option<String>,
+    pub mutual_followers_count: i64,
+    pub posts_count: i64,
 }

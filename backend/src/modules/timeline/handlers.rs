@@ -315,3 +315,60 @@ pub async fn get_my_reposts(
     let reposts = service.get_user_reposts(user.user_id, offset, limit).await?;
     Ok(HttpResponse::Ok().json(ApiResponse::success(reposts)))
 }
+
+// ==================== Algorithmic Feed handlers ====================
+
+pub async fn get_for_you_feed(
+    service: web::Data<TimelineService>,
+    cache: Option<web::Data<RedisCache>>,
+    user: AuthenticatedUser,
+    query: web::Query<PaginationParams>,
+) -> Result<HttpResponse, AppError> {
+    let offset = query.get_offset();
+    let limit = query.get_limit();
+
+    // Cache first page of For You feed
+    let cache_key = format!("for_you:{}", user.user_id);
+    
+    if offset == 0 {
+        if let Some(ref cache) = cache {
+            if let Ok(Some(posts)) = cache.get::<Vec<super::models::PostResponse>>(&cache_key).await {
+                return Ok(HttpResponse::Ok().json(ApiResponse::success(posts)));
+            }
+        }
+    }
+
+    let posts = service.get_for_you_feed(user.user_id, offset, limit).await?;
+    
+    // Cache first page for 2 minutes
+    if offset == 0 {
+        if let Some(cache) = cache {
+            let _ = cache.set(&cache_key, &posts, std::time::Duration::from_secs(120)).await;
+        }
+    }
+
+    Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
+}
+
+pub async fn get_trending_posts(
+    service: web::Data<TimelineService>,
+    user: AuthenticatedUser,
+    query: web::Query<PaginationParams>,
+) -> Result<HttpResponse, AppError> {
+    let offset = query.get_offset();
+    let limit = query.get_limit();
+    
+    let posts = service.get_trending_posts(user.user_id, offset, limit).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(posts)))
+}
+
+pub async fn get_suggested_users(
+    service: web::Data<TimelineService>,
+    user: AuthenticatedUser,
+    query: web::Query<PaginationParams>,
+) -> Result<HttpResponse, AppError> {
+    let limit = query.per_page.unwrap_or(10).min(50);
+    
+    let users = service.get_suggested_users(user.user_id, limit).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(users)))
+}
