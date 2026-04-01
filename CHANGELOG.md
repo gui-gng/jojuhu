@@ -63,6 +63,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hashtag extraction from post content
 - Usage count tracking
 
+#### Algorithmic Feed
+- Personalized "For You" feed with engagement scoring
+- Ranking factors: likes (3x), comments (5x), shares (2x), recency decay
+- Following boost: 2x multiplier for posts from followed users
+- Trending posts endpoint (top posts from last 7 days)
+- Suggested users to follow (based on mutual connections)
+- Feed endpoints:
+  - `GET /api/v1/timeline/for-you` - personalized feed
+  - `GET /api/v1/timeline/trending` - trending posts
+  - `GET /api/v1/timeline/suggestions/users` - user recommendations
+
 #### Real-Time Infrastructure
 - Redis cache module for feed caching
 - WebSocket infrastructure for live updates
