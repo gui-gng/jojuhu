@@ -1,4 +1,4 @@
-.PHONY: help setup build push deploy all status destroy clean registry
+.PHONY: help setup build push deploy all status destroy clean registry ingress
 
 K8S_DIR ?= k8s
 REGISTRY ?= localhost:5000
@@ -15,6 +15,7 @@ help:
 	@echo "Targets:"
 	@echo "  registry  - Create local Docker registry"
 	@echo "  setup     - Create Kind cluster with local registry"
+	@echo "  ingress   - Install NGINX Ingress Controller"
 	@echo "  build     - Build Docker images"
 	@echo "  push      - Push images to local registry"
 	@echo "  deploy    - Deploy to Kubernetes"
@@ -36,31 +37,30 @@ registry:
 
 setup:
 	@echo "Creating Kind cluster..."
-	@if kind get clusters | grep -q "$(CLUSTER_NAME)"; then \
+	@if kind get clusters 2>/dev/null | grep -q "$(CLUSTER_NAME)"; then \
 		echo "Cluster already exists, deleting..."; \
 		kind delete cluster --name $(CLUSTER_NAME); \
 	fi
 	@echo "Creating cluster config..."
-	@cat > /tmp/kind-config.yaml << 'EOF'
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-- role: worker
-EOF
+	@echo 'kind: Cluster' > /tmp/kind-config.yaml
+	@echo 'apiVersion: kind.x-k8s.io/v1alpha4' >> /tmp/kind-config.yaml
+	@echo 'nodes:' >> /tmp/kind-config.yaml
+	@echo '- role: control-plane' >> /tmp/kind-config.yaml
+	@echo '  extraPortMappings:' >> /tmp/kind-config.yaml
+	@echo '  - containerPort: 80' >> /tmp/kind-config.yaml
+	@echo '    hostPort: 80' >> /tmp/kind-config.yaml
+	@echo '    protocol: TCP' >> /tmp/kind-config.yaml
+	@echo '  - containerPort: 443' >> /tmp/kind-config.yaml
+	@echo '    hostPort: 443' >> /tmp/kind-config.yaml
+	@echo '    protocol: TCP' >> /tmp/kind-config.yaml
+	@echo '- role: worker' >> /tmp/kind-config.yaml
+	@echo 'containerdConfigPatches:' >> /tmp/kind-config.yaml
+	@echo '- |-' >> /tmp/kind-config.yaml
+	@echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]' >> /tmp/kind-config.yaml
+	@echo '    endpoint = ["http://jojuhu-registry:5000"]' >> /tmp/kind-config.yaml
 	@kind create cluster --name $(CLUSTER_NAME) --config /tmp/kind-config.yaml --image kindest/node:v1.29.2
 	@echo "Connecting registry to kind network..."
 	@docker network connect kind $(REGISTRY_NAME) 2>/dev/null || true
-	@for node in $$(kind get nodes --name $(CLUSTER_NAME)); do \
-		kubectl annotate node $$node "kind.x-k8s.io/registry=localhost:5000=http://$(REGISTRY_NAME):5000" --overwrite; \
-	done
 	@echo "Cluster created successfully"
 
 ingress:

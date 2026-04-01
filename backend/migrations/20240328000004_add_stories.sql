@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS stories (
 
 CREATE INDEX idx_stories_user ON stories(user_id);
 CREATE INDEX idx_stories_expires ON stories(expires_at);
-CREATE INDEX idx_stories_active ON stories(expires_at) WHERE expires_at > NOW();
 
 -- Create story viewers table
 CREATE TABLE IF NOT EXISTS story_viewers (

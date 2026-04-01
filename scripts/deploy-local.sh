@@ -71,7 +71,7 @@ create_registry() {
 create_cluster() {
     log_info "Creating Kind cluster..."
     
-    if kind get clusters | grep -q "${CLUSTER_NAME}"; then
+    if kind get clusters 2>/dev/null | grep -q "${CLUSTER_NAME}"; then
         log_warning "Cluster '${CLUSTER_NAME}' already exists. Deleting it..."
         kind delete cluster --name "${CLUSTER_NAME}"
     fi
@@ -89,17 +89,16 @@ nodes:
     hostPort: 443
     protocol: TCP
 - role: worker
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
+    endpoint = ["http://jojuhu-registry:5000"]
 EOF
     
     kind create cluster --name "${CLUSTER_NAME}" --config /tmp/kind-config.yaml --image kindest/node:v1.29.2
     
     log_info "Connecting registry to kind network..."
     docker network connect kind "${REGISTRY_NAME}" 2>/dev/null || true
-    
-    log_info "Configuring registry for nodes..."
-    for node in $(kind get nodes --name "${CLUSTER_NAME}"); do
-        kubectl annotate node "$node" "kind.x-k8s.io/registry=localhost:5000=http://${REGISTRY_NAME}:5000" --overwrite 2>/dev/null || true
-    done
     
     log_success "Cluster created"
 }
