@@ -5,7 +5,7 @@ Deploys do ecossistema Jojuhu em Kubernetes com Kind.
 ## Pré-requisitos
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [kind](https://kind.sigs.k8s.io/)
+- [kind](https://kind.sigs.k8s.io/) v0.20+
 - [Docker](https://www.docker.com/)
 
 ## Estrutura
@@ -43,6 +43,7 @@ k8s/
 # Ou passo a passo
 ./scripts/deploy-local.sh registry  # Criar registry local
 ./scripts/deploy-local.sh setup    # Criar cluster Kind
+./scripts/deploy-local.sh ingress  # Instalar NGINX Ingress
 ./scripts/deploy-local.sh build    # Build das imagens
 ./scripts/deploy-local.sh push     # Push para registry
 ./scripts/deploy-local.sh deploy   # Deploy no K8s
@@ -57,9 +58,37 @@ make all
 # Ou passo a passo
 make registry   # Criar registry
 make setup      # Criar cluster
+make ingress    # Instalar NGINX Ingress
 make build      # Build das imagens
 make push       # Push para registry
 make deploy     # Deploy no K8s
+```
+
+## Troubleshooting
+
+### Erro: "failed to create cluster"
+
+Se encontrar erros de cgroups, tente:
+
+```bash
+# Remover clusters existentes
+kind delete cluster --name jojuhu
+
+# Verificar Docker está rodando
+docker ps
+
+#Executar setup novamente
+make setup
+```
+
+### Verificar cluster
+
+```bash
+# Verificar nós do cluster
+kubectl get nodes
+
+# Verificar pods do sistema
+kubectl get pods -A
 ```
 
 ## Acessos

@@ -76,24 +76,11 @@ create_cluster() {
         kind delete cluster --name "${CLUSTER_NAME}"
     fi
     
-    cat <<EOF | kind create cluster --name "${CLUSTER_NAME}" --config -
+    cat > /tmp/kind-config.yaml << 'EOF'
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-networking:
-  apiServerAddress: "0.0.0.0"
-  apiServerPort: 6443
-containerdConfigPatches:
-- |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${REGISTRY_PORT}"]
-    endpoint = ["http://${REGISTRY_NAME}:${REGISTRY_PORT}"]
 nodes:
 - role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
@@ -103,11 +90,32 @@ nodes:
     protocol: TCP
 - role: worker
 EOF
-
+    
+    kind create cluster --name "${CLUSTER_NAME}" --config /tmp/kind-config.yaml --image kindest/node:v1.29.2
+    
     log_info "Connecting registry to kind network..."
     docker network connect kind "${REGISTRY_NAME}" 2>/dev/null || true
     
+    log_info "Configuring registry for nodes..."
+    for node in $(kind get nodes --name "${CLUSTER_NAME}"); do
+        kubectl annotate node "$node" "kind.x-k8s.io/registry=localhost:5000=http://${REGISTRY_NAME}:5000" --overwrite 2>/dev/null || true
+    done
+    
     log_success "Cluster created"
+}
+
+install_nginx_ingress() {
+    log_info "Installing NGINX Ingress Controller..."
+    
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+    
+    log_info "Waiting for NGINX Ingress to be ready..."
+    kubectl wait --namespace ingress-nginx \
+        --for=condition=ready pod \
+        --selector=app.kubernetes.io/component=controller \
+        --timeout=90s
+    
+    log_success "NGINX Ingress Controller installed"
 }
 
 build_images() {
@@ -207,6 +215,7 @@ case "${1:-}" in
     setup)
         check_dependencies
         create_cluster
+        install_nginx_ingress
         ;;
     build)
         build_images
@@ -217,10 +226,14 @@ case "${1:-}" in
     deploy)
         deploy
         ;;
+    ingress)
+        install_nginx_ingress
+        ;;
     all)
         check_dependencies
         create_registry
         create_cluster
+        install_nginx_ingress
         build_images
         push_images
         deploy
@@ -236,13 +249,14 @@ case "${1:-}" in
         create_registry
         ;;
     *)
-        echo "Usage: $0 {setup|build|push|deploy|all|status|destroy|registry}"
+        echo "Usage: $0 {setup|build|push|deploy|all|status|destroy|registry|ingress}"
         echo ""
         echo "Commands:"
         echo "  setup   - Create Kind cluster"
         echo "  build   - Build Docker images"
         echo "  push    - Push images to local registry"
         echo "  deploy  - Deploy to Kubernetes"
+        echo "  ingress - Install NGINX Ingress Controller"
         echo "  all     - Complete setup and deploy"
         echo "  status  - Show deployment status"
         echo "  destroy - Delete cluster"

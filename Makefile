@@ -40,24 +40,12 @@ setup:
 		echo "Cluster already exists, deleting..."; \
 		kind delete cluster --name $(CLUSTER_NAME); \
 	fi
-	@cat <<EOF | kind create cluster --name $(CLUSTER_NAME) --config -
+	@echo "Creating cluster config..."
+	@cat > /tmp/kind-config.yaml << 'EOF'
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-networking:
-  apiServerAddress: "0.0.0.0"
-  apiServerPort: 6443
-containerdConfigPatches:
-- |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
-    endpoint = ["http://$(REGISTRY_NAME):5000"]
 nodes:
 - role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
   extraPortMappings:
   - containerPort: 80
     hostPort: 80
@@ -67,9 +55,23 @@ nodes:
     protocol: TCP
 - role: worker
 EOF
+	@kind create cluster --name $(CLUSTER_NAME) --config /tmp/kind-config.yaml --image kindest/node:v1.29.2
 	@echo "Connecting registry to kind network..."
 	@docker network connect kind $(REGISTRY_NAME) 2>/dev/null || true
+	@for node in $$(kind get nodes --name $(CLUSTER_NAME)); do \
+		kubectl annotate node $$node "kind.x-k8s.io/registry=localhost:5000=http://$(REGISTRY_NAME):5000" --overwrite; \
+	done
 	@echo "Cluster created successfully"
+
+ingress:
+	@echo "Installing NGINX Ingress Controller..."
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+	@echo "Waiting for NGINX Ingress to be ready..."
+	kubectl wait --namespace ingress-nginx \
+		--for=condition=ready pod \
+		--selector=app.kubernetes.io/component=controller \
+		--timeout=90s
+	@echo "NGINX Ingress Controller installed"
 
 build:
 	@echo "Building backend image..."
@@ -115,7 +117,7 @@ deploy:
 	@echo "Deployment completed"
 	@echo "Don't forget to add '127.0.0.1 jojuhu.local' to your /etc/hosts file"
 
-all: registry setup build push deploy
+all: registry setup ingress build push deploy
 
 status:
 	@echo "=== Pods ==="
