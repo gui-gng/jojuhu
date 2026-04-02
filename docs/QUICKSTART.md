@@ -298,7 +298,6 @@ Now that Jojuhu is running:
 ## Getting Help
 
 - 📖 [Architecture Guide](ARCHITECTURE.md)
-- 📋 [Release Checklist](v0.1.0-checklist.md)
 - 🗺️ [Product Roadmap](ROADMAP.md)
 - 🐛 [Create an Issue](https://github.com/yourusername/jojuhu/issues)
 
