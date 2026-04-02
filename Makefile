@@ -4,6 +4,7 @@ K8S_DIR ?= k8s
 REGISTRY ?= localhost:5000
 BACKEND_IMAGE ?= $(REGISTRY)/jojuhu-backend:latest
 FRONTEND_IMAGE ?= $(REGISTRY)/jojuhu-frontend:latest
+WEBSITE_IMAGE ?= $(REGISTRY)/jojuhu-website:latest
 CLUSTER_NAME ?= jojuhu
 REGISTRY_NAME ?= jojuhu-registry
 
@@ -77,13 +78,16 @@ build:
 	@echo "Building backend image..."
 	cd backend && docker build -t $(BACKEND_IMAGE) .
 	@echo "Building frontend image..."
-	cd website && docker build -t $(FRONTEND_IMAGE) .
+	cd frontend && docker build -t $(FRONTEND_IMAGE) .
+	@echo "Building website image..."
+	cd website && docker build -t $(WEBSITE_IMAGE) .
 	@echo "Images built successfully"
 
 push:
 	@echo "Pushing images to local registry..."
 	docker push $(BACKEND_IMAGE)
 	docker push $(FRONTEND_IMAGE)
+	docker push $(WEBSITE_IMAGE)
 	@echo "Images pushed successfully"
 
 deploy:
@@ -103,6 +107,7 @@ deploy:
 	@echo "Deploying services..."
 	kubectl apply -f $(K8S_DIR)/services/backend.yml
 	kubectl apply -f $(K8S_DIR)/services/frontend.yml
+	kubectl apply -f $(K8S_DIR)/services/website.yml
 	kubectl apply -f $(K8S_DIR)/services/ingress.yml
 	
 	@echo "Deploying monitoring..."
