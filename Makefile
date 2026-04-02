@@ -1,14 +1,12 @@
-.PHONY: help setup build push deploy all status destroy clean registry ingress build-frontend build-website
+.PHONY: help setup build push deploy all status destroy clean registry ingress
 
 K8S_DIR ?= k8s
 REGISTRY ?= localhost:5000
 BACKEND_IMAGE ?= $(REGISTRY)/jojuhu-backend:latest
 FRONTEND_IMAGE ?= $(REGISTRY)/jojuhu-frontend:latest
+WEBSITE_IMAGE ?= $(REGISTRY)/jojuhu-website:latest
 CLUSTER_NAME ?= jojuhu
 REGISTRY_NAME ?= jojuhu-registry
-
-# Choose frontend: flutter or website (astro)
-FRONTEND_TYPE ?= flutter
 
 help:
 	@echo "Jojuhu Kubernetes Deployment (Kind)"
@@ -21,8 +19,8 @@ help:
 	@echo "  ingress        - Install NGINX Ingress Controller"
 	@echo "  build          - Build all Docker images"
 	@echo "  build-backend  - Build backend image only"
-	@echo "  build-frontend - Build Flutter frontend image"
-	@echo "  build-website  - Build Astro website image"
+	@echo "  build-frontend - Build Flutter frontend (Mobile App)"
+	@echo "  build-website  - Build Astro website (Marketing Site)"
 	@echo "  push           - Push images to local registry"
 	@echo "  deploy         - Deploy to Kubernetes"
 	@echo "  all            - Complete setup and deploy"
@@ -31,8 +29,9 @@ help:
 	@echo "  destroy        - Delete cluster"
 	@echo "  clean          - Clean Docker images and volumes"
 	@echo ""
-	@echo "Environment:"
-	@echo "  FRONTEND_TYPE  - Set to 'flutter' or 'website' (default: flutter)"
+	@echo "Services:"
+	@echo "  jojuhu.local      - Website (Astro marketing site)"
+	@echo "  app.jojuhu.local  - Flutter App (Mobile application)"
 	@echo ""
 
 registry:
@@ -88,22 +87,23 @@ build-backend:
 	@echo "Backend image built successfully"
 
 build-frontend:
-	@echo "Building Flutter frontend image..."
+	@echo "Building Flutter frontend (Mobile App)..."
 	cd frontend && docker build -t $(FRONTEND_IMAGE) .
-	@echo "Flutter frontend image built successfully"
+	@echo "Flutter frontend built successfully"
 
 build-website:
-	@echo "Building Astro website image..."
-	cd website && docker build -t $(REGISTRY)/jojuhu-website:latest .
-	@echo "Astro website image built successfully"
+	@echo "Building Astro website (Marketing Site)..."
+	cd website && docker build -t $(WEBSITE_IMAGE) .
+	@echo "Astro website built successfully"
 
-build: build-backend build-frontend
+build: build-backend build-frontend build-website
 	@echo "All images built successfully"
 
 push:
 	@echo "Pushing images to local registry..."
 	docker push $(BACKEND_IMAGE)
 	docker push $(FRONTEND_IMAGE)
+	docker push $(WEBSITE_IMAGE)
 	@echo "Images pushed successfully"
 
 deploy:
@@ -123,6 +123,7 @@ deploy:
 	@echo "Deploying services..."
 	kubectl apply -f $(K8S_DIR)/services/backend.yml
 	kubectl apply -f $(K8S_DIR)/services/frontend.yml
+	kubectl apply -f $(K8S_DIR)/services/website.yml
 	kubectl apply -f $(K8S_DIR)/services/ingress.yml
 	
 	@echo "Deploying monitoring..."
