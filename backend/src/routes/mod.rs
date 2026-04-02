@@ -9,9 +9,8 @@ use sqlx::PgPool;
 
 // Auth handlers are used through auth::handlers
 use crate::auth::handlers::{
-    confirm_password_reset_handler, get_current_user_handler, login_handler,
-    register_handler, request_password_reset_handler, resend_verification_handler,
-    verify_email_handler,
+    confirm_password_reset_handler, get_current_user_handler, login_handler, register_handler,
+    request_password_reset_handler, resend_verification_handler, verify_email_handler,
 };
 use crate::cache::RedisCache;
 use crate::config::Settings;
@@ -41,8 +40,14 @@ pub fn configure(
         web::scope("/api/v1/auth")
             .route("/register", web::post().to(register_handler))
             .route("/login", web::post().to(login_handler))
-            .route("/password-reset", web::post().to(request_password_reset_handler))
-            .route("/password-reset/confirm", web::post().to(confirm_password_reset_handler))
+            .route(
+                "/password-reset",
+                web::post().to(request_password_reset_handler),
+            )
+            .route(
+                "/password-reset/confirm",
+                web::post().to(confirm_password_reset_handler),
+            )
             .route("/verify-email", web::post().to(verify_email_handler)),
     );
 
@@ -69,7 +74,10 @@ pub fn configure(
             .wrap(user_rate_limit)
             .wrap(auth)
             .route("/me", web::get().to(get_current_user_handler))
-            .route("/me/resend-verification", web::post().to(resend_verification_handler))
+            .route(
+                "/me/resend-verification",
+                web::post().to(resend_verification_handler),
+            )
             .route(
                 "/ws",
                 web::get().to(|req, payload, srv, user| async {
@@ -91,6 +99,7 @@ pub fn configure(
             .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::stories::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::hashtag::configure_module(c, pool.clone()))
+            .configure(|c| crate::modules::polls::configure_module(c, pool.clone()))
             .configure(search::configure_routes),
     );
 }

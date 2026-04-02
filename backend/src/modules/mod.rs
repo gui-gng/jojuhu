@@ -5,6 +5,7 @@
 pub mod forums;
 pub mod hashtag;
 pub mod messages;
+pub mod polls;
 pub mod search;
 pub mod stories;
 pub mod timeline;
