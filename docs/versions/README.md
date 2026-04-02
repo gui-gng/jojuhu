@@ -52,17 +52,18 @@ Real-time features and improved UX:
 
 ---
 
-## Planned
+## In Progress
 
-### 📋 [v0.3.0 - Community & Growth](v0.3.0.md)
-**Target:** Q2 2026
+### 🚧 [v0.3.0 - Community & Growth](v0.3.0.md)
+**Target:** Q2 2026  
+**Progress:** Starting development
 
-Scale with advanced features:
-- Private groups
-- Content moderation
-- Analytics dashboard
-- Verified badges
-- Public API
+Advanced community features:
+- 🚧 Groups (private communities)
+- 📋 Forum enhancements
+- 📋 Content moderation
+- 📋 Analytics dashboard
+- 📋 Verification badges
 
 ### 📋 [v1.0.0 - Production Launch](v0.4.0.md)
 **Target:** Q3 2026
