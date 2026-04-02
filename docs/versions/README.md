@@ -18,20 +18,37 @@ Core social networking functionality:
 
 ---
 
-## In Progress
+## Released
 
-### 🚧 [v0.2.0 - Engagement & Polish](v0.2.0.md)
-**Target:** April 5, 2026  
-**Progress:** 85% Complete
+### ✅ [v0.1.0 - Foundation (MVP)](v0.1.0.md)
+**Released:** March 27, 2026  
+**Status:** COMPLETE
+
+Core social networking functionality:
+- User registration & authentication
+- Profiles & follow system
+- Posts, comments, likes
+- Forums & topics
+- Direct messaging
+- 114 tests passing
+
+### ✅ [v0.2.0 - Engagement & Polish](v0.2.0.md)
+**Released:** April 2, 2026  
+**Status:** COMPLETE
 
 Real-time features and improved UX:
 - ✅ WebSocket infrastructure
 - ✅ Notification system
 - ✅ Stories (ephemeral content)
-- ✅ Dark mode
+- ✅ Dark mode removed (light theme only)
 - ✅ Infinite scroll
-- 🚧 Algorithmic feed
-- 🚧 Push notifications
+- ✅ Algorithmic feed ("For You", "Following", "Trending")
+- ✅ Live real-time notifications:
+  - Live new post notifications
+  - Live message updates
+  - Typing indicators
+  - Online/offline status
+  - Live comment updates
 
 ---
 
