@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:jojuhu/theme/theme_provider.dart';
 import 'pages/explore.dart';
 import 'pages/forum.dart';
 import 'pages/messages/messages_screen.dart';
@@ -48,23 +46,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Jojuhu'),
-        actions: [
-          // Theme toggle button
-          IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            ),
-            onPressed: () {
-              themeProvider.toggleTheme();
-            },
-            tooltip: themeProvider.isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-          ),
-        ],
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
