@@ -325,7 +325,7 @@
 
 ---
 
-## Release v1.0.0 - Production Launch 🎯
+## Release v0.4.0 - Beta Launch 🎯
 **Status:** Planned  
 **Goal:** Production-ready platform with enterprise features and monetization
 
@@ -337,19 +337,13 @@
   - [ ] Content moderation queue
   - [ ] Platform analytics
   - [ ] Feature flags
-- [ ] Multi-tenant support (optional)
-- [ ] Custom branding (white-label)
-- [ ] SSO integration (OAuth2/SAML)
 
 #### Monetization (Optional)
 - [ ] Premium subscriptions
-  - [ ] Verified badge
   - [ ] Analytics insights
   - [ ] Priority support
-  - [ ] Custom themes
 - [ ] Advertising system (if applicable)
 - [ ] Tipping/donations between users
-- [ ] Paid groups/forums
 
 #### Advanced Features
 - [ ] Live streaming
