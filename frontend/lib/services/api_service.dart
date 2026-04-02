@@ -10,8 +10,27 @@ import '../models/forum.dart';
 import '../models/upload.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8080';
+  // Get base URL from environment variable or use default
+  // For web deployment, use empty string to make requests relative to current host
+  static String get baseUrl {
+    const envUrl = String.fromEnvironment('API_URL');
+    if (envUrl.isNotEmpty) {
+      return envUrl;
+    }
+    // For web, use relative URLs (nginx will proxy to backend)
+    // For mobile/desktop, use localhost
+    return '';
+  }
+  
   static const String apiPrefix = '/api/v1';
+  
+  // Helper to construct full URL
+  static String _buildUrl(String path) {
+    if (baseUrl.isEmpty) {
+      return path; // Relative URL
+    }
+    return '$baseUrl$path'; // Absolute URL
+  }
   
   static const storage = FlutterSecureStorage();
 
@@ -94,7 +113,7 @@ class ApiService {
     String? displayName,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/auth/register'),
+      Uri.parse(_buildUrl('$apiPrefix/auth/register')),
       headers: await _getHeaders(requiresAuth: false),
       body: jsonEncode({
         'username': username,
@@ -123,7 +142,7 @@ class ApiService {
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/auth/login'),
+      Uri.parse(_buildUrl('$apiPrefix/auth/login')),
       headers: await _getHeaders(requiresAuth: false),
       body: jsonEncode({
         'username_or_email': usernameOrEmail,
@@ -147,7 +166,7 @@ class ApiService {
   /// Gets the currently authenticated user's profile
   static Future<ApiResponse<User>> getCurrentUser() async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/me'),
+      Uri.parse(_buildUrl('$apiPrefix/me')),
       headers: await _getHeaders(),
     );
 
@@ -165,7 +184,7 @@ class ApiService {
     required String content,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/messages'),
+      Uri.parse(_buildUrl('$apiPrefix/messages')),
       headers: await _getHeaders(),
       body: jsonEncode({
         'recipient_id': recipientId,
@@ -180,7 +199,7 @@ class ApiService {
   /// Gets a list of all conversations for the current user
   static Future<ApiResponse<List<Conversation>>> getConversations() async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/messages/conversations'),
+      Uri.parse(_buildUrl('$apiPrefix/messages/conversations')),
       headers: await _getHeaders(),
     );
 
@@ -198,7 +217,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/messages/conversations/$userId?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/messages/conversations/$userId?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -212,7 +231,7 @@ class ApiService {
   /// Marks a specific message as read
   static Future<ApiResponse<void>> markMessageAsRead(String messageId) async {
     final response = await http.put(
-      Uri.parse('$baseUrl$apiPrefix/messages/$messageId/read'),
+      Uri.parse(_buildUrl('$apiPrefix/messages/$messageId/read')),
       headers: await _getHeaders(),
     );
 
@@ -223,7 +242,7 @@ class ApiService {
   /// Deletes a message (only sender can delete)
   static Future<ApiResponse<void>> deleteMessage(String messageId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/messages/$messageId'),
+      Uri.parse(_buildUrl('$apiPrefix/messages/$messageId')),
       headers: await _getHeaders(),
     );
 
@@ -241,7 +260,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/timeline/feed?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/feed?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -259,7 +278,7 @@ class ApiService {
     bool isPublic = true,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts')),
       headers: await _getHeaders(),
       body: jsonEncode({
         'content': content,
@@ -275,7 +294,7 @@ class ApiService {
   /// Gets a single post by ID
   static Future<ApiResponse<Post>> getPost(String postId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId')),
       headers: await _getHeaders(),
     );
 
@@ -294,7 +313,7 @@ class ApiService {
     if (isPublic != null) body['is_public'] = isPublic;
 
     final response = await http.put(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId')),
       headers: await _getHeaders(),
       body: jsonEncode(body),
     );
@@ -306,7 +325,7 @@ class ApiService {
   /// Deletes a post (only author can delete)
   static Future<ApiResponse<void>> deletePost(String postId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId')),
       headers: await _getHeaders(),
     );
 
@@ -321,7 +340,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/timeline/users/$userId/posts?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/users/$userId/posts?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -335,7 +354,7 @@ class ApiService {
   /// Likes a post
   static Future<ApiResponse<bool>> likePost(String postId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId/like'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId/like')),
       headers: await _getHeaders(),
     );
 
@@ -346,7 +365,7 @@ class ApiService {
   /// Removes like from a post
   static Future<ApiResponse<bool>> unlikePost(String postId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId/like'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId/like')),
       headers: await _getHeaders(),
     );
 
@@ -361,7 +380,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId/comments?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId/comments?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -384,7 +403,7 @@ class ApiService {
     };
 
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId/comments'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId/comments')),
       headers: await _getHeaders(),
       body: jsonEncode(body),
     );
@@ -399,7 +418,7 @@ class ApiService {
     required String commentId,
   }) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/timeline/posts/$postId/comments/$commentId'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/posts/$postId/comments/$commentId')),
       headers: await _getHeaders(),
     );
 
@@ -417,7 +436,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/forums?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/forums?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -435,7 +454,7 @@ class ApiService {
     bool isPublic = true,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums'),
+      Uri.parse(_buildUrl('$apiPrefix/forums')),
       headers: await _getHeaders(),
       body: jsonEncode({
         'name': name,
@@ -451,7 +470,7 @@ class ApiService {
   /// Gets a single forum by ID
   static Future<ApiResponse<Forum>> getForum(String forumId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId')),
       headers: await _getHeaders(),
     );
 
@@ -472,7 +491,7 @@ class ApiService {
     if (isPublic != null) body['is_public'] = isPublic;
 
     final response = await http.put(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId')),
       headers: await _getHeaders(),
       body: jsonEncode(body),
     );
@@ -484,7 +503,7 @@ class ApiService {
   /// Deletes a forum (only creator)
   static Future<ApiResponse<void>> deleteForum(String forumId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId')),
       headers: await _getHeaders(),
     );
 
@@ -495,7 +514,7 @@ class ApiService {
   /// Joins a forum as a member
   static Future<ApiResponse<bool>> joinForum(String forumId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/join'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/join')),
       headers: await _getHeaders(),
     );
 
@@ -506,7 +525,7 @@ class ApiService {
   /// Leaves a forum
   static Future<ApiResponse<bool>> leaveForum(String forumId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/leave'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/leave')),
       headers: await _getHeaders(),
     );
 
@@ -521,7 +540,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -539,7 +558,7 @@ class ApiService {
     required String content,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics')),
       headers: await _getHeaders(),
       body: jsonEncode({
         'title': title,
@@ -557,7 +576,7 @@ class ApiService {
     required String topicId,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId')),
       headers: await _getHeaders(),
     );
 
@@ -571,7 +590,7 @@ class ApiService {
     required String topicId,
   }) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId')),
       headers: await _getHeaders(),
     );
 
@@ -585,7 +604,7 @@ class ApiService {
     required String topicId,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/lock'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/lock')),
       headers: await _getHeaders(),
     );
 
@@ -599,7 +618,7 @@ class ApiService {
     required String topicId,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/unlock'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/unlock')),
       headers: await _getHeaders(),
     );
 
@@ -613,7 +632,7 @@ class ApiService {
     required String topicId,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/pin'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/pin')),
       headers: await _getHeaders(),
     );
 
@@ -627,7 +646,7 @@ class ApiService {
     required String topicId,
   }) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/unpin'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/unpin')),
       headers: await _getHeaders(),
     );
 
@@ -643,7 +662,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/replies?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/replies?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -667,7 +686,7 @@ class ApiService {
     };
 
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/replies'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/replies')),
       headers: await _getHeaders(),
       body: jsonEncode(body),
     );
@@ -683,7 +702,7 @@ class ApiService {
     required String replyId,
   }) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/forums/$forumId/topics/$topicId/replies/$replyId'),
+      Uri.parse(_buildUrl('$apiPrefix/forums/$forumId/topics/$topicId/replies/$replyId')),
       headers: await _getHeaders(),
     );
 
@@ -698,7 +717,7 @@ class ApiService {
   /// Checks if the API is running
   static Future<ApiResponse<Map<String, dynamic>>> healthCheck() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/health'),
+      Uri.parse(_buildUrl('/health')),
       headers: await _getHeaders(requiresAuth: false),
     );
 
@@ -713,7 +732,7 @@ class ApiService {
   /// Gets the current user's profile
   static Future<ApiResponse<MyProfile>> getMyProfile() async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/users/me'),
+      Uri.parse(_buildUrl('$apiPrefix/users/me')),
       headers: await _getHeaders(),
     );
 
@@ -724,7 +743,7 @@ class ApiService {
   /// Gets a user's profile by ID
   static Future<ApiResponse<UserProfile>> getUserProfile(String userId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/users/$userId'),
+      Uri.parse(_buildUrl('$apiPrefix/users/$userId')),
       headers: await _getHeaders(),
     );
 
@@ -743,7 +762,7 @@ class ApiService {
     };
 
     final response = await http.put(
-      Uri.parse('$baseUrl$apiPrefix/users/me'),
+      Uri.parse(_buildUrl('$apiPrefix/users/me')),
       headers: await _getHeaders(),
       body: jsonEncode(body),
     );
@@ -755,7 +774,7 @@ class ApiService {
   /// Updates the current user's avatar
   static Future<ApiResponse<void>> updateAvatar(String avatarUrl) async {
     final response = await http.put(
-      Uri.parse('$baseUrl$apiPrefix/users/me/avatar'),
+      Uri.parse(_buildUrl('$apiPrefix/users/me/avatar')),
       headers: await _getHeaders(),
       body: jsonEncode({'avatar_url': avatarUrl}),
     );
@@ -767,7 +786,7 @@ class ApiService {
   /// Follows a user
   static Future<ApiResponse<void>> followUser(String userId) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/users/$userId/follow'),
+      Uri.parse(_buildUrl('$apiPrefix/users/$userId/follow')),
       headers: await _getHeaders(),
     );
 
@@ -778,7 +797,7 @@ class ApiService {
   /// Unfollows a user
   static Future<ApiResponse<void>> unfollowUser(String userId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/users/$userId/follow'),
+      Uri.parse(_buildUrl('$apiPrefix/users/$userId/follow')),
       headers: await _getHeaders(),
     );
 
@@ -793,7 +812,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/users/$userId/followers?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/users/$userId/followers?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -808,7 +827,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/users/$userId/following?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/users/$userId/following?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -826,7 +845,7 @@ class ApiService {
     int perPage = 20,
   }) async {
     final response = await http.get(
-      Uri.parse('$baseUrl$apiPrefix/timeline/following?page=$page&per_page=$perPage'),
+      Uri.parse(_buildUrl('$apiPrefix/timeline/following?page=$page&per_page=$perPage')),
       headers: await _getHeaders(),
     );
 
@@ -846,7 +865,7 @@ class ApiService {
     PresignedUrlRequest request,
   ) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/upload/presigned-url'),
+      Uri.parse(_buildUrl('$apiPrefix/upload/presigned-url')),
       headers: await _getHeaders(),
       body: jsonEncode(request.toJson()),
     );
@@ -861,7 +880,7 @@ class ApiService {
   /// Confirms an avatar upload
   static Future<ApiResponse<void>> confirmAvatarUpload(String key) async {
     final response = await http.post(
-      Uri.parse('$baseUrl$apiPrefix/upload/confirm-avatar'),
+      Uri.parse(_buildUrl('$apiPrefix/upload/confirm-avatar')),
       headers: await _getHeaders(),
       body: jsonEncode({'key': key}),
     );
@@ -892,7 +911,7 @@ class ApiService {
   /// Deletes a file from storage
   static Future<ApiResponse<void>> deleteFile(String key) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl$apiPrefix/upload/files/$key'),
+      Uri.parse(_buildUrl('$apiPrefix/upload/files/$key')),
       headers: await _getHeaders(),
     );
 

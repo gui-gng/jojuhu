@@ -25,6 +25,9 @@ spec:
         - name: http
           containerPort: 3000
           protocol: TCP
+        # API_URL is set at build time via --dart-define
+        # Empty value means relative URLs (nginx proxies /api to backend)
+        # To use absolute URL, rebuild with: --dart-define=API_URL=http://backend:8080
         resources:
           requests:
             memory: "128Mi"

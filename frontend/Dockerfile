@@ -1,6 +1,9 @@
 # Flutter SDK for building
 FROM ghcr.io/cirruslabs/flutter:3.24.5 AS builder
 
+# Build argument for API URL (default empty for relative URLs)
+ARG API_URL=""
+
 WORKDIR /app
 
 # Copy pubspec files first for better caching
@@ -16,8 +19,9 @@ COPY web ./web
 COPY assets ./assets
 COPY analysis_options.yaml* ./
 
-# Build for web
-RUN flutter build web --release
+# Build for web with API URL
+# If API_URL is empty, it will use relative URLs (works with nginx proxy)
+RUN flutter build web --release --dart-define=API_URL=${API_URL}
 
 # Runtime stage with nginx
 FROM nginx:alpine AS runtime
