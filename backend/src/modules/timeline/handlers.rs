@@ -7,6 +7,7 @@ use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
 use crate::notifications::NotificationService;
 use crate::modules::users::repository::UserRepository;
+use crate::websocket::{WebSocketServer, WsMessage};
 
 use super::models::{CreateCommentRequest, CreatePostRequest, CreateRepostRequest, FeedSort, TimelineFeedQuery, UpdatePostRequest};
 use super::service::TimelineService;
@@ -14,14 +15,43 @@ use super::service::TimelineService;
 pub async fn create_post(
     service: web::Data<TimelineService>,
     cache: Option<web::Data<RedisCache>>,
+    ws_server: Option<web::Data<WebSocketServer>>,
+    pool: web::Data<sqlx::PgPool>,
     user: AuthenticatedUser,
     request: web::Json<CreatePostRequest>,
 ) -> Result<HttpResponse, AppError> {
-    let post = service.create_post(user.user_id, request.into_inner()).await?;
+    let author_id = user.user_id;
+    let post = service.create_post(author_id, request.into_inner()).await?;
     
     // Invalidate following feed cache for user's followers
     if let Some(cache) = cache {
-        let _ = cache.invalidate_feed(user.user_id).await;
+        let _ = cache.invalidate_feed(author_id).await;
+    }
+    
+    // Send real-time notification to followers about new post
+    if let Some(ref ws) = ws_server {
+        let user_repo = UserRepository::new(pool.get_ref().clone());
+        if let Ok(profile) = user_repo.get_profile_by_id(author_id).await {
+            let author_name = profile.display_name.unwrap_or(profile.username);
+            let content_preview = if post.content.len() > 50 {
+                format!("{}...", &post.content[..50])
+            } else {
+                post.content.clone()
+            };
+            
+            // Get follower IDs
+            if let Ok(follower_ids) = user_repo.get_follower_ids(author_id).await {
+                for follower_id in follower_ids {
+                    let ws_msg = WsMessage::NewPost {
+                        post_id: post.id,
+                        author_id,
+                        author_name: author_name.clone(),
+                        content_preview: content_preview.clone(),
+                    };
+                    ws.send_to_user(follower_id, ws_msg).await;
+                }
+            }
+        }
     }
     
     Ok(HttpResponse::Created().json(ApiResponse::success(post)))
@@ -181,23 +211,25 @@ pub async fn unlike_post(
 pub async fn add_comment(
     service: web::Data<TimelineService>,
     notification_service: web::Data<NotificationService>,
+    ws_server: Option<web::Data<WebSocketServer>>,
     pool: web::Data<sqlx::PgPool>,
     user: AuthenticatedUser,
     path: web::Path<Uuid>,
     request: web::Json<CreateCommentRequest>,
 ) -> Result<HttpResponse, AppError> {
     let post_id = path.into_inner();
+    let author_id = user.user_id;
     let content = request.content.clone();
     let comment = service
-        .add_comment(post_id, user.user_id, request.into_inner())
+        .add_comment(post_id, author_id, request.into_inner())
         .await?;
     
     // Get post to find author and send notification
     let post = service.repository.get_post_by_id(post_id).await?;
-    if post.author_id != user.user_id {
+    if post.author_id != author_id {
         // Don't notify for self-comments
         let user_repo = UserRepository::new(pool.get_ref().clone());
-        let commenter_profile = user_repo.get_profile_by_id(user.user_id).await?;
+        let commenter_profile = user_repo.get_profile_by_id(author_id).await?;
         let commenter_name = commenter_profile.display_name
             .unwrap_or(commenter_profile.username);
         
@@ -208,19 +240,31 @@ pub async fn add_comment(
         };
         
         let _ = notification_service
-            .notify_post_comment(user.user_id, &commenter_name, post.author_id, post_id, &preview)
+            .notify_post_comment(author_id, &commenter_name, post.author_id, post_id, &preview)
             .await;
         
         // Check for mentions in the comment
         let _ = check_and_notify_mentions(
             &content,
-            user.user_id,
+            author_id,
             &commenter_name,
             "comment",
             post_id,
             &notification_service,
             &pool,
         ).await;
+        
+        // Send real-time comment notification via WebSocket
+        if let Some(ref ws) = ws_server {
+            let ws_msg = WsMessage::NewComment {
+                post_id,
+                comment_id: comment.id,
+                author_id,
+                author_name: commenter_name.clone(),
+                content: content.clone(),
+            };
+            ws.send_to_user(post.author_id, ws_msg).await;
+        }
     }
     
     Ok(HttpResponse::Created().json(ApiResponse::success(comment)))

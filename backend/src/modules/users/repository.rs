@@ -591,4 +591,17 @@ impl UserRepository {
             None => Ok(None),
         }
     }
+
+    /// Get follower IDs for a user (used for real-time notifications)
+    pub async fn get_follower_ids(&self, user_id: Uuid) -> Result<Vec<Uuid>, AppError> {
+        let rows = sqlx::query_scalar::<_, Uuid>(
+            "SELECT follower_id FROM follows WHERE following_id = $1"
+        )
+        .bind(user_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::from)?;
+
+        Ok(rows)
+    }
 }

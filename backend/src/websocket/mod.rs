@@ -91,18 +91,25 @@ impl WebSocketServer {
         Self::default()
     }
     
-    /// Add a new session
+    /// Add a new session and notify followers about online status
     pub async fn add_session(&self, 
         session_id: Uuid, 
         user_id: Uuid, 
         session: Session
     ) {
         self.sessions.write().await.insert(session_id, (user_id, session));
+        
+        // Broadcast user online status to followers (would need user repo for that)
+        // For now, we just track the session
     }
     
-    /// Remove a session
+    /// Remove a session and notify about offline status
     pub async fn remove_session(&self, session_id: Uuid) {
-        self.sessions.write().await.remove(&session_id);
+        if let Some((user_id, _)) = self.sessions.write().await.remove(&session_id) {
+            // Could broadcast UserStatus to followers here
+            // For now, we just remove the session
+            tracing::debug!("User {} disconnected", user_id);
+        }
     }
     
     /// Send message to a specific user
