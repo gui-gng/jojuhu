@@ -6,6 +6,41 @@ This document provides guidelines for AI agents working on the Social Network Ba
 
 This is a Rust-based backend API for a social network platform, built with Actix-web. It follows Clean Architecture principles with modular domain-driven design.
 
+## Project Structure
+
+```
+jojuhu/
+├── backend/              # Rust API (Actix-web)
+├── frontend/             # Flutter mobile/web app
+├── website/              # Astro marketing site
+├── k8s/                  # Kubernetes deployment configs
+├── tests/                # Test suites
+│   └── api_flows/        # API integration tests
+├── docs/                 # Documentation
+│   ├── versions/         # Release notes per version
+│   │   ├── README.md     # Version index
+│   │   ├── v0.1.0.md     # MVP (Complete)
+│   │   ├── v0.2.0.md     # In Progress (85%)
+│   │   ├── v0.3.0.md     # Planned
+│   │   └── v0.4.0.md     # Production (v1.0.0)
+│   ├── ARCHITECTURE.md   # Technical architecture
+│   ├── ROADMAP.md        # Product roadmap
+│   ├── QUICKSTART.md     # Getting started guide
+│   └── KUBERNETES_DEPLOYMENT.md  # K8s deployment docs
+└── AGENTS.md            # This file
+```
+
+## Version Management
+
+The project uses semantic versioning with detailed release notes in `docs/versions/`:
+
+- **v0.1.0** ✅ COMPLETE - MVP with core features
+- **v0.2.0** 🚧 IN PROGRESS (85%) - Real-time features, notifications
+- **v0.3.0** 📋 PLANNED - Groups, moderation, analytics
+- **v1.0.0** 📋 PLANNED - Production launch, mobile apps
+
+Always check `docs/versions/README.md` for current status and `docs/versions/vX.Y.Z.md` for specific version details.
+
 ## Build/Lint/Test Commands
 
 ```bash
@@ -229,3 +264,24 @@ docs(backend): add API documentation for user module
 - [ ] No hardcoded secrets or credentials
 - [ ] Error handling implemented for all fallible operations
 - [ ] Input validation and sanitization added for user inputs
+- [ ] Documentation updated (if changing features)
+
+## Documentation Guidelines
+
+### Version Documentation
+When implementing features:
+1. Check `docs/versions/vX.Y.Z.md` for the target version
+2. Update the feature status (✅ 🚧 📋)
+3. Add technical details to version files
+
+### Main Documentation Files
+- **README.md** - Project overview and quick links
+- **docs/ARCHITECTURE.md** - System design and technical decisions
+- **docs/ROADMAP.md** - High-level product planning
+- **docs/QUICKSTART.md** - Developer onboarding
+- **docs/KUBERNETES_DEPLOYMENT.md** - Infrastructure setup
+
+### API Documentation
+- Update Bruno collections in `backend/bruno/`
+- Document new endpoints with examples
+- Include error response codes
