@@ -3,6 +3,7 @@
 //! This module contains all domain-specific business logic modules.
 
 pub mod forums;
+pub mod groups;
 pub mod hashtag;
 pub mod link_preview;
 pub mod messages;

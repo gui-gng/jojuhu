@@ -101,6 +101,7 @@ pub fn configure(
             .configure(|c| crate::modules::hashtag::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::polls::configure_module(c, pool.clone()))
             .configure(|c| crate::modules::link_preview::configure_module(c, pool.clone()))
+            .configure(|c| crate::modules::groups::configure_module(c, pool.clone()))
             .configure(search::configure_routes),
     );
 }
