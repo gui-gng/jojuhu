@@ -4,6 +4,7 @@
 
 pub mod forums;
 pub mod hashtag;
+pub mod link_preview;
 pub mod messages;
 pub mod polls;
 pub mod search;
