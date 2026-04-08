@@ -5,7 +5,7 @@ use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
 
-use super::models::{CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumSearchQuery, UpdateForumRequest};
+use super::models::{BanUserRequest, CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumSearchQuery, UpdateForumRequest};
 use super::service::ForumService;
 
 pub async fn create_forum(
@@ -246,4 +246,44 @@ pub async fn unpin_topic(
     let (_, topic_id) = path.into_inner();
     service.unpin_topic(topic_id, user.user_id).await?;
     Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({"pinned": false}))))
+}
+
+// Forum Ban Handlers
+pub async fn ban_user(
+    service: web::Data<ForumService>,
+    user: AuthenticatedUser,
+    path: web::Path<(Uuid, Uuid)>,
+    request: web::Json<BanUserRequest>,
+) -> Result<HttpResponse, AppError> {
+    let (forum_id, user_to_ban) = path.into_inner();
+    service
+        .ban_user_from_forum(
+            forum_id,
+            user_to_ban,
+            user.user_id,
+            request.reason.clone(),
+            request.expires_at,
+        )
+        .await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({"banned": true}))))
+}
+
+pub async fn unban_user(
+    service: web::Data<ForumService>,
+    user: AuthenticatedUser,
+    path: web::Path<(Uuid, Uuid)>,
+) -> Result<HttpResponse, AppError> {
+    let (forum_id, user_to_unban) = path.into_inner();
+    service.unban_user_from_forum(forum_id, user_to_unban, user.user_id).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({"banned": false}))))
+}
+
+pub async fn check_ban_status(
+    service: web::Data<ForumService>,
+    user: AuthenticatedUser,
+    path: web::Path<(Uuid, Uuid)>,
+) -> Result<HttpResponse, AppError> {
+    let (forum_id, user_to_check) = path.into_inner();
+    let is_banned = service.is_user_banned(forum_id, user_to_check).await?;
+    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({"banned": is_banned}))))
 }

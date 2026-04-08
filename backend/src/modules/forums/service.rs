@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::errors::AppError;
@@ -384,5 +385,70 @@ impl ForumService {
     async fn get_reply_response(&self, reply_id: Uuid) -> Result<ReplyResponseRow, AppError> {
         self.repository.get_reply_response_by_id(reply_id).await?
             .ok_or_else(|| AppError::NotFoundError("Reply not found".to_string()))
+    }
+
+    // Forum Ban Methods
+    pub async fn ban_user_from_forum(
+        &self,
+        forum_id: Uuid,
+        user_id: Uuid,
+        banned_by: Uuid,
+        reason: Option<String>,
+        expires_at: Option<DateTime<Utc>>,
+    ) -> Result<(), AppError> {
+        // Check ban permission
+        self.check_moderator_permission(forum_id, banned_by).await?;
+
+        // Don't allow banning admins
+        let target_member = self.repository.get_member(forum_id, user_id).await?;
+        if let Some(member) = target_member {
+            if matches!(member.role, ForumRole::Admin) {
+                return Err(AppError::AuthorizationError(
+                    "Cannot ban forum admins".to_string()
+                ));
+            }
+        }
+
+        // Create ban
+        self.repository
+            .ban_user_from_forum(forum_id, user_id, banned_by, reason.as_deref(), expires_at)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn unban_user_from_forum(
+        &self,
+        forum_id: Uuid,
+        user_id: Uuid,
+        unbanned_by: Uuid,
+    ) -> Result<(), AppError> {
+        // Check permission
+        self.check_moderator_permission(forum_id, unbanned_by).await?;
+
+        self.repository.unban_user_from_forum(forum_id, user_id).await
+    }
+
+    pub async fn is_user_banned(&self, forum_id: Uuid, user_id: Uuid) -> Result<bool, AppError> {
+        self.repository.is_user_banned_from_forum(forum_id, user_id).await
+    }
+
+    // Analytics Methods
+    pub async fn record_topic_view(
+        &self,
+        topic_id: Uuid,
+        user_id: Option<Uuid>,
+        ip_address: Option<String>,
+    ) -> Result<(), AppError> {
+        // Verify topic exists
+        self.repository.get_topic_by_id(topic_id).await?;
+
+        // Increment views counter
+        self.repository.increment_topic_views(topic_id).await.ok();
+
+        // Record detailed view for analytics
+        self.repository.record_topic_view(topic_id, user_id, ip_address).await?;
+
+        Ok(())
     }
 }

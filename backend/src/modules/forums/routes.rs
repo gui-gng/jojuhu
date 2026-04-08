@@ -54,6 +54,19 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             .route(
                 "/{forum_id}/topics/{topic_id}/replies/{reply_id}",
                 web::delete().to(handlers::delete_reply),
+            )
+            // Forum Bans
+            .route(
+                "/{forum_id}/bans/{user_id}",
+                web::post().to(handlers::ban_user),
+            )
+            .route(
+                "/{forum_id}/bans/{user_id}",
+                web::delete().to(handlers::unban_user),
+            )
+            .route(
+                "/{forum_id}/bans/{user_id}/status",
+                web::get().to(handlers::check_ban_status),
             ),
     );
 }
