@@ -56,10 +56,12 @@ Real-time features and improved UX:
 
 ### 🚧 [v0.3.0 - Community & Growth](v0.3.0.md)
 **Target:** Q2 2026  
-**Progress:** Starting development
+**Progress:** In Progress - Group features completed
 
 Advanced community features:
-- 🚧 Groups (private communities)
+- ✅ Groups (private communities)
+- ✅ Group invitations and join requests
+- ✅ Role-based permissions
 - 📋 Forum enhancements
 - 📋 Content moderation
 - 📋 Analytics dashboard

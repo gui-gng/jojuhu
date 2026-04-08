@@ -1,4 +1,3 @@
-use regex::Regex;
 use sqlx::PgPool;
 
 use crate::errors::AppError;
@@ -52,6 +51,7 @@ impl LinkPreviewService {
     }
 }
 
+#[allow(dead_code)]
 pub fn extract_urls(text: &str) -> Vec<String> {
     let mut urls = Vec::new();
     
@@ -60,7 +60,7 @@ pub fn extract_urls(text: &str) -> Vec<String> {
     for word in words {
         if word.starts_with("http://") || word.starts_with("https://") {
             // Remove trailing punctuation
-            let url = word.trim_end_matches(|c| c == '.' || c == ',' || c == ';' || c == ')');
+            let url = word.trim_end_matches(['.', ',', ';', ')']);
             urls.push(url.to_string());
         }
     }

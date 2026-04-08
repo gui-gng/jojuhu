@@ -11,6 +11,8 @@ pub struct Forum {
     pub icon_url: Option<String>,
     pub cover_image_url: Option<String>,
     pub creator_id: Uuid,
+    pub category: Option<String>,
+    pub rules: Option<Vec<String>>,
     pub is_public: bool,
     pub members_count: i32,
     pub topics_count: i32,
@@ -22,6 +24,8 @@ pub struct Forum {
 pub struct CreateForumRequest {
     pub name: String,
     pub description: Option<String>,
+    pub category: Option<String>,
+    pub rules: Option<Vec<String>>,
     pub is_public: Option<bool>,
 }
 
@@ -29,6 +33,8 @@ pub struct CreateForumRequest {
 pub struct UpdateForumRequest {
     pub name: Option<String>,
     pub description: Option<String>,
+    pub category: Option<String>,
+    pub rules: Option<Vec<String>>,
     pub is_public: Option<bool>,
 }
 
@@ -41,6 +47,8 @@ pub struct ForumResponse {
     pub icon_url: Option<String>,
     pub cover_image_url: Option<String>,
     pub creator: ForumCreator,
+    pub category: Option<String>,
+    pub rules: Option<Vec<String>>,
     pub is_public: bool,
     pub members_count: i32,
     pub topics_count: i32,
@@ -57,6 +65,8 @@ pub struct ForumResponseRow {
     pub icon_url: Option<String>,
     pub cover_image_url: Option<String>,
     pub creator: serde_json::Value,
+    pub category: Option<String>,
+    pub rules: Option<Vec<String>>,
     pub is_public: bool,
     pub members_count: i32,
     pub topics_count: i32,
@@ -79,6 +89,8 @@ impl From<ForumResponseRow> for ForumResponse {
             icon_url: row.icon_url,
             cover_image_url: row.cover_image_url,
             creator,
+            category: row.category,
+            rules: row.rules,
             is_public: row.is_public,
             members_count: row.members_count,
             topics_count: row.topics_count,
@@ -121,6 +133,7 @@ pub struct Topic {
     pub content: String,
     pub is_pinned: bool,
     pub is_locked: bool,
+    pub tags: Option<Vec<String>>,
     pub views_count: i32,
     pub replies_count: i32,
     pub created_at: DateTime<Utc>,
@@ -131,6 +144,15 @@ pub struct Topic {
 pub struct CreateTopicRequest {
     pub title: String,
     pub content: String,
+    pub tags: Option<Vec<String>>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+pub struct UpdateTopicRequest {
+    pub title: Option<String>,
+    pub content: Option<String>,
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -142,6 +164,7 @@ pub struct TopicResponse {
     pub content: String,
     pub is_pinned: bool,
     pub is_locked: bool,
+    pub tags: Option<Vec<String>>,
     pub views_count: i32,
     pub replies_count: i32,
     pub created_at: DateTime<Utc>,
@@ -156,6 +179,7 @@ pub struct TopicResponseRow {
     pub content: String,
     pub is_pinned: bool,
     pub is_locked: bool,
+    pub tags: Option<Vec<String>>,
     pub views_count: i32,
     pub replies_count: i32,
     pub created_at: DateTime<Utc>,
@@ -176,6 +200,7 @@ impl From<TopicResponseRow> for TopicResponse {
             content: row.content,
             is_pinned: row.is_pinned,
             is_locked: row.is_locked,
+            tags: row.tags,
             views_count: row.views_count,
             replies_count: row.replies_count,
             created_at: row.created_at,
@@ -266,4 +291,84 @@ impl From<ReplyResponseRow> for ReplyResponse {
             created_at: row.created_at,
         }
     }
+}
+
+// Forum Ban Models
+#[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct ForumBan {
+    pub id: Uuid,
+    pub forum_id: Uuid,
+    pub user_id: Uuid,
+    pub banned_by: Uuid,
+    pub reason: Option<String>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Deserialize)]
+pub struct BanUserRequest {
+    pub reason: Option<String>,
+    pub expires_at: Option<DateTime<Utc>>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct BanResponse {
+    pub id: Uuid,
+    pub forum_id: Uuid,
+    pub user: ForumCreator,
+    pub banned_by: ForumCreator,
+    pub reason: Option<String>,
+    pub expires_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
+}
+
+// Forum Analytics Models
+#[allow(dead_code)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct ForumAnalytics {
+    pub id: Uuid,
+    pub forum_id: Uuid,
+    pub date: chrono::NaiveDate,
+    pub views: i32,
+    pub unique_visitors: i32,
+    pub new_topics: i32,
+    pub new_replies: i32,
+    pub new_members: i32,
+    pub created_at: DateTime<Utc>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct ForumAnalyticsResponse {
+    pub forum_id: Uuid,
+    pub period: AnalyticsPeriod,
+    pub total_views: i32,
+    pub total_unique_visitors: i32,
+    pub total_new_topics: i32,
+    pub total_new_replies: i32,
+    pub total_new_members: i32,
+    pub daily_stats: Vec<DailyStats>,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Serialize)]
+pub struct DailyStats {
+    pub date: chrono::NaiveDate,
+    pub views: i32,
+    pub unique_visitors: i32,
+    pub new_topics: i32,
+    pub new_replies: i32,
+    pub new_members: i32,
+}
+
+#[allow(dead_code)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AnalyticsPeriod {
+    Day,
+    Week,
+    Month,
 }

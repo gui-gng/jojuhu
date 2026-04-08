@@ -144,7 +144,7 @@ impl PollService {
         }
 
         // Check if user already voted
-        if let Some(_) = self.repository.has_user_voted(poll.id, user_id).await? {
+        if self.repository.has_user_voted(poll.id, user_id).await?.is_some() {
             return Err(AppError::ValidationError("You have already voted on this poll".to_string()));
         }
 

@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "versions/v0.2.0.md",
+                "file": "ROADMAP.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "v0.2.0"
+              "title": "ROADMAP"
             }
           }
         ],
@@ -59,7 +59,7 @@
                 "autoReveal": false
               },
               "icon": "lucide-folder-closed",
-              "title": "Files"
+              "title": "Explorador de arquivos"
             }
           },
           {
@@ -109,7 +109,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "versions/v0.2.0.md",
+                "file": "ROADMAP.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -119,7 +119,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for v0.2.0"
+              "title": "Backlinks for ROADMAP"
             }
           },
           {
@@ -128,12 +128,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "versions/v0.2.0.md",
+                "file": "ROADMAP.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from v0.2.0"
+              "title": "Outgoing links from ROADMAP"
             }
           },
           {
@@ -171,13 +171,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "versions/v0.2.0.md",
+                "file": "ROADMAP.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of v0.2.0"
+              "title": "Outline of ROADMAP"
             }
           }
         ]
@@ -189,22 +189,22 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Open quick switcher": false,
-      "graph:Open graph view": false,
-      "canvas:Create new canvas": false,
-      "daily-notes:Open today's daily note": false,
-      "templates:Insert template": false,
-      "command-palette:Open command palette": false,
-      "bases:Create new base": false
+      "switcher:Abrir a troca rápida": false,
+      "graph:Abrir visualização em gráfico": false,
+      "canvas:Criar novo canvas": false,
+      "daily-notes:Abrir a nota de hoje": false,
+      "templates:Inserir modelo": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Criar nova base": false
     }
   },
   "active": "30b1127ae99985cc",
   "lastOpenFiles": [
+    "versions/v0.4.0.md",
     "ROADMAP.md",
+    "versions/v0.2.0.md",
     "QUICKSTART.md",
     "KUBERNETES_DEPLOYMENT.md",
-    "versions/v0.2.0.md",
-    "versions/v0.4.0.md",
     "versions/v0.3.0.md",
     "versions/v0.1.0.md",
     "ARCHITECTURE.md"

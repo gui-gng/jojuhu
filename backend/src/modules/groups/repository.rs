@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::errors::AppError;
 
-use super::models::{Group, GroupMember, GroupRole};
+use super::models::{Group, GroupInvitation, GroupJoinRequest, GroupMember, GroupRole, InvitationStatus, JoinRequestStatus};
 
 pub struct GroupRepository {
     pool: PgPool,
@@ -52,6 +52,7 @@ impl GroupRepository {
         Ok(group)
     }
 
+    #[allow(dead_code)]
     pub async fn get_group_by_slug(&self, slug: &str) -> Result<Option<Group>, AppError> {
         let group = sqlx::query_as::<_, Group>("SELECT * FROM groups WHERE slug = $1")
             .bind(slug)
@@ -239,5 +240,175 @@ impl GroupRepository {
         .await?;
 
         Ok(())
+    }
+
+    // Invitation methods
+    pub async fn create_invitation(
+        &self,
+        group_id: Uuid,
+        inviter_id: Uuid,
+        invitee_id: Uuid,
+    ) -> Result<GroupInvitation, AppError> {
+        let invitation = sqlx::query_as::<_, GroupInvitation>(
+            r#"
+            INSERT INTO group_invitations (group_id, inviter_id, invitee_id)
+            VALUES ($1, $2, $3)
+            RETURNING *
+            "#,
+        )
+        .bind(group_id)
+        .bind(inviter_id)
+        .bind(invitee_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(invitation)
+    }
+
+    pub async fn get_invitation(&self, invitation_id: Uuid) -> Result<Option<GroupInvitation>, AppError> {
+        let invitation = sqlx::query_as::<_, GroupInvitation>(
+            "SELECT * FROM group_invitations WHERE id = $1",
+        )
+        .bind(invitation_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(invitation)
+    }
+
+    pub async fn get_pending_invitations_for_user(
+        &self,
+        user_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<GroupInvitation>, AppError> {
+        let invitations = sqlx::query_as::<_, GroupInvitation>(
+            r#"
+            SELECT * FROM group_invitations
+            WHERE invitee_id = $1 AND status = 'pending'
+            ORDER BY created_at DESC
+            LIMIT $2 OFFSET $3
+            "#,
+        )
+        .bind(user_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(invitations)
+    }
+
+    pub async fn update_invitation_status(
+        &self,
+        invitation_id: Uuid,
+        status: InvitationStatus,
+    ) -> Result<(), AppError> {
+        sqlx::query(
+            "UPDATE group_invitations SET status = $1 WHERE id = $2",
+        )
+        .bind(status)
+        .bind(invitation_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    // Join request methods
+    pub async fn create_join_request(
+        &self,
+        group_id: Uuid,
+        user_id: Uuid,
+        message: Option<&str>,
+    ) -> Result<GroupJoinRequest, AppError> {
+        let request = sqlx::query_as::<_, GroupJoinRequest>(
+            r#"
+            INSERT INTO group_join_requests (group_id, user_id, message)
+            VALUES ($1, $2, $3)
+            RETURNING *
+            "#,
+        )
+        .bind(group_id)
+        .bind(user_id)
+        .bind(message)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(request)
+    }
+
+    pub async fn get_join_request(&self, request_id: Uuid) -> Result<Option<GroupJoinRequest>, AppError> {
+        let request = sqlx::query_as::<_, GroupJoinRequest>(
+            "SELECT * FROM group_join_requests WHERE id = $1",
+        )
+        .bind(request_id)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(request)
+    }
+
+    pub async fn get_pending_join_requests_for_group(
+        &self,
+        group_id: Uuid,
+        offset: i32,
+        limit: i32,
+    ) -> Result<Vec<GroupJoinRequest>, AppError> {
+        let requests = sqlx::query_as::<_, GroupJoinRequest>(
+            r#"
+            SELECT * FROM group_join_requests
+            WHERE group_id = $1 AND status = 'pending'
+            ORDER BY created_at ASC
+            LIMIT $2 OFFSET $3
+            "#,
+        )
+        .bind(group_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(requests)
+    }
+
+    pub async fn update_join_request_status(
+        &self,
+        request_id: Uuid,
+        status: JoinRequestStatus,
+    ) -> Result<(), AppError> {
+        sqlx::query(
+            "UPDATE group_join_requests SET status = $1 WHERE id = $2",
+        )
+        .bind(status)
+        .bind(request_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn has_pending_join_request(&self, group_id: Uuid, user_id: Uuid) -> Result<bool, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM group_join_requests WHERE group_id = $1 AND user_id = $2 AND status = 'pending'",
+        )
+        .bind(group_id)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count > 0)
+    }
+
+    pub async fn has_pending_invitation(&self, group_id: Uuid, invitee_id: Uuid) -> Result<bool, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM group_invitations WHERE group_id = $1 AND invitee_id = $2 AND status = 'pending'",
+        )
+        .bind(group_id)
+        .bind(invitee_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count > 0)
     }
 }

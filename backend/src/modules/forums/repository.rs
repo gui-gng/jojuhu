@@ -1,10 +1,11 @@
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::errors::AppError;
 
 use super::models::{
-    Forum, ForumMember, ForumResponseRow, ForumRole, ReplyResponseRow, Topic, TopicReply,
+    Forum, ForumBan, ForumMember, ForumResponseRow, ForumRole, ReplyResponseRow, Topic, TopicReply,
     TopicResponseRow,
 };
 
@@ -23,19 +24,21 @@ impl ForumRepository {
             .replace(|c: char| !c.is_alphanumeric() && c != '-', "")
     }
 
-    pub async fn create_forum(
+pub async fn create_forum(
         &self,
         name: &str,
         description: Option<&str>,
         creator_id: Uuid,
         is_public: bool,
+        category: Option<&str>,
+        rules: Option<&[String]>,
     ) -> Result<Forum, AppError> {
         let slug = Self::generate_slug(name);
         
         let forum = sqlx::query_as::<_, Forum>(
             r#"
-            INSERT INTO forums (name, slug, description, creator_id, is_public)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO forums (name, slug, description, creator_id, is_public, category, rules)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
             "#
         )
@@ -44,6 +47,8 @@ impl ForumRepository {
         .bind(description)
         .bind(creator_id)
         .bind(is_public)
+        .bind(category)
+        .bind(rules)
         .fetch_one(&self.pool)
         .await?;
 
@@ -88,6 +93,8 @@ impl ForumRepository {
                     'username', u.username,
                     'display_name', u.display_name
                 ) as creator,
+                f.category,
+                f.rules,
                 f.is_public,
                 f.members_count,
                 f.topics_count,
@@ -128,6 +135,8 @@ impl ForumRepository {
                     'username', u.username,
                     'display_name', u.display_name
                 ) as creator,
+                f.category,
+                f.rules,
                 f.is_public,
                 f.members_count,
                 f.topics_count,
@@ -297,6 +306,8 @@ impl ForumRepository {
         name: Option<&str>,
         description: Option<Option<&str>>,
         is_public: Option<bool>,
+        category: Option<Option<&str>>,
+        rules: Option<Option<&[String]>>,
     ) -> Result<Forum, AppError> {
         let slug = name.map(Self::generate_slug);
         
@@ -308,6 +319,8 @@ impl ForumRepository {
                 slug = COALESCE($3, slug),
                 description = COALESCE($4, description),
                 is_public = COALESCE($5, is_public),
+                category = COALESCE($6, category),
+                rules = COALESCE($7, rules),
                 updated_at = NOW()
             WHERE id = $1
             RETURNING *
@@ -318,6 +331,8 @@ impl ForumRepository {
         .bind(slug)
         .bind(description)
         .bind(is_public)
+        .bind(category)
+        .bind(rules)
         .fetch_one(&self.pool)
         .await?;
 
@@ -382,17 +397,18 @@ impl ForumRepository {
         Ok(member)
     }
 
-    pub async fn create_topic(
+pub async fn create_topic(
         &self,
         forum_id: Uuid,
         author_id: Uuid,
         title: &str,
         content: &str,
+        tags: Option<&[String]>,
     ) -> Result<Topic, AppError> {
         let topic = sqlx::query_as::<_, Topic>(
             r#"
-            INSERT INTO topics (forum_id, author_id, title, content)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO topics (forum_id, author_id, title, content, tags)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING *
             "#
         )
@@ -400,6 +416,7 @@ impl ForumRepository {
         .bind(author_id)
         .bind(title)
         .bind(content)
+        .bind(tags)
         .fetch_one(&self.pool)
         .await?;
 
@@ -432,6 +449,7 @@ impl ForumRepository {
                 t.content,
                 t.is_pinned,
                 t.is_locked,
+                t.tags,
                 t.views_count,
                 t.replies_count,
                 t.created_at
@@ -467,6 +485,7 @@ impl ForumRepository {
                 t.content,
                 t.is_pinned,
                 t.is_locked,
+                t.tags,
                 t.views_count,
                 t.replies_count,
                 t.created_at
@@ -624,9 +643,92 @@ impl ForumRepository {
         )
         .bind(topic_id)
         .bind(is_pinned)
+        .bind(is_pinned)
         .fetch_one(&self.pool)
         .await?;
 
         Ok(topic)
+    }
+
+    // Forum Ban Methods
+    pub async fn ban_user_from_forum(
+        &self,
+        forum_id: Uuid,
+        user_id: Uuid,
+        banned_by: Uuid,
+        reason: Option<&str>,
+        expires_at: Option<DateTime<Utc>>,
+    ) -> Result<ForumBan, AppError> {
+        let ban = sqlx::query_as::<_, ForumBan>(
+            r#"
+            INSERT INTO forum_bans (forum_id, user_id, banned_by, reason, expires_at)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+            "#
+        )
+        .bind(forum_id)
+        .bind(user_id)
+        .bind(banned_by)
+        .bind(reason)
+        .bind(expires_at)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(ban)
+    }
+
+    pub async fn unban_user_from_forum(&self, forum_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        sqlx::query("DELETE FROM forum_bans WHERE forum_id = $1 AND user_id = $2")
+            .bind(forum_id)
+            .bind(user_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn is_user_banned_from_forum(&self, forum_id: Uuid, user_id: Uuid) -> Result<bool, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            r#"
+            SELECT COUNT(*) FROM forum_bans 
+            WHERE forum_id = $1 AND user_id = $2 
+            AND (expires_at IS NULL OR expires_at > NOW())
+            "#
+        )
+        .bind(forum_id)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count > 0)
+    }
+
+    pub async fn get_forum_bans(&self, forum_id: Uuid) -> Result<Vec<ForumBan>, AppError> {
+        let bans = sqlx::query_as::<_, ForumBan>(
+            "SELECT * FROM forum_bans WHERE forum_id = $1 ORDER BY created_at DESC"
+        )
+        .bind(forum_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(bans)
+    }
+
+    // Forum Analytics Methods
+    pub async fn record_topic_view(
+        &self,
+        topic_id: Uuid,
+        user_id: Option<Uuid>,
+        ip_address: Option<String>,
+    ) -> Result<(), AppError> {
+        sqlx::query(
+            "INSERT INTO topic_views (topic_id, user_id, ip_address) VALUES ($1, $2, $3)"
+        )
+        .bind(topic_id)
+        .bind(user_id)
+        .bind(ip_address)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }

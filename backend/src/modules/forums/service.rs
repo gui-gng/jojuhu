@@ -50,6 +50,8 @@ impl ForumService {
                 request.description.as_deref(),
                 creator_id,
                 request.is_public.unwrap_or(true),
+                request.category.as_deref(),
+                request.rules.as_deref(),
             )
             .await?;
 
@@ -146,6 +148,8 @@ impl ForumService {
                 request.name.as_deref(),
                 request.description.as_deref().map(Some),
                 request.is_public,
+                request.category.as_deref().map(Some),
+                request.rules.as_deref().map(Some),
             )
             .await?;
 
@@ -201,11 +205,22 @@ impl ForumService {
         validate_input_safety(&request.content).map_err(AppError::ValidationError)?;
         request.content = sanitize_input(&request.content);
 
+        // Sanitize tags if provided
+        let sanitized_tags = request.tags.as_ref().map(|tags| {
+            tags.iter()
+                .map(|tag| {
+                    let sanitized = sanitize_input(tag);
+                    sanitized.trim().to_string()
+                })
+                .filter(|tag| !tag.is_empty())
+                .collect::<Vec<_>>()
+        });
+
         self.check_forum_membership(forum_id, author_id).await?;
 
         let topic = self
             .repository
-            .create_topic(forum_id, author_id, &request.title, &request.content)
+            .create_topic(forum_id, author_id, &request.title, &request.content, sanitized_tags.as_deref())
             .await?;
 
         let row = self.get_topic_response(topic.id).await?;
