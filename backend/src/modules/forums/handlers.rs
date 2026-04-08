@@ -5,7 +5,7 @@ use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;
 use crate::models::{ApiResponse, PaginationParams};
 
-use super::models::{BanUserRequest, CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumSearchQuery, UpdateForumRequest};
+use super::models::{BanUserRequest, CreateForumRequest, CreateReplyRequest, CreateTopicRequest, ForumSearchQuery, TopicListQuery, UpdateForumRequest};
 use super::service::ForumService;
 
 pub async fn create_forum(
@@ -52,6 +52,7 @@ pub async fn search_forums(
         .search_forums(
             current_user_id,
             query.search.as_deref(),
+            query.category.as_deref(),
             sort_by,
             page,
             per_page,
@@ -143,13 +144,14 @@ pub async fn create_topic(
 pub async fn get_topics(
     service: web::Data<ForumService>,
     path: web::Path<Uuid>,
-    query: web::Query<PaginationParams>,
+    query: web::Query<TopicListQuery>,
 ) -> Result<HttpResponse, AppError> {
     let forum_id = path.into_inner();
-    let offset = query.get_offset();
-    let limit = query.get_limit();
+    let page = query.page.unwrap_or(1).max(1);
+    let per_page = query.per_page.unwrap_or(20).min(100);
+    let offset = (page - 1) * per_page;
 
-    let topics = service.get_topics(forum_id, offset, limit).await?;
+    let topics = service.get_topics(forum_id, offset, per_page, query.tag.as_deref()).await?;
     Ok(HttpResponse::Ok().json(ApiResponse::success(topics)))
 }
 

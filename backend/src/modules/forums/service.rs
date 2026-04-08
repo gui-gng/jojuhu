@@ -88,6 +88,7 @@ impl ForumService {
         &self,
         user_id: Option<Uuid>,
         search: Option<&str>,
+        category: Option<&str>,
         sort_by: &str,
         page: i64,
         per_page: i64,
@@ -97,7 +98,7 @@ impl ForumService {
 
         let rows = self
             .repository
-            .search_forums(user_id, search, sort_by, offset, limit)
+            .search_forums(user_id, search, category, sort_by, offset, limit)
             .await?;
 
         let total = self.repository.get_search_count(user_id, search).await?;
@@ -239,8 +240,9 @@ impl ForumService {
         forum_id: Uuid,
         offset: i32,
         limit: i32,
+        tag: Option<&str>,
     ) -> Result<Vec<TopicResponse>, AppError> {
-        let rows = self.repository.get_topics(forum_id, offset, limit).await?;
+        let rows = self.repository.get_topics(forum_id, offset, limit, tag).await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 

@@ -226,6 +226,13 @@ pub struct CreateReplyRequest {
     pub parent_reply_id: Option<Uuid>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct TopicListQuery {
+    pub tag: Option<String>,
+    pub page: Option<i32>,
+    pub per_page: Option<i32>,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ReplyResponse {
     pub id: Uuid,
@@ -240,6 +247,7 @@ pub struct ReplyResponse {
 #[derive(Debug, Deserialize)]
 pub struct ForumSearchQuery {
     pub search: Option<String>,
+    pub category: Option<String>,
     pub sort_by: Option<ForumSortBy>,
     pub page: Option<i32>,
     pub per_page: Option<i32>,

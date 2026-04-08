@@ -163,11 +163,12 @@ pub async fn create_forum(
         Ok(forums)
     }
 
-    /// Search forums by name or description
+    /// Search forums by name, description, category
     pub async fn search_forums(
         &self,
         user_id: Option<Uuid>,
         search: Option<&str>,
+        category: Option<&str>,
         sort_by: &str,
         offset: i32,
         limit: i32,
@@ -195,6 +196,8 @@ pub async fn create_forum(
                     'username', u.username,
                     'display_name', u.display_name
                 ) as creator,
+                f.category,
+                f.rules,
                 f.is_public,
                 f.members_count,
                 f.topics_count,
@@ -208,6 +211,7 @@ pub async fn create_forum(
                 SELECT 1 FROM forum_members WHERE forum_id = f.id AND user_id = $4
             )))
             AND ($5::text IS NULL OR (LOWER(f.name) LIKE $5 OR LOWER(f.description) LIKE $5))
+            AND ($6::text IS NULL OR f.category = $6)
             ORDER BY {}
             LIMIT $1 OFFSET $2
             "#,
@@ -220,6 +224,7 @@ pub async fn create_forum(
             .bind(user_id)
             .bind(user_id)
             .bind(search_pattern)
+            .bind(category)
             .fetch_all(&self.pool)
             .await?;
 
@@ -470,37 +475,72 @@ pub async fn create_topic(
         forum_id: Uuid,
         offset: i32,
         limit: i32,
+        tag: Option<&str>,
     ) -> Result<Vec<TopicResponseRow>, AppError> {
-        let topics: Vec<TopicResponseRow> = sqlx::query_as::<_, TopicResponseRow>(
-            r#"
-            SELECT 
-                t.id,
-                t.forum_id,
-                json_build_object(
-                    'id', u.id,
-                    'username', u.username,
-                    'display_name', u.display_name
-                ) as author,
-                t.title,
-                t.content,
-                t.is_pinned,
-                t.is_locked,
-                t.tags,
-                t.views_count,
-                t.replies_count,
-                t.created_at
-            FROM topics t
-            JOIN users u ON t.author_id = u.id
-            WHERE t.forum_id = $1
-            ORDER BY t.is_pinned DESC, t.created_at DESC
-            LIMIT $2 OFFSET $3
-            "#
-        )
-        .bind(forum_id)
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(&self.pool)
-        .await?;
+        let topics: Vec<TopicResponseRow> = if let Some(tag_filter) = tag {
+            sqlx::query_as::<_, TopicResponseRow>(
+                r#"
+                SELECT 
+                    t.id,
+                    t.forum_id,
+                    json_build_object(
+                        'id', u.id,
+                        'username', u.username,
+                        'display_name', u.display_name
+                    ) as author,
+                    t.title,
+                    t.content,
+                    t.is_pinned,
+                    t.is_locked,
+                    t.tags,
+                    t.views_count,
+                    t.replies_count,
+                    t.created_at
+                FROM topics t
+                JOIN users u ON t.author_id = u.id
+                WHERE t.forum_id = $1 AND $4::text = ANY(t.tags)
+                ORDER BY t.is_pinned DESC, t.created_at DESC
+                LIMIT $2 OFFSET $3
+                "#
+            )
+            .bind(forum_id)
+            .bind(limit)
+            .bind(offset)
+            .bind(tag_filter)
+            .fetch_all(&self.pool)
+            .await?
+        } else {
+            sqlx::query_as::<_, TopicResponseRow>(
+                r#"
+                SELECT 
+                    t.id,
+                    t.forum_id,
+                    json_build_object(
+                        'id', u.id,
+                        'username', u.username,
+                        'display_name', u.display_name
+                    ) as author,
+                    t.title,
+                    t.content,
+                    t.is_pinned,
+                    t.is_locked,
+                    t.tags,
+                    t.views_count,
+                    t.replies_count,
+                    t.created_at
+                FROM topics t
+                JOIN users u ON t.author_id = u.id
+                WHERE t.forum_id = $1
+                ORDER BY t.is_pinned DESC, t.created_at DESC
+                LIMIT $2 OFFSET $3
+                "#
+            )
+            .bind(forum_id)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(&self.pool)
+            .await?
+        };
 
         Ok(topics)
     }
