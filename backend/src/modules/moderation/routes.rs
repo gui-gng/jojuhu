@@ -5,6 +5,8 @@ use super::handlers;
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/moderation")
+            // Dashboard
+            .route("/dashboard", web::get().to(handlers::get_dashboard_stats))
             // Reports
             .route("/reports", web::post().to(handlers::create_report))
             .route("/reports", web::get().to(handlers::list_reports))

@@ -10,6 +10,7 @@ pub struct UserProfile {
     pub display_name: Option<String>,
     pub bio: Option<String>,
     pub avatar_url: Option<String>,
+    pub is_verified: bool,
     pub created_at: DateTime<Utc>,
     pub followers_count: i64,
     pub following_count: i64,
@@ -27,6 +28,7 @@ pub struct MyProfile {
     pub display_name: Option<String>,
     pub bio: Option<String>,
     pub avatar_url: Option<String>,
+    pub is_verified: bool,
     pub created_at: DateTime<Utc>,
     pub followers_count: i64,
     pub following_count: i64,
@@ -54,6 +56,7 @@ pub struct UserInfo {
     pub username: String,
     pub display_name: Option<String>,
     pub avatar_url: Option<String>,
+    pub is_verified: bool,
     pub is_following: bool,
     pub mutual_friends_count: i64,
 }
@@ -66,6 +69,19 @@ pub struct UsersListResponse {
     pub page: i64,
     pub per_page: i64,
     pub has_more: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VerificationRequest {
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct VerificationResponse {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
 }
 
 impl UpdateProfileRequest {

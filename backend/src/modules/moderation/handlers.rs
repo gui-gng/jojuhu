@@ -132,3 +132,19 @@ pub async fn get_pending_reports_count(
         "pending_reports": count
     }))))
 }
+
+pub async fn get_dashboard_stats(
+    service: web::Data<ModerationService>,
+    _user: AuthenticatedUser,
+) -> Result<HttpResponse, AppError> {
+    let pending_reports = service.count_pending_reports().await?;
+    let reviewing_reports = service.count_reports(Some(super::models::ReportStatus::Reviewing)).await?;
+    let total_reports = service.count_reports(None).await?;
+    
+    Ok(HttpResponse::Ok().json(ApiResponse::success(serde_json::json!({
+        "pending_reports": pending_reports,
+        "reviewing_reports": reviewing_reports,
+        "total_reports": total_reports,
+        "resolved_reports": total_reports - pending_reports - reviewing_reports
+    }))))
+}

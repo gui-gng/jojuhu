@@ -195,4 +195,8 @@ impl ModerationService {
     pub async fn count_pending_reports(&self) -> Result<i64, AppError> {
         self.repository.count_reports(Some(ReportStatus::Pending)).await
     }
+
+    pub async fn count_reports(&self, status: Option<ReportStatus>) -> Result<i64, AppError> {
+        self.repository.count_reports(status).await
+    }
 }

@@ -3,6 +3,7 @@ pub mod handlers;
 pub mod models;
 pub mod repository;
 pub mod service;
+pub mod verification;
 
 use actix_web::web;
 use sqlx::PgPool;
@@ -38,6 +39,9 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool) {
             .service(handlers::get_following)
             // Analytics
             .service(analytics::get_user_analytics)
+            // Verification
+            .service(verification::set_user_verified)
+            .service(verification::request_verification)
             // Get user profile by ID (must be last to not conflict with other routes)
             .service(handlers::get_user_profile),
     );

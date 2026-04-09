@@ -272,4 +272,18 @@ impl UserService {
             avg_comments_per_post,
         })
     }
+
+    /// Set user verified status (admin only)
+    pub async fn set_user_verified(&self, user_id: Uuid, is_verified: bool) -> Result<(), AppError> {
+        self.repository.set_user_verified(user_id, is_verified).await
+    }
+
+    /// Request verification
+    pub async fn request_verification(&self, user_id: Uuid, request: super::models::VerificationRequest) -> Result<super::models::VerificationResponse, AppError> {
+        let reason = request.reason.map(|r| {
+            crate::middleware::security::sanitize_input(&r)
+        });
+        
+        self.repository.create_verification_request(user_id, reason.as_deref()).await
+    }
 }

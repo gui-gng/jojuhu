@@ -28,6 +28,7 @@ impl UserRepository {
                 u.display_name,
                 u.bio,
                 u.avatar_url,
+                u.is_verified,
                 u.created_at,
                 COALESCE(followers.count, 0) as followers_count,
                 COALESCE(following.count, 0) as following_count,
@@ -82,6 +83,7 @@ impl UserRepository {
                 display_name: row.get("display_name"),
                 bio: row.get("bio"),
                 avatar_url: row.get("avatar_url"),
+                is_verified: row.get("is_verified"),
                 created_at: row.get("created_at"),
                 followers_count: row.get("followers_count"),
                 following_count: row.get("following_count"),
@@ -106,6 +108,7 @@ impl UserRepository {
                 u.display_name,
                 u.bio,
                 u.avatar_url,
+                u.is_verified,
                 u.created_at,
                 COALESCE(followers.count, 0) as followers_count,
                 COALESCE(following.count, 0) as following_count,
@@ -142,6 +145,7 @@ impl UserRepository {
                 display_name: row.get("display_name"),
                 bio: row.get("bio"),
                 avatar_url: row.get("avatar_url"),
+                is_verified: row.get("is_verified"),
                 created_at: row.get("created_at"),
                 followers_count: row.get("followers_count"),
                 following_count: row.get("following_count"),
@@ -288,6 +292,7 @@ impl UserRepository {
                 u.username,
                 u.display_name,
                 u.avatar_url,
+                u.is_verified,
                 CASE 
                     WHEN $3::uuid IS NOT NULL THEN
                         EXISTS(
@@ -329,6 +334,7 @@ impl UserRepository {
                 username: row.get("username"),
                 display_name: row.get("display_name"),
                 avatar_url: row.get("avatar_url"),
+                is_verified: row.get("is_verified"),
                 is_following: row.get("is_following"),
                 mutual_friends_count: row.get("mutual_friends_count"),
             })
@@ -364,6 +370,7 @@ impl UserRepository {
                 u.username,
                 u.display_name,
                 u.avatar_url,
+                u.is_verified,
                 CASE 
                     WHEN $3::uuid IS NOT NULL THEN
                         EXISTS(
@@ -405,6 +412,7 @@ impl UserRepository {
                 username: row.get("username"),
                 display_name: row.get("display_name"),
                 avatar_url: row.get("avatar_url"),
+                is_verified: row.get("is_verified"),
                 is_following: row.get("is_following"),
                 mutual_friends_count: row.get("mutual_friends_count"),
             })
@@ -494,6 +502,7 @@ impl UserRepository {
                 u.username,
                 u.display_name,
                 u.avatar_url,
+                u.is_verified,
                 FALSE as is_following,
                 0 as mutual_friends_count
             FROM user_blocks ub
@@ -517,6 +526,7 @@ impl UserRepository {
                 username: row.get("username"),
                 display_name: row.get("display_name"),
                 avatar_url: row.get("avatar_url"),
+                is_verified: row.get("is_verified"),
                 is_following: row.get("is_following"),
                 mutual_friends_count: row.get("mutual_friends_count"),
             })
@@ -541,7 +551,8 @@ impl UserRepository {
                 u.id,
                 u.username,
                 u.display_name,
-                u.avatar_url
+                u.avatar_url,
+                u.is_verified
             FROM users u
             WHERE u.id = $1
             "#,
@@ -556,6 +567,7 @@ impl UserRepository {
             username: row.get("username"),
             display_name: row.get("display_name"),
             avatar_url: row.get("avatar_url"),
+            is_verified: row.get("is_verified"),
             is_following: false,
             mutual_friends_count: 0,
         })
@@ -569,7 +581,8 @@ impl UserRepository {
                 u.id,
                 u.username,
                 u.display_name,
-                u.avatar_url
+                u.avatar_url,
+                u.is_verified
             FROM users u
             WHERE u.username = $1
             "#,
@@ -585,6 +598,7 @@ impl UserRepository {
                 username: r.get("username"),
                 display_name: r.get("display_name"),
                 avatar_url: r.get("avatar_url"),
+                is_verified: r.get("is_verified"),
                 is_following: false,
                 mutual_friends_count: 0,
             })),
@@ -681,5 +695,39 @@ impl UserRepository {
         .await?;
 
         Ok(avg.unwrap_or(0.0))
+    }
+
+    pub async fn set_user_verified(&self, user_id: Uuid, is_verified: bool) -> Result<(), AppError> {
+        sqlx::query(
+            "UPDATE users SET is_verified = $1, verified_at = CASE WHEN $1 THEN NOW() ELSE NULL END WHERE id = $2"
+        )
+        .bind(is_verified)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn create_verification_request(&self, user_id: Uuid, reason: Option<&str>) -> Result<super::models::VerificationResponse, AppError> {
+        let row = sqlx::query(
+            r#"
+            INSERT INTO verification_requests (user_id, reason)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id) DO UPDATE SET reason = $2, status = 'pending', created_at = NOW()
+            RETURNING id, user_id, status, created_at
+            "#
+        )
+        .bind(user_id)
+        .bind(reason)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(super::models::VerificationResponse {
+            id: row.get("id"),
+            user_id: row.get("user_id"),
+            status: row.get("status"),
+            created_at: row.get("created_at"),
+        })
     }
 }
