@@ -79,7 +79,7 @@ Integration tests require a running PostgreSQL database:
 
 2. Set the environment variable:
    ```bash
-   export DATABASE_URL="postgres://user:password@localhost:5432/social_network_test"
+   export DATABASE_URL="postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend_db"
    ```
 
 3. Run migrations:

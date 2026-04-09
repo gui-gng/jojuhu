@@ -34,12 +34,7 @@ jojuhu/
 
 The project uses semantic versioning with detailed release notes in `docs/versions/`:
 
-- **v0.1.0** ✅ COMPLETE - MVP with core features
-- **v0.2.0** 🚧 IN PROGRESS (85%) - Real-time features, notifications
-- **v0.3.0** 📋 PLANNED - Groups, moderation, analytics
-- **v1.0.0** 📋 PLANNED - Production launch, mobile apps
-
-Always check `docs/versions/README.md` for current status and `docs/versions/vX.Y.Z.md` for specific version details.
+Always check `docs/versions/vX.Y.Z.md` for specific version details.
 
 ## Build/Lint/Test Commands
 
@@ -211,7 +206,7 @@ Err(AppError::ValidationError("Invalid input".to_string()))
 
 Required environment variables:
 ```bash
-DATABASE_URL=postgres://user:password@localhost:5432/social_network_rust
+DATABASE_URL=postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend_db
 JWT_SECRET=your_secret_key_min_32_chars_long
 JWT_EXPIRATION_HOURS=24
 SERVER_HOST=127.0.0.1
