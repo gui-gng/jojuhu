@@ -604,4 +604,82 @@ impl UserRepository {
 
         Ok(rows)
     }
+
+    // Analytics methods
+    pub async fn get_user_posts_count(&self, user_id: Uuid) -> Result<i64, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM posts WHERE author_id = $1"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
+    }
+
+    pub async fn get_user_followers_count(&self, user_id: Uuid) -> Result<i64, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM follows WHERE following_id = $1"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
+    }
+
+    pub async fn get_user_following_count(&self, user_id: Uuid) -> Result<i64, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM follows WHERE follower_id = $1"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
+    }
+
+    pub async fn get_user_posts_count_this_week(&self, user_id: Uuid) -> Result<i64, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM posts WHERE author_id = $1 AND created_at > NOW() - INTERVAL '7 days'"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
+    }
+
+    pub async fn get_user_posts_count_this_month(&self, user_id: Uuid) -> Result<i64, AppError> {
+        let count = sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) FROM posts WHERE author_id = $1 AND created_at > NOW() - INTERVAL '30 days'"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
+    }
+
+    pub async fn get_user_avg_likes_per_post(&self, user_id: Uuid) -> Result<f64, AppError> {
+        let avg = sqlx::query_scalar::<_, Option<f64>>(
+            "SELECT AVG(likes_count) FROM posts WHERE author_id = $1"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(avg.unwrap_or(0.0))
+    }
+
+    pub async fn get_user_avg_comments_per_post(&self, user_id: Uuid) -> Result<f64, AppError> {
+        let avg = sqlx::query_scalar::<_, Option<f64>>(
+            "SELECT AVG(comments_count) FROM posts WHERE author_id = $1"
+        )
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(avg.unwrap_or(0.0))
+    }
 }

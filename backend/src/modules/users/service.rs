@@ -251,4 +251,25 @@ impl UserService {
             has_more,
         })
     }
+
+    /// Get user analytics
+    pub async fn get_user_analytics(&self, user_id: Uuid) -> Result<super::analytics::UserAnalyticsResponse, AppError> {
+        let posts_count = self.repository.get_user_posts_count(user_id).await?;
+        let followers_count = self.repository.get_user_followers_count(user_id).await?;
+        let following_count = self.repository.get_user_following_count(user_id).await?;
+        let posts_this_week = self.repository.get_user_posts_count_this_week(user_id).await?;
+        let posts_this_month = self.repository.get_user_posts_count_this_month(user_id).await?;
+        let avg_likes_per_post = self.repository.get_user_avg_likes_per_post(user_id).await?;
+        let avg_comments_per_post = self.repository.get_user_avg_comments_per_post(user_id).await?;
+
+        Ok(super::analytics::UserAnalyticsResponse {
+            posts_count,
+            followers_count,
+            following_count,
+            posts_this_week,
+            posts_this_month,
+            avg_likes_per_post,
+            avg_comments_per_post,
+        })
+    }
 }

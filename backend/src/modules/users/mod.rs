@@ -1,3 +1,4 @@
+pub mod analytics;
 pub mod handlers;
 pub mod models;
 pub mod repository;
@@ -35,6 +36,8 @@ pub fn configure(cfg: &mut web::ServiceConfig, pool: PgPool) {
             // Get followers/following
             .service(handlers::get_followers)
             .service(handlers::get_following)
+            // Analytics
+            .service(analytics::get_user_analytics)
             // Get user profile by ID (must be last to not conflict with other routes)
             .service(handlers::get_user_profile),
     );
