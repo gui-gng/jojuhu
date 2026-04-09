@@ -1290,4 +1290,107 @@ class ApiService {
 
     return _handleEmptyResponse<void>(response);
   }
+
+  // ============================================================================
+  // MODERATION ENDPOINTS
+  // ============================================================================
+
+  /// GET /api/v1/moderation/dashboard
+  /// Get moderation dashboard stats
+  static Future<ApiResponse<Map<String, dynamic>>> getModerationStats() async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/moderation/dashboard')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// POST /api/v1/moderation/reports
+  /// Create a report
+  static Future<ApiResponse<Map<String, dynamic>>> createReport({
+    required String reportType,
+    required String contentType,
+    required String contentId,
+    String? reason,
+  }) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/moderation/reports')),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'report_type': reportType,
+        'content_type': contentType,
+        'content_id': contentId,
+        'reason': reason,
+      }),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/v1/moderation/reports
+  /// List reports
+  static Future<ApiResponse<List<dynamic>>> getReports({
+    String status = 'pending',
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/moderation/reports?status=$status&limit=$limit&offset=$offset')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<List<dynamic>>(
+      response,
+      (data) => data as List<dynamic>,
+    );
+  }
+
+  /// POST /api/v1/moderation/reports/{id}/resolve
+  /// Resolve a report
+  static Future<ApiResponse<void>> resolveReport(String reportId) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/moderation/reports/$reportId/resolve')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// POST /api/v1/moderation/reports/{id}/dismiss
+  /// Dismiss a report
+  static Future<ApiResponse<void>> dismissReport(String reportId) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/moderation/reports/$reportId/dismiss')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// POST /api/v1/moderation/suspensions
+  /// Suspend a user
+  static Future<ApiResponse<void>> suspendUser({
+    required String userId,
+    required String reason,
+    required DateTime suspendedUntil,
+  }) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/moderation/suspensions')),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'user_id': userId,
+        'reason': reason,
+        'suspended_until': suspendedUntil.toIso8601String(),
+      }),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
 }
