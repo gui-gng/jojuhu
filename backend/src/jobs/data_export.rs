@@ -1,4 +1,4 @@
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use serde_json::json;
 use sqlx::PgPool;
 use tracing::{error, info};

@@ -30,15 +30,17 @@ use middleware::logging::RequestLogger;
 use routes::configure;
 use websocket::WebSocketServer;
 
-/// CORS allowed origins - in production, this should be restricted
-const DEFAULT_ALLOWED_ORIGINS_LOCAL: &[&str] = &["*", "http://localhost:3000"];
 
-const DEFAULT_ALLOWED_ORIGINS_PROD: &[&str] = &["https://yourdomain.com"];
 
+const DEFAULT_ALLOWED_ORIGINS_PROD: [&str;1] = ["https://yourdomain.com"];
+const DEFAULT_ALLOWED_ORIGINS_LOCAL: [&str;2] = ["send_wildcard", "http://localhost:3000"];
 
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    /// CORS allowed origins - in production, this should be restricted
+    
+    println!("Starting jojuhu backend server... GG");
     // Load environment variables
     dotenvy::dotenv().ok();
 

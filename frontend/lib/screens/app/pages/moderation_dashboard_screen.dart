@@ -7,7 +7,8 @@ class ModerationDashboardScreen extends StatefulWidget {
   const ModerationDashboardScreen({super.key});
 
   @override
-  State<ModerationDashboardScreen> createState() => _ModerationDashboardScreenState();
+  State<ModerationDashboardScreen> createState() =>
+      _ModerationDashboardScreenState();
 }
 
 class _ModerationDashboardScreenState extends State<ModerationDashboardScreen> {
@@ -31,7 +32,8 @@ class _ModerationDashboardScreenState extends State<ModerationDashboardScreen> {
 
     try {
       final statsResponse = await ApiService.getModerationStats();
-      final reportsResponse = await ApiService.getReports(status: _selectedStatus);
+      final reportsResponse =
+          await ApiService.getReports(status: _selectedStatus);
 
       if (statsResponse.success) {
         setState(() {
@@ -191,21 +193,22 @@ class _ModerationDashboardScreenState extends State<ModerationDashboardScreen> {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: ['pending', 'in_progress', 'resolved', 'dismissed']
-                            .map((status) => Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: FilterChip(
-                                    label: Text(status.toUpperCase()),
-                                    selected: _selectedStatus == status,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        _selectedStatus = status;
-                                      });
-                                      _loadData();
-                                    },
-                                  ),
-                                ))
-                            .toList(),
+                        children:
+                            ['pending', 'in_progress', 'resolved', 'dismissed']
+                                .map((status) => Padding(
+                                      padding: const EdgeInsets.only(right: 8),
+                                      child: FilterChip(
+                                        label: Text(status.toUpperCase()),
+                                        selected: _selectedStatus == status,
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            _selectedStatus = status;
+                                          });
+                                          _loadData();
+                                        },
+                                      ),
+                                    ))
+                                .toList(),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -237,12 +240,14 @@ class _ModerationDashboardScreenState extends State<ModerationDashboardScreen> {
                             child: ListTile(
                               title: Text(
                                 '${report['report_type']} - ${report['content_type']}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(report['reason'] ?? 'No reason provided'),
+                                  Text(
+                                      report['reason'] ?? 'No reason provided'),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Reported: ${DateFormat('MMM dd, HH:mm').format(DateTime.parse(report['created_at']))}',
@@ -259,13 +264,17 @@ class _ModerationDashboardScreenState extends State<ModerationDashboardScreen> {
                                   if (report['status'] == 'pending' ||
                                       report['status'] == 'in_progress') ...[
                                     IconButton(
-                                      icon: const Icon(Icons.check, color: Colors.green),
-                                      onPressed: () => _resolveReport(report['id']),
+                                      icon: const Icon(Icons.check,
+                                          color: Colors.green),
+                                      onPressed: () =>
+                                          _resolveReport(report['id']),
                                       tooltip: 'Resolve',
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.close, color: Colors.red),
-                                      onPressed: () => _dismissReport(report['id']),
+                                      icon: const Icon(Icons.close,
+                                          color: Colors.red),
+                                      onPressed: () =>
+                                          _dismissReport(report['id']),
                                       tooltip: 'Dismiss',
                                     ),
                                   ],
@@ -339,18 +348,20 @@ class ReportDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Report Information',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow('Type', report['report_type'] ?? 'N/A'),
-                  _buildInfoRow('Content Type', report['content_type'] ?? 'N/A'),
+                  _buildInfoRow(
+                      'Content Type', report['content_type'] ?? 'N/A'),
                   _buildInfoRow('Status', report['status'] ?? 'N/A'),
-                  _buildInfoRow('Reason', report['reason'] ?? 'No reason provided'),
+                  _buildInfoRow(
+                      'Reason', report['reason'] ?? 'No reason provided'),
                   _buildInfoRow(
                     'Created',
                     DateFormat('MMM dd, yyyy HH:mm').format(
@@ -368,9 +379,9 @@ class ReportDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Reporter',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),

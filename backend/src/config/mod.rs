@@ -102,14 +102,7 @@ impl Settings {
             .unwrap_or_else(|_| {
                 // Default origins for development
                 vec![
-                    "http://localhost:3000".to_string(),
-                    "http://localhost:8080".to_string(),
-                    "http://localhost:5000".to_string(),
-                    "http://localhost:4200".to_string(),
-                    "http://127.0.0.1:3000".to_string(),
-                    "http://127.0.0.1:8080".to_string(),
-                    "http://127.0.0.1:5000".to_string(),
-                    "http://127.0.0.1:4200".to_string(),
+                    "send_wildcard".to_string()
                 ]
             });
 
