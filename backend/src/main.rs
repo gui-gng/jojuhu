@@ -32,13 +32,10 @@ use websocket::WebSocketServer;
 
 
 
-const DEFAULT_ALLOWED_ORIGINS_PROD: [&str;1] = ["https://yourdomain.com"];
-const DEFAULT_ALLOWED_ORIGINS_LOCAL: [&str;2] = ["send_wildcard", "http://localhost:3000"];
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    /// CORS allowed origins - in production, this should be restricted
+
     
     println!("Starting jojuhu backend server... GG");
     // Load environment variables
@@ -90,23 +87,10 @@ async fn main() -> std::io::Result<()> {
         .finish()
         .expect("Failed to create rate limiter config");
 
-    // Configure CORS - use settings from config if available
-    let allowed_origins: Vec<String> = if let Some(cors_settings) = &settings.cors {
-        cors_settings.allowed_origins.clone()
-    } else if settings.environment == "production" {
-        // In production without explicit config, use environment variable or strict default
-        std::env::var("ALLOWED_ORIGINS")
-            .map(|origins| {
-                origins.split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>()
-            })
-            .unwrap_or_else(|_| DEFAULT_ALLOWED_ORIGINS_PROD.iter().map(|&s| s.to_string()).collect())
-    } else {
-        DEFAULT_ALLOWED_ORIGINS_LOCAL.iter().map(|&s| s.to_string()).collect()
-    };
+
 
     info!("Starting server at http://{}", server_address);
     info!("Rate limiting: 1 req/sec with burst of 10");
-    info!("CORS allowed origins: {:?}", allowed_origins);
     info!("API Documentation: http://{}/docs", server_address);
     info!("Routes:");
     info!("  Public: GET  /docs (Swagger UI)");
@@ -167,13 +151,11 @@ async fn main() -> std::io::Result<()> {
                 header::ACCEPT,
                 header::CONTENT_TYPE,
             ])
-            .max_age(3600)
-            .supports_credentials();
+            .allow_any_origin() // Allows all origins
+            .send_wildcard() 
+            // .supports_credentials()
+            .max_age(3600);
 
-        // Add allowed origins
-        for origin in &allowed_origins {
-            cors = cors.allowed_origin(origin);
-        }
 
         App::new()
             .app_data(pool_data.clone())
@@ -269,21 +251,11 @@ mod tests {
             },
             email: None,
             environment: "test".to_string(),
-            cors: Some(config::CorsSettings {
-                allowed_origins: vec!["*".to_string()],
-            }),
+           
         };
         
         assert_eq!(settings.server.port, 8080);
         assert_eq!(settings.jwt.expiration_hours, 24);
     }
 
-    #[test]
-    fn test_allowed_origins_in_dev() {
-        let origins: Vec<String> = DEFAULT_ALLOWED_ORIGINS_LOCAL
-            .iter()
-            .map(|&s| s.to_string())
-            .collect();
-        assert!(origins.contains(&"http://localhost:3000".to_string()));
-    }
 }

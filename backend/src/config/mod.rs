@@ -41,7 +41,6 @@ pub struct Settings {
     pub jwt: JwtSettings,
     #[allow(dead_code)]
     pub email: Option<EmailSettings>,
-    pub cors: Option<CorsSettings>,
     #[allow(dead_code)]
     pub environment: String,
 }
@@ -91,22 +90,6 @@ impl Settings {
             .parse::<i64>()
             .map_err(|e| ConfigError::Message(format!("Invalid JWT_EXPIRATION_HOURS: {}", e)))?;
 
-        // Parse CORS allowed origins from environment
-        let allowed_origins = std::env::var("ALLOWED_ORIGINS")
-            .map(|origins| {
-                origins
-                    .split(',')
-                    .map(|s| s.trim().to_string())
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_else(|_| {
-                // Default origins for development
-                vec![
-                    "send_wildcard".to_string()
-                ]
-            });
-
-        let cors = Some(CorsSettings { allowed_origins });
 
         // Email settings - only set if SMTP_HOST is provided
         let email = std::env::var("SMTP_HOST").ok().map(|smtp_host| {
@@ -133,7 +116,6 @@ impl Settings {
                 expiration_hours: jwt_expiration_hours,
             },
             email,
-            cors,
             environment: run_mode,
         })
     }
