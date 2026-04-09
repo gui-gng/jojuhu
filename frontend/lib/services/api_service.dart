@@ -19,7 +19,7 @@ class ApiService {
     }
     // For web, use relative URLs (nginx will proxy to backend)
     // For mobile/desktop, use localhost
-    return '';
+    return 'http://localhost:8080';
   }
   
   static const String apiPrefix = '/api/v1';

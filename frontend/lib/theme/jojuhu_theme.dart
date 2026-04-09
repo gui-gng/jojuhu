@@ -56,11 +56,9 @@ class JojuhuTheme {
         secondary: JojuhuColors.lua,
         tertiary: JojuhuColors.encontro,
         surface: JojuhuColors.fundo,
-        background: JojuhuColors.fundo,
         onPrimary: JojuhuColors.textoClaro,
         onSecondary: JojuhuColors.textoClaro,
         onSurface: JojuhuColors.textoEscuro,
-        onBackground: JojuhuColors.textoEscuro,
       ),
       
       // Scaffold Background
@@ -87,16 +85,16 @@ class JojuhuTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: JojuhuColors.fundoBranco,
         indicatorColor: JojuhuColors.sol.withOpacity(0.2),
-        labelTextStyle: MaterialStateProperty.all(
+        labelTextStyle: WidgetStateProperty.all(
           const TextStyle(color: JojuhuColors.textoEscuro),
         ),
-        iconTheme: MaterialStateProperty.all(
+        iconTheme: WidgetStateProperty.all(
           const IconThemeData(color: JojuhuColors.textoCinza),
         ),
       ),
       
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: JojuhuColors.fundoBranco,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -162,7 +160,7 @@ class JojuhuTheme {
       ),
       
       // Tab Bar
-      tabBarTheme: const TabBarTheme(
+      tabBarTheme: const TabBarThemeData(
         labelColor: JojuhuColors.sol,
         unselectedLabelColor: JojuhuColors.textoCinza,
         indicatorColor: JojuhuColors.sol,

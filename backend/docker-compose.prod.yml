@@ -33,7 +33,7 @@ services:
     environment:
       - PGHOST=postgres
       - PGPORT=5432
-      - PGDATABASE=${POSTGRES_DB:-jojuhu_backend}
+      - PGDATABASE=${POSTGRES_DB:-jojuhu_backend_db}
       - PGUSER=${POSTGRES_USER:-jojuhu}
       - PGPASSWORD=${POSTGRES_PASSWORD:-jojuhu_secret}
       - BACKUP_RETENTION_DAYS=7

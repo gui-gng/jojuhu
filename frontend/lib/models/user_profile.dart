@@ -1,4 +1,3 @@
-import 'user.dart';
 
 /// Extended user profile with stats
 class UserProfile {

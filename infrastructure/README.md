@@ -62,7 +62,7 @@ Create a `.env` file in the `infrastructure` directory:
 # Database
 POSTGRES_USER=jojuhu
 POSTGRES_PASSWORD=jojuhu_secret
-POSTGRES_DB=jojuhu_backend
+POSTGRES_DB=jojuhu_backend_db
 POSTGRES_PORT=5432
 
 # Redis
@@ -157,7 +157,7 @@ On startup, the `minio-createbucket` service creates:
 
 ```bash
 # Database
-DATABASE_URL=postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend
+DATABASE_URL=postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend_db
 
 # Redis (if using)
 REDIS_URL=redis://localhost:6379
@@ -218,7 +218,7 @@ docker-compose ps postgres
 docker-compose logs postgres
 
 # Connect to PostgreSQL
-docker-compose exec postgres psql -U jojuhu -d jojuhu_backend
+docker-compose exec postgres psql -U jojuhu -d jojuhu_backend_db
 ```
 
 ### Reset All Data
@@ -253,13 +253,13 @@ REDIS_PORT=6380     # Instead of 6379
 ### Backup PostgreSQL
 
 ```bash
-docker-compose exec postgres pg_dump -U jojuhu jojuhu_backend > backup.sql
+docker-compose exec postgres pg_dump -U jojuhu jojuhu_backend_db > backup.sql
 ```
 
 ### Restore PostgreSQL
 
 ```bash
-docker-compose exec -T postgres psql -U jojuhu -d jojuhu_backend < backup.sql
+docker-compose exec -T postgres psql -U jojuhu -d jojuhu_backend_db < backup.sql
 ```
 
 ### Update Images

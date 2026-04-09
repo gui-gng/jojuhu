@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-jojuhu}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jojuhu_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-jojuhu_backend}
+      POSTGRES_DB: ${POSTGRES_DB:-jojuhu_backend_db}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - ./postgres/data:/var/lib/postgresql/data

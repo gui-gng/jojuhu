@@ -16,7 +16,7 @@ END
 $$;
 
 -- Grant privileges to application user
-GRANT ALL PRIVILEGES ON DATABASE jojuhu_backend TO jojuhu_app;
+GRANT ALL PRIVILEGES ON DATABASE jojuhu_backend_db TO jojuhu_app;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO jojuhu_app;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO jojuhu_app;
 

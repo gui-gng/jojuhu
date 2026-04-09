@@ -57,6 +57,7 @@ async fn main() -> std::io::Result<()> {
 
     // Create database pool
     let database_url = settings.connection_string();
+    println!("Connecting to database at {}", database_url);
     let pool = PgPoolOptions::new()
         .max_connections(100)
         .min_connections(5)

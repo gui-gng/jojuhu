@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS forum_bans (
     banned_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     reason TEXT,
     expires_at TIMESTAMPTZ,
-    created_at TIMESTAMPT NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(forum_id, user_id)
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS forum_analytics (
     new_topics INTEGER NOT NULL DEFAULT 0,
     new_replies INTEGER NOT NULL DEFAULT 0,
     new_members INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPT NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(forum_id, date)
 );
 
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS topic_views (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     topic_id UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    viewed_at TIMESTAMPT NOT NULL DEFAULT NOW(),
+    viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ip_address INET
 );
 

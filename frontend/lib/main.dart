@@ -31,8 +31,8 @@ class MyApp extends StatelessWidget {
               future: _checkAuth(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Scaffold(
-                    body: const Center(
+                  return const Scaffold(
+                    body: Center(
                       child: CircularProgressIndicator(),
                     ),
                   );

@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-jojuhu}:${POSTGRES_PASSWORD:-jojuhu_secret}@postgres:5432/${POSTGRES_DB:-jojuhu_backend}
+      DATABASE_URL: postgres://${POSTGRES_USER:-jojuhu}:${POSTGRES_PASSWORD:-jojuhu_secret}@postgres:5432/${POSTGRES_DB:-jojuhu_backend_db}
       REDIS_URL: redis://redis:6379
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: ${MINIO_USER:-minioadmin}

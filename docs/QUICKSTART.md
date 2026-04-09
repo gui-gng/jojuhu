@@ -229,7 +229,7 @@ docker-compose down -v
 
 ```bash
 # Database
-DATABASE_URL=postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend
+DATABASE_URL=postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend_db
 
 # Server
 HOST=127.0.0.1

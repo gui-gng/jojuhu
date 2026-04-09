@@ -21,7 +21,7 @@ fi
 # Get database connection from environment or use defaults
 DB_HOST="${DATABASE_HOST:-localhost}"
 DB_PORT="${DATABASE_PORT:-5432}"
-DB_NAME="${DATABASE_NAME:-jojuhu_backend}"
+DB_NAME="${DATABASE_NAME:-jojuhu_backend_db}"
 DB_USER="${DATABASE_USER:-jojuhu}"
 DB_PASSWORD="${DATABASE_PASSWORD:-jojuhu_secret}"
 
