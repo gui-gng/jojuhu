@@ -7,6 +7,7 @@ pub mod groups;
 pub mod hashtag;
 pub mod link_preview;
 pub mod messages;
+pub mod moderation;
 pub mod polls;
 pub mod search;
 pub mod stories;
