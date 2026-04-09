@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:jojuhu/models/post.dart';
 import 'package:jojuhu/services/api_service.dart';
@@ -606,6 +607,112 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   final _controller = TextEditingController();
   bool _isPublic = true;
   bool _isLoading = false;
+  bool _isSavingDraft = false;
+  bool _hasDraft = false;
+  Timer? _autoSaveTimer;
+  String? _draftSavedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDraft();
+    _startAutoSave();
+    _controller.addListener(_onContentChanged);
+  }
+
+  void _onContentChanged() {
+    setState(() {
+      _hasDraft = _controller.text.isNotEmpty;
+    });
+  }
+
+  void _startAutoSave() {
+    _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _saveDraft();
+    });
+  }
+
+  Future<void> _loadDraft() async {
+    try {
+      final response = await ApiService.getDraft();
+      if (response.success && response.data != null) {
+        final draft = response.data!;
+        setState(() {
+          _controller.text = draft['content'] ?? '';
+          _isPublic = draft['visibility'] == 'public';
+          _hasDraft = true;
+        });
+      }
+    } catch (e) {
+      // Ignore error - draft may not exist
+    }
+  }
+
+  Future<void> _saveDraft() async {
+    if (_controller.text.isEmpty) return;
+
+    setState(() {
+      _isSavingDraft = true;
+    });
+
+    try {
+      final response = await ApiService.saveDraft(
+        content: _controller.text,
+        visibility: _isPublic ? 'public' : 'private',
+      );
+
+      if (response.success) {
+        setState(() {
+          _draftSavedTime = DateTime.now().toString();
+        });
+      }
+    } catch (e) {
+      // Silent fail for auto-save
+    } finally {
+      setState(() {
+        _isSavingDraft = false;
+      });
+    }
+  }
+
+  Future<void> _discardDraft() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Draft'),
+        content: const Text('Are you sure you want to discard your draft?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ApiService.deleteDraft();
+        setState(() {
+          _controller.clear();
+          _hasDraft = false;
+          _draftSavedTime = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Draft discarded')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
 
   Future<void> _submit() async {
     final content = _controller.text.trim();
@@ -625,6 +732,8 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
     });
 
     if (result.success) {
+      // Delete draft after successful post
+      await ApiService.deleteDraft();
       if (mounted) {
         Navigator.pop(context);
         widget.onPostCreated();
@@ -636,6 +745,14 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _autoSaveTimer?.cancel();
+    _controller.removeListener(_onContentChanged);
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -658,6 +775,11 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Cancel'),
               ),
+              if (_hasDraft)
+                TextButton(
+                  onPressed: _isSavingDraft ? null : _discardDraft,
+                  child: const Text('Discard Draft', style: TextStyle(color: Colors.red)),
+                ),
               ElevatedButton(
                 onPressed: _isLoading ? null : _submit,
                 child: _isLoading
@@ -670,6 +792,33 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
               ),
             ],
           ),
+          if (_hasDraft || _isSavingDraft)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  if (_isSavingDraft) ...[
+                    const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Saving draft...',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ] else ...[
+                    const Icon(Icons.save, size: 14, color: Colors.green),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Draft saved',
+                      style: TextStyle(fontSize: 12, color: Colors.green.shade700),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           TextField(
             controller: _controller,
             maxLines: 5,
