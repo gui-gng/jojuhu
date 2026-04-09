@@ -223,6 +223,190 @@ const API_DOCS_HTML: &str = r#"<!DOCTYPE html>
 }</pre>
         </div>
 
+        <h3>Groups</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /groups</h3>
+            <p>Create a new group.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /groups</h3>
+            <p>List groups (public or user's groups).</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /groups/{id}/join</h3>
+            <p>Join a public group.</p>
+        </div>
+
+        <h3>Stories</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /stories</h3>
+            <p>Create a new story (expires in 24 hours).</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /stories</h3>
+            <p>Get stories from followed users.</p>
+        </div>
+
+        <h3>Polls</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /polls</h3>
+            <p>Create a new poll.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /polls/{id}/vote</h3>
+            <p>Vote on a poll.</p>
+        </div>
+
+        <h3>Privacy & GDPR</h3>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /privacy/settings</h3>
+            <p>Get user privacy settings.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method put">PUT</span> /privacy/settings</h3>
+            <p>Update privacy settings.</p>
+            <strong>Request Body:</strong>
+            <pre>{
+  "profile_visibility": "string (public/followers_only/private)",
+  "show_email": "boolean",
+  "show_phone": "boolean",
+  "allow_mentions": "boolean",
+  "allow_tags": "boolean",
+  "show_online_status": "boolean",
+  "show_activity": "boolean",
+  "allow_search_engines": "boolean",
+  "data_processing_consent": "boolean",
+  "marketing_emails_consent": "boolean"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /privacy/data-export</h3>
+            <p>Request GDPR data export.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /privacy/data-export</h3>
+            <p>Check data export status.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /privacy/account-deletion</h3>
+            <p>Request account deletion (30-day grace period).</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /privacy/account-deletion/cancel</h3>
+            <p>Cancel pending account deletion.</p>
+        </div>
+
+        <h3>Scheduled Posts</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /scheduled-posts</h3>
+            <p>Create a scheduled post.</p>
+            <strong>Request Body:</strong>
+            <pre>{
+  "content": "string",
+  "media_urls": "array of strings (optional)",
+  "scheduled_for": "datetime (ISO 8601)"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /scheduled-posts</h3>
+            <p>List scheduled posts for current user.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method put">PUT</span> /scheduled-posts/{id}</h3>
+            <p>Update a scheduled post.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /scheduled-posts/{id}/cancel</h3>
+            <p>Cancel a scheduled post.</p>
+        </div>
+
+        <h3>Post Drafts</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /drafts</h3>
+            <p>Save/update post draft (auto-save).</p>
+            <strong>Request Body:</strong>
+            <pre>{
+  "content": "string (optional)",
+  "media_urls": "array of strings (optional)",
+  "visibility": "string (optional)"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /drafts</h3>
+            <p>Get current user's draft.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method delete">DELETE</span> /drafts</h3>
+            <p>Delete current user's draft.</p>
+        </div>
+
+        <h3>Push Notifications</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /push-tokens</h3>
+            <p>Register device push notification token.</p>
+            <strong>Request Body:</strong>
+            <pre>{
+  "device_token": "string",
+  "device_type": "string (ios/android/web)",
+  "device_name": "string (optional)"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /push-tokens/deactivate</h3>
+            <p>Deactivate a device token.</p>
+        </div>
+
+        <h3>Moderation (Admin)</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /moderation/reports</h3>
+            <p>Report content for moderation.</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method get">GET</span> /moderation/reports</h3>
+            <p>List moderation reports (admin only).</p>
+        </div>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /moderation/reports/{id}/resolve</h3>
+            <p>Resolve a moderation report (admin only).</p>
+        </div>
+
+        <h3>Link Preview</h3>
+
+        <div class="endpoint">
+            <h3><span class="method post">POST</span> /link-preview</h3>
+            <p>Generate link preview metadata.</p>
+            <strong>Request Body:</strong>
+            <pre>{
+  "url": "string (valid URL)"
+}</pre>
+            <strong>Response:</strong> Link preview with title, description, and image
+        </div>
+
         <h3>Search</h3>
 
         <div class="endpoint">

@@ -1,4 +1,4 @@
-use actix_web::{post, get, web, HttpResponse};
+use actix_web::{post, web, HttpResponse};
 use uuid::Uuid;
 
 use crate::errors::AppError;

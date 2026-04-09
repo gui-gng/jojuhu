@@ -5,8 +5,8 @@ use crate::errors::AppError;
 use crate::middleware::security::sanitize_input;
 
 use super::models::{
-    CreateModerationActionRequest, CreateReportRequest, ModerationAction, ModerationActionType,
-    Report, ReportStatus, ReportType, SuspendUserRequest, UserSuspension,
+    CreateReportRequest, ModerationAction, ModerationActionType, Report, ReportStatus, ReportType,
+    SuspendUserRequest, UserSuspension,
 };
 use super::repository::ModerationRepository;
 

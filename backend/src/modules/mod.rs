@@ -9,6 +9,8 @@ pub mod link_preview;
 pub mod messages;
 pub mod moderation;
 pub mod polls;
+pub mod posts;
+pub mod privacy;
 pub mod search;
 pub mod stories;
 pub mod timeline;

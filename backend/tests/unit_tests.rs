@@ -7,7 +7,10 @@ mod unit {
     pub mod error_tests;
     pub mod groups_tests;
     pub mod handler_tests;
+    pub mod jobs_tests;
     pub mod models_tests;
+    pub mod posts_tests;
+    pub mod privacy_tests;
     pub mod repository_tests;
     pub mod service_tests;
     pub mod utils_tests;

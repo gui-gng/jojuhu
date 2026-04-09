@@ -282,7 +282,7 @@ pub async fn unban_user(
 
 pub async fn check_ban_status(
     service: web::Data<ForumService>,
-    user: AuthenticatedUser,
+    _user: AuthenticatedUser,
     path: web::Path<(Uuid, Uuid)>,
 ) -> Result<HttpResponse, AppError> {
     let (forum_id, user_to_check) = path.into_inner();

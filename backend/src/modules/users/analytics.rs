@@ -1,6 +1,5 @@
 use actix_web::{get, web, HttpResponse};
 use serde::Serialize;
-use uuid::Uuid;
 
 use crate::errors::AppError;
 use crate::middleware::auth::AuthenticatedUser;

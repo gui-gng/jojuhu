@@ -13,6 +13,7 @@ mod cache;
 mod config;
 mod docs;
 mod errors;
+mod jobs;
 mod middleware;
 mod models;
 mod modules;
@@ -24,6 +25,7 @@ mod websocket;
 
 use cache::RedisCache;
 use config::Settings;
+use jobs::start_background_jobs;
 use middleware::logging::RequestLogger;
 use routes::configure;
 use websocket::WebSocketServer;
@@ -114,8 +116,18 @@ async fn main() -> std::io::Result<()> {
     info!("  Protected: /api/v1/messages/*");
     info!("  Protected: /api/v1/timeline/*");
     info!("  Protected: /api/v1/forums/*");
-    info!("  Protected: /api/v1/notifications/*");
+    info!("  Protected: /api/v1/groups/*");
+    info!("  Protected: /api/v1/stories/*");
+    info!("  Protected: /api/v1/polls/*");
+    info!("  Protected: /api/v1/hashtag/*");
     info!("  Protected: /api/v1/search");
+    info!("  Protected: /api/v1/link-preview");
+    info!("  Protected: /api/v1/privacy/*");
+    info!("  Protected: /api/v1/scheduled-posts/*");
+    info!("  Protected: /api/v1/drafts/*");
+    info!("  Protected: /api/v1/push-tokens/*");
+    info!("  Protected: /api/v1/moderation/*");
+    info!("  Protected: /api/v1/notifications/*");
 
     // Initialize WebSocket server for real-time connections
     let ws_server = WebSocketServer::new();
@@ -142,6 +154,8 @@ async fn main() -> std::io::Result<()> {
     };
 
     let ws_server_data = web::Data::new(ws_server.clone());
+
+    start_background_jobs(pool.clone());
 
     HttpServer::new(move || {
         let mut cors = Cors::default()
