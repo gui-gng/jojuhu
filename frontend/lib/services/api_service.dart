@@ -917,4 +917,377 @@ class ApiService {
 
     return _handleEmptyResponse<void>(response);
   }
+
+  // ============================================================================
+  // PRIVACY & GDPR ENDPOINTS
+  // ============================================================================
+
+  /// GET /api/v1/privacy/settings
+  /// Get user's privacy settings
+  static Future<ApiResponse<Map<String, dynamic>>> getPrivacySettings() async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/settings')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// PUT /api/v1/privacy/settings
+  /// Update user's privacy settings
+  static Future<ApiResponse<Map<String, dynamic>>> updatePrivacySettings(
+    Map<String, dynamic> settings,
+  ) async {
+    final response = await http.put(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/settings')),
+      headers: await _getHeaders(),
+      body: jsonEncode(settings),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// POST /api/v1/privacy/data-export
+  /// Request GDPR data export
+  static Future<ApiResponse<Map<String, dynamic>>> requestDataExport() async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/data-export')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/v1/privacy/data-export
+  /// Check data export status
+  static Future<ApiResponse<Map<String, dynamic>?>> getDataExportStatus() async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/data-export')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>?>(
+      response,
+      (data) => data != null ? data as Map<String, dynamic> : null,
+    );
+  }
+
+  /// POST /api/v1/privacy/account-deletion
+  /// Request account deletion
+  static Future<ApiResponse<Map<String, dynamic>>> requestAccountDeletion({
+    String? reason,
+  }) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/account-deletion')),
+      headers: await _getHeaders(),
+      body: jsonEncode({'reason': reason}),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/v1/privacy/account-deletion
+  /// Check account deletion status
+  static Future<ApiResponse<Map<String, dynamic>?>> getAccountDeletionStatus() async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/account-deletion')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>?>(
+      response,
+      (data) => data != null ? data as Map<String, dynamic> : null,
+    );
+  }
+
+  /// POST /api/v1/privacy/account-deletion/cancel
+  /// Cancel account deletion request
+  static Future<ApiResponse<void>> cancelAccountDeletion() async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/privacy/account-deletion/cancel')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  // ============================================================================
+  // SCHEDULED POSTS ENDPOINTS
+  // ============================================================================
+
+  /// POST /api/v1/scheduled-posts
+  /// Create a scheduled post
+  static Future<ApiResponse<Map<String, dynamic>>> createScheduledPost({
+    required String content,
+    List<String>? mediaUrls,
+    required DateTime scheduledFor,
+  }) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/scheduled-posts')),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'content': content,
+        'media_urls': mediaUrls,
+        'scheduled_for': scheduledFor.toIso8601String(),
+      }),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/v1/scheduled-posts
+  /// List scheduled posts
+  static Future<ApiResponse<List<dynamic>>> getScheduledPosts({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/scheduled-posts?limit=$limit&offset=$offset')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<List<dynamic>>(
+      response,
+      (data) => data as List<dynamic>,
+    );
+  }
+
+  /// GET /api/v1/scheduled-posts/{id}
+  /// Get a specific scheduled post
+  static Future<ApiResponse<Map<String, dynamic>>> getScheduledPost(String id) async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/scheduled-posts/$id')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// PUT /api/v1/scheduled-posts/{id}
+  /// Update a scheduled post
+  static Future<ApiResponse<Map<String, dynamic>>> updateScheduledPost(
+    String id, {
+    String? content,
+    List<String>? mediaUrls,
+    DateTime? scheduledFor,
+  }) async {
+    final body = <String, dynamic>{};
+    if (content != null) body['content'] = content;
+    if (mediaUrls != null) body['media_urls'] = mediaUrls;
+    if (scheduledFor != null) body['scheduled_for'] = scheduledFor.toIso8601String();
+
+    final response = await http.put(
+      Uri.parse(_buildUrl('$apiPrefix/scheduled-posts/$id')),
+      headers: await _getHeaders(),
+      body: jsonEncode(body),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// POST /api/v1/scheduled-posts/{id}/cancel
+  /// Cancel a scheduled post
+  static Future<ApiResponse<void>> cancelScheduledPost(String id) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/scheduled-posts/$id/cancel')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  // ============================================================================
+  // POST DRAFTS ENDPOINTS
+  // ============================================================================
+
+  /// POST /api/v1/drafts
+  /// Save/update post draft
+  static Future<ApiResponse<Map<String, dynamic>>> saveDraft({
+    String? content,
+    List<String>? mediaUrls,
+    String? visibility,
+  }) async {
+    final body = <String, dynamic>{};
+    if (content != null) body['content'] = content;
+    if (mediaUrls != null) body['media_urls'] = mediaUrls;
+    if (visibility != null) body['visibility'] = visibility;
+
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/drafts')),
+      headers: await _getHeaders(),
+      body: jsonEncode(body),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/v1/drafts
+  /// Get current draft
+  static Future<ApiResponse<Map<String, dynamic>?>> getDraft() async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/drafts')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>?>(
+      response,
+      (data) => data != null ? data as Map<String, dynamic> : null,
+    );
+  }
+
+  /// DELETE /api/v1/drafts
+  /// Delete draft
+  static Future<ApiResponse<void>> deleteDraft() async {
+    final response = await http.delete(
+      Uri.parse(_buildUrl('$apiPrefix/drafts')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  // ============================================================================
+  // PUSH NOTIFICATION TOKENS ENDPOINTS
+  // ============================================================================
+
+  /// POST /api/v1/push-tokens
+  /// Register device push token
+  static Future<ApiResponse<Map<String, dynamic>>> registerPushToken({
+    required String deviceToken,
+    required String deviceType,
+    String? deviceName,
+  }) async {
+    final body = <String, dynamic>{
+      'device_token': deviceToken,
+      'device_type': deviceType,
+    };
+    if (deviceName != null) body['device_name'] = deviceName;
+
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/push-tokens')),
+      headers: await _getHeaders(),
+      body: jsonEncode(body),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// POST /api/v1/push-tokens/deactivate
+  /// Deactivate push token
+  static Future<ApiResponse<void>> deactivatePushToken(String deviceToken) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/push-tokens/deactivate')),
+      headers: await _getHeaders(),
+      body: jsonEncode({'device_token': deviceToken}),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  // ============================================================================
+  // GROUPS ENDPOINTS
+  // ============================================================================
+
+  /// POST /api/v1/groups
+  /// Create a group
+  static Future<ApiResponse<Map<String, dynamic>>> createGroup({
+    required String name,
+    String? description,
+    bool isPrivate = false,
+  }) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/groups')),
+      headers: await _getHeaders(),
+      body: jsonEncode({
+        'name': name,
+        'description': description,
+        'is_private': isPrivate,
+      }),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// GET /api/v1/groups
+  /// List groups
+  static Future<ApiResponse<List<dynamic>>> getGroups({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/groups?limit=$limit&offset=$offset')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<List<dynamic>>(
+      response,
+      (data) => data as List<dynamic>,
+    );
+  }
+
+  /// GET /api/v1/groups/{id}
+  /// Get group details
+  static Future<ApiResponse<Map<String, dynamic>>> getGroup(String id) async {
+    final response = await http.get(
+      Uri.parse(_buildUrl('$apiPrefix/groups/$id')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleResponse<Map<String, dynamic>>(
+      response,
+      (data) => data as Map<String, dynamic>,
+    );
+  }
+
+  /// POST /api/v1/groups/{id}/join
+  /// Join a group
+  static Future<ApiResponse<void>> joinGroup(String id) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/groups/$id/join')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
+
+  /// POST /api/v1/groups/{id}/leave
+  /// Leave a group
+  static Future<ApiResponse<void>> leaveGroup(String id) async {
+    final response = await http.post(
+      Uri.parse(_buildUrl('$apiPrefix/groups/$id/leave')),
+      headers: await _getHeaders(),
+    );
+
+    return _handleEmptyResponse<void>(response);
+  }
 }
