@@ -6,6 +6,9 @@ import 'package:jojuhu/theme/jojuhu_theme.dart';
 import 'edit_profile_screen.dart';
 import 'follow_list_screen.dart';
 import 'post_detail_screen.dart';
+import 'privacy_settings_screen.dart';
+import 'scheduled_posts_screen.dart';
+import 'groups_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String? userId;
@@ -445,16 +448,66 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   Widget _buildAboutTab(dynamic profile) {
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildInfoRow(Icons.calendar_today, 'Joined', _formatDate(profile.createdAt)),
-          if (profile is MyProfile)
-            _buildInfoRow(Icons.email, 'Email', profile.email),
+      children: [
+        _buildInfoRow(Icons.calendar_today, 'Joined', _formatDate(profile.createdAt)),
+        if (profile is MyProfile)
+          _buildInfoRow(Icons.email, 'Email', profile.email),
+        if (widget.isMyProfile) ...[
+          const Divider(height: 32),
+          const Text(
+            'Settings',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip),
+            title: const Text('Privacy Settings'),
+            subtitle: const Text('Manage your privacy and data'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PrivacySettingsScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.schedule),
+            title: const Text('Scheduled Posts'),
+            subtitle: const Text('View and manage scheduled posts'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ScheduledPostsScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.group),
+            title: const Text('Groups'),
+            subtitle: const Text('Browse and manage groups'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const GroupsScreen(),
+                ),
+              );
+            },
+          ),
         ],
-      ),
+      ],
     );
   }
 
