@@ -610,7 +610,6 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
   bool _isSavingDraft = false;
   bool _hasDraft = false;
   Timer? _autoSaveTimer;
-  String? _draftSavedTime;
 
   @override
   void initState() {
@@ -663,7 +662,7 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
 
       if (response.success) {
         setState(() {
-          _draftSavedTime = DateTime.now().toString();
+          // Draft saved successfully
         });
       }
     } catch (e) {
@@ -701,7 +700,6 @@ class _CreatePostSheetState extends State<_CreatePostSheet> {
         setState(() {
           _controller.clear();
           _hasDraft = false;
-          _draftSavedTime = null;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Draft discarded')),

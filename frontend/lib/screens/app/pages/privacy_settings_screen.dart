@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jojuhu_frontend/models/api_response.dart';
-import 'package:jojuhu_frontend/services/api_service.dart';
+import 'package:jojuhu/models/api_response.dart';
+import 'package:jojuhu/services/api_service.dart';
 
 class PrivacySettingsScreen extends StatefulWidget {
   const PrivacySettingsScreen({super.key});
