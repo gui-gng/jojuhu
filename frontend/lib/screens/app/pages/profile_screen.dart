@@ -3,6 +3,8 @@ import 'package:jojuhu/models/post.dart';
 import 'package:jojuhu/models/user_profile.dart';
 import 'package:jojuhu/services/api_service.dart';
 import 'package:jojuhu/theme/jojuhu_theme.dart';
+import 'package:jojuhu/widgets/jojuhu_avatar.dart';
+import 'package:jojuhu/widgets/jojuhu_shimmer.dart';
 import 'edit_profile_screen.dart';
 import 'follow_list_screen.dart';
 import 'post_detail_screen.dart';
@@ -170,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     
     if (_isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: JojuhuPageShimmer(itemCount: 3),
       );
     }
 
@@ -281,22 +283,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                     width: 3,
                   ),
                 ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: JojuhuColors.lua.withOpacity(0.1),
-                  backgroundImage: profile.avatarUrl != null
-                      ? NetworkImage(profile.avatarUrl!)
-                      : null,
-                  child: profile.avatarUrl == null
-                      ? Text(
-                          profile.username[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 40,
-                            color: JojuhuColors.lua,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      : null,
+                child: JojuhuAvatar(
+                  imageUrl: profile.avatarUrl,
+                  initials: profile.username[0].toUpperCase(),
+                  size: JojuhuAvatarSize.xl,
                 ),
               ),
               const SizedBox(width: 16),

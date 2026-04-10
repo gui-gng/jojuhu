@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jojuhu/services/api_service.dart';
+import 'package:jojuhu/theme/jojuhu_theme.dart';
+import 'package:jojuhu/theme/tokens.dart';
+import 'package:jojuhu/widgets/jojuhu_button.dart';
+import 'package:jojuhu/widgets/jojuhu_text_field.dart';
 import '../app/home_screen.dart';
 import 'register_screen.dart';
 
@@ -14,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameOrEmailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
@@ -65,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: JojuhuSpacing.paddingScreen,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Form(
@@ -74,124 +79,99 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo or App Name
-                    Icon(
-                      Icons.chat_bubble_outline,
-                      size: 80,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    const SizedBox(height: 16),
+                    // Logo
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: JojuhuColors.solLuaGradient,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.chat_bubble_outline,
+                        size: 48,
+                        color: JojuhuColors.textoClaro,
+                      ),
+                    )
+                        .animate()
+                        .scale(duration: 400.ms, curve: Curves.elasticOut),
+                    const SizedBox(height: 24),
                     Text(
                       'Welcome Back!',
                       style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                       textAlign: TextAlign.center,
-                    ),
+                    )
+                        .animate()
+                        .fadeIn(delay: 100.ms)
+                        .slideY(begin: 0.1, end: 0),
                     const SizedBox(height: 8),
                     Text(
                       'Sign in to continue',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Colors.grey[600],
+                            color: JojuhuColors.textoCinza,
                           ),
                       textAlign: TextAlign.center,
-                    ),
+                    ).animate().fadeIn(delay: 200.ms),
                     const SizedBox(height: 32),
-                    
+
                     // Error Message
                     if (_errorMessage != null) ...[
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red[200]!),
+                          color: JojuhuColors.error.withOpacity(0.1),
+                          borderRadius: JojuhuRadius.smRadius,
+                          border: Border.all(color: JojuhuColors.error.withOpacity(0.5)),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.error_outline, color: Colors.red[700]),
+                            const Icon(Icons.error_outline, color: JojuhuColors.error),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
-                                style: TextStyle(color: Colors.red[700]),
+                                style: const TextStyle(color: JojuhuColors.error),
                               ),
                             ),
                           ],
                         ),
-                      ),
+                      ).animate().fadeIn().scale(begin: Offset(0.95, 0.95)),
                       const SizedBox(height: 16),
                     ],
-                    
+
                     // Username or Email Field
-                    TextFormField(
+                    JojuhuTextField(
+                      label: 'Username or Email',
                       controller: _usernameOrEmailController,
-                      keyboardType: TextInputType.text,
+                      hint: 'Enter your username or email',
+                      prefixIcon: Icons.person_outline,
                       textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: 'Username or Email',
-                        hintText: 'Enter your username or email',
-                        prefixIcon: const Icon(Icons.person_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Theme.of(context).primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter your username or email';
                         }
                         return null;
                       },
-                    ),
+                    ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.1),
                     const SizedBox(height: 16),
-                    
+
                     // Password Field
-                    TextFormField(
+                    JojuhuTextField(
+                      label: 'Password',
                       controller: _passwordController,
+                      hint: 'Enter your password',
+                      prefixIcon: Icons.lock_outline,
+                      suffixIcon: _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      onSuffixTap: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                       obscureText: _obscurePassword,
                       textInputAction: TextInputAction.done,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Theme.of(context).primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                      ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your password';
@@ -201,50 +181,26 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
-                      onFieldSubmitted: (_) => _login(),
-                    ),
+                      onSubmitted: (_) => _login(),
+                    ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.1),
                     const SizedBox(height: 24),
-                    
+
                     // Login Button
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Text(
-                                'Sign In',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
-                    ),
+                    JojuhuButton(
+                      text: 'Sign In',
+                      onPressed: _login,
+                      isLoading: _isLoading,
+                      isFullWidth: true,
+                    ).animate().fadeIn(delay: 500.ms),
                     const SizedBox(height: 16),
-                    
+
                     // Register Link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Don\'t have an account?',
-                          style: TextStyle(color: Colors.grey[600]),
+                          "Don't have an account?",
+                          style: TextStyle(color: JojuhuColors.textoCinza),
                         ),
                         TextButton(
                           onPressed: () {
@@ -261,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ],
-                    ),
+                    ).animate().fadeIn(delay: 600.ms),
                   ],
                 ),
               ),

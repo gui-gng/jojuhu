@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:jojuhu/screens/app/home_screen.dart';
 import 'package:jojuhu/screens/auth/login_screen.dart';
 import 'package:jojuhu/services/api_service.dart';
@@ -23,28 +24,35 @@ class MyApp extends StatelessWidget {
       create: (_) => ThemeProvider(),
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-          return MaterialApp(
-            title: 'Jojuhu',
-            debugShowCheckedModeBanner: false,
-            theme: themeProvider.theme,
-            home: FutureBuilder<bool>(
-              future: _checkAuth(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(
-                    body: Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                
-                if (snapshot.hasData && snapshot.data == true) {
-                  return const HomeScreen();
-                } else {
-                  return const LoginScreen();
-                }
-              },
-            ),
+          return ScreenUtilInit(
+            designSize: const Size(375, 812),
+            minTextAdapt: true,
+            splitScreenMode: true,
+            builder: (context, child) {
+              return MaterialApp(
+                title: 'Jojuhu',
+                debugShowCheckedModeBanner: false,
+                theme: themeProvider.theme,
+                home: FutureBuilder<bool>(
+                  future: _checkAuth(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.hasData && snapshot.data == true) {
+                      return const HomeScreen();
+                    } else {
+                      return const LoginScreen();
+                    }
+                  },
+                ),
+              );
+            },
           );
         },
       ),

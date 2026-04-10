@@ -3,6 +3,7 @@ import 'pages/explore.dart';
 import 'pages/forum.dart';
 import 'pages/messages/messages_screen.dart';
 import 'pages/profile_screen.dart';
+import 'pages/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,11 +75,28 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _navigateToSearch() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SearchScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Jojuhu'),
+        title: Image.asset(
+          'assets/logos/logo_mosaico.png',
+          height: 40,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _navigateToSearch,
+            tooltip: 'Search',
+          ),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: _onDestinationSelected,

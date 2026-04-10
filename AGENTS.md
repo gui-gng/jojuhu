@@ -1,282 +1,174 @@
-# AGENTS.md - AI Coding Agent Instructions
+# AGENTS.md
 
-This document provides guidelines for AI agents working on the Social Network Backend project.
+Monorepo for Jojuhu social network platform.
 
-## Project Overview
+## Directories
 
-This is a Rust-based backend API for a social network platform, built with Actix-web. It follows Clean Architecture principles with modular domain-driven design.
+| Directory | Tech | Run Commands |
+|-----------|------|--------------|
+| `backend/` | Rust (Actix-web) | `cargo build`, `cargo run`, `cargo test` |
+| `frontend/` | Flutter | `flutter pub get`, `flutter run` |
+| `website/` | Astro (pnpm) | `pnpm dev`, `pnpm build` |
+| `infrastructure/` | Docker Compose | `docker-compose up -d` |
+| `seeder/` | Rust | `cargo run` |
+| `k8s/ | Kubernetes manifests | `make deploy` |
+| `tests/api_flows/` | Python tests | `./run_all_tests.py` |
 
-## Project Structure
+## Frontend (Flutter)
 
-```
-jojuhu/
-├── backend/              # Rust API (Actix-web)
-├── frontend/             # Flutter mobile/web app
-├── website/              # Astro marketing site
-├── k8s/                  # Kubernetes deployment configs
-├── tests/                # Test suites
-│   └── api_flows/        # API integration tests
-├── docs/                 # Documentation
-│   ├── versions/         # Release notes per version
-│   │   ├── README.md     # Version index
-│   │   ├── v0.1.0.md     # MVP (Complete)
-│   │   ├── v0.2.0.md     # In Progress (85%)
-│   │   ├── v0.3.0.md     # Planned
-│   │   └── v0.4.0.md     # Production (v1.0.0)
-│   ├── ARCHITECTURE.md   # Technical architecture
-│   ├── ROADMAP.md        # Product roadmap
-│   ├── QUICKSTART.md     # Getting started guide
-│   └── KUBERNETES_DEPLOYMENT.md  # K8s deployment docs
-└── AGENTS.md            # This file
-```
+**Design System:**
+- Theme: `lib/theme/jojuhu_theme.dart` - Colors (Sol/Lua/Encontro palette), Material 3
+- Typography: `lib/theme/typography.dart` - Playfair Display + Inter fonts
+- Tokens: `lib/theme/tokens.dart` - Spacing, radius, durations, elevations
+- Animations: `lib/utils/animations.dart` - Reusable animation presets
 
-## Version Management
+**Widgets (`lib/widgets/`):**
+- `jojuhu_avatar.dart` - Avatar with caching, sizes, badge support
+- `jojuhu_button.dart` - Button variants (primary/secondary/outline/text/danger)
+- `jojuhu_card.dart` - Card container with elevation options
+- `jojuhu_text_field.dart` - Input with focus animations, validation states
+- `jojuhu_image_viewer.dart` - Full-screen zoomable images
+- `jojuhu_shimmer.dart` - Loading skeleton components
+- `jojuhu_post_card.dart` - Social post card component
+- `jojuhu_widgets.dart` - Barrel export for all widgets
 
-The project uses semantic versioning with detailed release notes in `docs/versions/`:
+**Key Packages:**
+- `cached_network_image` - Image caching (replace all `Image.network()`)
+- `flutter_screenutil` - Responsive sizing (`.w`, `.h`, `.sp`)
+- `google_fonts` - Playfair Display + Inter typography
+- `flutter_animate` - Declarative animations
+- `photo_view` - Image zoom/pan
 
-Always check `docs/versions/vX.Y.Z.md` for specific version details.
+**Usage Pattern:**
+```dart
+// Responsive sizing
+Container(width: 100.w, height: 50.h)
 
-## Build/Lint/Test Commands
+// Use design tokens
+padding: EdgeInsets.all(JojuhuSpacing.lg)
+borderRadius: JojuhuRadius.smRadius
+
+// Import all widgets
+import 'package:jojuhu/widgets/jojuhu_widgets.dart';```
+
+## Backend Commands
 
 ```bash
-# Build the project (run from backend/ directory)
+cd backend
+
+# Build/run
 cargo build
-
-# Build for release
 cargo build --release
+cargo run                    # Runs on localhost:8080
 
-# Run the application
-cargo run
+# Testing
+cargo test                   # All tests
+cargo test --test unit_tests # Unit tests only
+cargo test --test integration_tests # Integration tests only
+cargo test test_name         # Specific test
+cargo test -- --nocapture    # With output
 
-# Run all tests
-cargo test
-
-# Run a specific test by name
-cargo test test_validate_username_valid
-
-# Run tests in a specific file
-cargo test --test handler_tests
-
-# Run tests with output
-cargo test -- --nocapture
-
-# Run Clippy lints
+# Linting
 cargo clippy -- -D warnings
-
-# Run Clippy with all targets and features
-cargo clippy --all-targets --all-features -- -D warnings
-
-# Format code
 cargo fmt
 
-# Check formatting without changes
-cargo fmt -- --check
-
-# SQLx migrations (requires DATABASE_URL)
+# Database migrations (requires DATABASE_URL)
 cargo sqlx migrate run
-
-# Docker compose
-docker-compose up -d
-docker-compose -f docker-compose.prod.yml up -d
 ```
-
-## Code Style Guidelines
-
-### Imports
-- Group imports in order: std lib, external crates, internal modules
-- Use `use crate::` for internal imports
-- Alphabetically sort within groups
-- Separate groups with blank lines
-
-Example:
-```rust
-use std::fmt;
-
-use actix_web::{web, HttpResponse};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
-use crate::errors::AppError;
-use crate::models::{ApiResponse, PaginationParams};
-```
-
-### Formatting
-- Use `cargo fmt` default settings
-- Max line length: follow Rust defaults (100 chars)
-- 4 spaces for indentation
-- No trailing whitespace
-
-### Types and Naming
-- **Structs/Enums**: PascalCase (e.g., `MessageResponse`, `AppError`)
-- **Functions/Variables**: snake_case (e.g., `send_message`, `user_id`)
-- **Constants**: SCREAMING_SNAKE_CASE (e.g., `MAX_MESSAGE_LENGTH`)
-- **Traits**: PascalCase with clear purpose
-- **Modules**: snake_case (e.g., `handlers.rs`, `repository.rs`)
-- **Generic parameters**: Single uppercase letters (e.g., `T`, `K`, `V`)
-
-### Error Handling
-- Use the centralized `AppError` enum for all errors
-- Implement `From` traits for automatic conversion (e.g., `From<sqlx::Error>`)
-- Map database errors to appropriate HTTP status codes:
-  - `RowNotFound` → 404 Not Found
-  - Constraint violations → 409 Conflict
-  - Other DB errors → 500 Internal Server Error
-- Use `thiserror` for error definitions
-- Return `Result<T, AppError>` from handlers and services
-- Create error messages with `format!("...", value)`
-
-### Architecture Patterns
-
-Each domain module follows this structure:
-```
-modules/{name}/
-├── mod.rs        # Module config, dependency injection, re-exports
-├── models.rs     # Data models, DTOs, and database row types
-├── repository.rs # Database access layer with SQLx queries
-├── service.rs    # Business logic layer
-├── handlers.rs   # HTTP request handlers
-└── routes.rs     # Route definitions
-```
-
-Guidelines:
-- **Handlers**: HTTP layer only, delegate to services, return `Result<HttpResponse, AppError>`
-- **Services**: Business logic, no HTTP or DB details, validate inputs, sanitize data
-- **Repositories**: Database access with raw SQL queries, use `sqlx::query_as!()`
-- **Models**: Use `#[derive(Debug, Serialize, Deserialize)]` for DTOs
-- Use dependency injection via constructors (e.g., `MessageService::new(repository)`)
-
-### Database
-- Use SQLx for compile-time checked queries with `sqlx::query_as!()`
-- Use `sqlx::FromRow` for query result structs
-- Prefer raw SQL in repositories over ORM abstractions
-- Use UUIDs for primary keys (v4 for new records via `Uuid::new_v4()`)
-- Use chrono for datetime fields (`DateTime<Utc>`)
-- Use pagination with `get_offset()` and `get_limit()` methods
-
-### Security
-- Sanitize all user inputs with `sanitize_input()` from `middleware::security`
-- Validate input safety with `validate_input_safety()` to prevent XSS/SQL injection
-- Validate content length with `validate_content_length()`
-- Use bcrypt/argon2 for password hashing
-- All authenticated endpoints extract user via `AuthenticatedUser` middleware
-
-### Testing
-- Unit tests go in `tests/unit/{feature}_tests.rs`
-- Integration tests go in `tests/integration_tests.rs`
-- Use `#[actix_rt::test]` for async tests
-- Use standard `#[test]` for synchronous tests
-- Use descriptive test names: `test_{behavior}_{condition}` (e.g., `test_validate_username_too_short`)
-- Mock external dependencies, test business logic in isolation
-- Test error responses and status codes
-
-### API Responses
-- Use standardized `ApiResponse<T>` wrapper:
-```rust
-// Success
-Ok(HttpResponse::Ok().json(ApiResponse::success(data)))
-
-// Error (handled by AppError ResponseError trait)
-Err(AppError::ValidationError("Invalid input".to_string()))
-```
-- HTTP status codes:
-  - 200 OK for successful GET/PUT
-  - 201 Created for successful POST
-  - 204 No Content for successful DELETE
-  - 400 Bad Request for validation errors
-  - 401 Unauthorized for authentication errors
-  - 403 Forbidden for authorization errors
-  - 404 Not Found for missing resources
-  - 409 Conflict for duplicate/constraint errors
-  - 500 Internal Server Error for unexpected errors
-
-### Authentication
-- Use Bearer token in Authorization header
-- JWT validation handled in `middleware::auth`
-- Extract user_id from `AuthenticatedUser` in handlers
-- Password hashing with argon2 (preferred) or bcrypt
-
-### Logging
-- Use `tracing` for structured logging
-- Use appropriate levels: trace, debug, info, warn, error
-- Log at service layer for business operations
-- Log at handler layer for request/response info
 
 ## Environment Setup
 
-Required environment variables:
+Backend requires `.env` in `backend/` directory. Copy from `backend/.env.example`.
+
+Required for build:
+- `DATABASE_URL` - Required for SQLx compile-time query verification
+
+Required for runtime:
+- `JWT_SECRET` (min 32 chars)
+- `DATABASE_URL`
+- `REDIS_URL`
+- `MINIO_*` (for file uploads)
+
+## Development Workflow
+
 ```bash
-DATABASE_URL=postgres://jojuhu:jojuhu_secret@localhost:5432/jojuhu_backend_db
-JWT_SECRET=your_secret_key_min_32_chars_long
-JWT_EXPIRATION_HOURS=24
-SERVER_HOST=127.0.0.1
-SERVER_PORT=8080
+# Start infrastructure services (PostgreSQL, Redis, MinIO, etc.)
+./start.sh                  # From repo root (creates .env files if missing)
+# OR
+cd infrastructure && docker-compose up -d
+
+# Run backend
+cd backend
+cargo run
+
+# Health check
+curl http://localhost:8080/health
 ```
 
-## Commit Guidelines
+Infrastructure services (from `infrastructure/docker-compose.yml`):
+- PostgreSQL: `localhost:5432`
+- Redis: `localhost:6379`
+- MinIO API: `localhost:9000`
+- MinIO Console: `localhost:9001`
+- Grafana: `localhost:3000`
+- Prometheus: `localhost:9090`
+- Jaeger: `localhost:16686`
 
-Always use semantic commits with project-specific prefixes.
+## API Flow Tests (Python)
 
-### Commit Format
-```
-<type>(<project>/<scope>): <description>
+Integration tests for API endpoints in `tests/api_flows/`.
 
-[optional body]
+```bash
+cd tests/api_flows
+pip install requests
 
-[optional footer]
-```
+# Run all tests
+./run_all_tests.py
 
-### Project Prefixes
-- `backend/` - Rust API and server-side code
-- `frontend/` - Client-side UI code
-- `infrastructure/` - Docker, CI/CD, deployment configs
+# Run individually (order matters!)
+python3 test_onboarding.py  # MUST run first - creates users/tokens
+python3 test_posts.py       # Requires onboarding
+python3 test_forums.py      # Requires onboarding
+python3 test_messages.py    # Requires onboarding
 
-### Commit Types
-- `feat` - New features or functionality
-- `fix` - Bug fixes
-- `refactor` - Code refactoring without behavior changes
-- `docs` - Documentation updates
-- `test` - Adding or updating tests
-- `chore` - Maintenance tasks, dependency updates
-- `style` - Code style changes (formatting, linting)
-- `perf` - Performance improvements
-
-### Examples
-```
-feat(backend/auth): add JWT token refresh endpoint
-fix(frontend/profile): resolve avatar upload validation bug
-refactor(backend/messages): extract message validation logic
-chore(infrastructure): update PostgreSQL to v15
-docs(backend): add API documentation for user module
+# Custom endpoint
+API_BASE_URL=http://localhost:8080 ./run_all_tests.py
 ```
 
-## Pre-Commit Checklist
+## Backend Architecture
 
-- [ ] Code compiles: `cargo build`
-- [ ] Tests pass: `cargo test`
-- [ ] Clippy clean: `cargo clippy -- -D warnings`
-- [ ] Code formatted: `cargo fmt`
-- [ ] No hardcoded secrets or credentials
-- [ ] Error handling implemented for all fallible operations
-- [ ] Input validation and sanitization added for user inputs
-- [ ] Documentation updated (if changing features)
+Domain modules in `backend/src/modules/{name}/`:
+- `handlers.rs` - HTTP layer, delegates to services
+- `service.rs` - Business logic, no HTTP/DB details
+- `repository.rs` - Database access with SQLx
+- `models.rs` - DTOs and row types
+- `routes.rs` - Route definitions
+- `mod.rs` - Module config and DI
 
-## Documentation Guidelines
+Key patterns:
+- SQLx compile-time checked queries (`sqlx::query_as!()`)
+- Centralized `AppError` enum for HTTP errors
+- `ApiResponse<T>` wrapper for responses
+- Extract user from `AuthenticatedUser` middleware in protected routes
 
-### Version Documentation
-When implementing features:
-1. Check `docs/versions/vX.Y.Z.md` for the target version
-2. Update the feature status (✅ 🚧 📋)
-3. Add technical details to version files
+## Commit Prefixes
 
-### Main Documentation Files
-- **README.md** - Project overview and quick links
-- **docs/ARCHITECTURE.md** - System design and technical decisions
-- **docs/ROADMAP.md** - High-level product planning
-- **docs/QUICKSTART.md** - Developer onboarding
-- **docs/KUBERNETES_DEPLOYMENT.md** - Infrastructure setup
+```
+feat(backend/scope): description
+fix(frontend/scope): description
+chore(infrastructure): description
+```
 
-### API Documentation
-- Update Bruno collections in `backend/bruno/`
-- Document new endpoints with examples
-- Include error response codes
+## Kubernetes Deployment
+
+```bash
+make all        # Full setup (registry, cluster, ingress, build, deploy)
+make status     # Check pods/services
+make logs       # Backend logs
+make destroy    # Delete cluster
+
+# Port-forward for local access
+kubectl port-forward -n jojuhu svc/jojuhu-backend 8080:8080
+```
+
+Add to `/etc/hosts`: `127.0.0.1 jojuhu.local app.jojuhu.local`

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:jojuhu/models/post.dart';
 import 'package:jojuhu/services/api_service.dart';
 import 'package:jojuhu/theme/jojuhu_theme.dart';
@@ -515,10 +516,24 @@ class _PostCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          post.mediaUrls[index],
+                        child: CachedNetworkImage(
+                          imageUrl: post.mediaUrls[index],
                           height: 200,
                           fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            height: 200,
+                            color: JojuhuColors.fundo,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: JojuhuColors.sol,
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            height: 200,
+                            color: JojuhuColors.fundo,
+                            child: const Icon(Icons.image_not_supported),
+                          ),
                         ),
                       ),
                     ),
@@ -909,19 +924,17 @@ class _ImageViewerState extends State<_ImageViewer> {
             minScale: 0.5,
             maxScale: 4.0,
             child: Center(
-              child: Image.network(
-                widget.images[index],
+              child: CachedNetworkImage(
+                imageUrl: widget.images[index],
                 fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(
                     color: JojuhuColors.sol,
-                  );
-                },
+                  ),
+                ),
+                errorWidget: (context, url, error) => const Center(
+                  child: Icon(Icons.image_not_supported, size: 48),
+                ),
               ),
             ),
           );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:jojuhu/models/forum.dart';
 import 'package:jojuhu/services/api_service.dart';
+import 'package:jojuhu/theme/jojuhu_theme.dart';
 import 'forum_detail_screen.dart';
 
 class ForumScreen extends StatefulWidget {
@@ -265,11 +267,20 @@ class _ForumCard extends StatelessWidget {
           children: [
             // Cover image
             if (forum.coverImageUrl != null)
-              Image.network(
-                forum.coverImageUrl!,
+              CachedNetworkImage(
+                imageUrl: forum.coverImageUrl!,
                 height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  height: 120,
+                  color: JojuhuColors.fundo,
+                ),
+                errorWidget: (context, url, error) => Container(
+                  height: 120,
+                  color: JojuhuColors.fundo,
+                  child: const Icon(Icons.image_not_supported),
+                ),
               ),
 
             Padding(
@@ -281,11 +292,22 @@ class _ForumCard extends StatelessWidget {
                   if (forum.iconUrl != null)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        forum.iconUrl!,
+                      child: CachedNetworkImage(
+                        imageUrl: forum.iconUrl!,
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          width: 60,
+                          height: 60,
+                          color: JojuhuColors.fundo,
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          width: 60,
+                          height: 60,
+                          color: JojuhuColors.fundo,
+                          child: const Icon(Icons.forum, size: 30),
+                        ),
                       ),
                     )
                   else

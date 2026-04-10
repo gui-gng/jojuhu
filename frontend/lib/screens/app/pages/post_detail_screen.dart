@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:jojuhu/models/post.dart';
 import 'package:jojuhu/services/api_service.dart';
+import 'package:jojuhu/theme/jojuhu_theme.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final Post post;
@@ -269,10 +271,24 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     padding: const EdgeInsets.all(8),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        _post.mediaUrls[index],
+                      child: CachedNetworkImage(
+                        imageUrl: _post.mediaUrls[index],
                         height: 200,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 200,
+                          color: JojuhuColors.fundo,
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: JojuhuColors.sol,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 200,
+                          color: JojuhuColors.fundo,
+                          child: const Icon(Icons.image_not_supported),
+                        ),
                       ),
                     ),
                   );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:jojuhu/models/forum.dart';
 import 'package:jojuhu/services/api_service.dart';
+import 'package:jojuhu/theme/jojuhu_theme.dart';
 import 'topic_detail_screen.dart';
 
 class ForumDetailScreen extends StatefulWidget {
@@ -177,9 +179,16 @@ class _ForumDetailScreenState extends State<ForumDetailScreen> {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(_forum.name),
               background: _forum.coverImageUrl != null
-                  ? Image.network(
-                      _forum.coverImageUrl!,
+                  ? CachedNetworkImage(
+                      imageUrl: _forum.coverImageUrl!,
                       fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: JojuhuColors.fundo,
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: Theme.of(context).primaryColor.withOpacity(0.2),
+                        child: const Icon(Icons.image_not_supported),
+                      ),
                     )
                   : Container(
                       color: Theme.of(context).primaryColor.withOpacity(0.2),
