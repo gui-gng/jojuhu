@@ -35,8 +35,6 @@ use websocket::WebSocketServer;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
-    
     println!("Starting jojuhu backend server... GG");
     // Load environment variables
     dotenvy::dotenv().ok();
