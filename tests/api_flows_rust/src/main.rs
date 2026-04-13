@@ -14,11 +14,11 @@ use scenarios::forums::ForumScenarios;
 use scenarios::groups::GroupScenarios;
 use scenarios::messages::MessageScenarios;
 use scenarios::posts::PostScenarios;
+use scenarios::user_flow::run_realistic_user_flow;
 use scenarios::users::UserScenarios;
 use utils::logging::log_section;
 use utils::{ensure_data_dir, load_test_users, save_test_results};
 
-const QNT_USERS: usize = 500;
 #[derive(Parser, Debug)]
 #[command(name = "Jojuhu API Flow Tests")]
 #[command(about = "Comprehensive API testing for Jojuhu backend")]
@@ -31,13 +31,17 @@ struct Args {
     #[arg(long)]
     skip_generate: bool,
 
-    /// Run specific scenario (auth, users, posts, forums, messages, groups, all)
+    /// Run specific scenario (auth, users, posts, forums, messages, groups, realistic, all)
     #[arg(short, long, default_value = "all")]
     scenario: String,
 
-    /// Number of users to register
-    #[arg(short = 'n', long, default_value_t = 20)]
+    /// Number of users to register (for auth scenario)
+    #[arg(short = 'n', long, default_value_t = 0)]
     users: usize,
+
+    /// Max actions per user in realistic flow (0 = use default 5-15)
+    #[arg(short = 'm', long, default_value_t = 0)]
+    max_actions: u32,
 }
 
 #[tokio::main]
@@ -51,7 +55,8 @@ async fn main() -> Result<()> {
     // Generate test users if needed
     if !args.skip_generate && !Path::new("data/test_users.json").exists() {
         log_section("GENERATING TEST USERS");
-        generate_test_users(&args.url).await?;
+        let count = if args.users > 0 { args.users } else { 50 };
+        generate_test_users(&args.url, count).await?;
     }
 
     // Check if test users exist
@@ -65,7 +70,7 @@ async fn main() -> Result<()> {
 
     match args.scenario.as_str() {
         "auth" => {
-            let users = run_auth_scenario(&args.url, &mut results).await?;
+            let users = run_auth_scenario(&args.url, &mut results, args.users).await?;
             results.created_users = users;
         }
         "users" => run_users_scenario(&args.url, &mut results).await?,
@@ -73,6 +78,7 @@ async fn main() -> Result<()> {
         "forums" => run_forums_scenario(&args.url, &mut results).await?,
         "messages" => run_messages_scenario(&args.url, &mut results).await?,
         "groups" => run_groups_scenario(&args.url, &mut results).await?,
+        "realistic" => run_realistic_scenario(&args.url, &mut results, args.max_actions).await?,
         "all" => run_all_scenarios(&args.url, &mut results).await?,
         _ => {
             eprintln!("{}", format!("❌ Unknown scenario: {}", args.scenario).red());
@@ -103,18 +109,18 @@ fn print_banner() {
     println!();
 }
 
-async fn generate_test_users(api_url: &str) -> Result<()> {
+async fn generate_test_users(api_url: &str, count: usize) -> Result<()> {
     use fake::faker::internet::en::{FreeEmail, Password};
     use fake::faker::name::en::FirstName;
     use fake::Fake;
     use rand::Rng;
 
-    println!("{}", "📝 Generating {QNT_USERS} test users...".yellow());
+    println!("{}", format!("📝 Generating {} test users...", count).yellow());
 
     let mut users = Vec::new();
     let mut used_usernames: Vec<String> = Vec::new();
 
-    for i in 0..QNT_USERS {
+    for i in 0..count {
         let first_name: String = FirstName().fake();
         let base_username = first_name.to_lowercase().replace(" ", "_");
 
@@ -155,10 +161,19 @@ async fn generate_test_users(api_url: &str) -> Result<()> {
     Ok(())
 }
 
-async fn run_auth_scenario(base_url: &str, results: &mut TestResults) -> Result<Vec<models::TestUser>> {
+async fn run_auth_scenario(base_url: &str, results: &mut TestResults, max_users: usize) -> Result<Vec<models::TestUser>> {
     log_section("AUTHENTICATION SCENARIOS");
     let auth = AuthScenarios::new(base_url.to_string());
-    auth.run_all(results).await
+    
+    // If max_users is 0, use dynamic sizing from the auth module
+    // Otherwise, limit to max_users
+    let mut users = auth.run_all(results).await?;
+    
+    if max_users > 0 && users.len() > max_users {
+        users.truncate(max_users);
+    }
+    
+    Ok(users)
 }
 
 async fn run_users_scenario(base_url: &str, results: &mut TestResults) -> Result<()> {
@@ -277,11 +292,38 @@ async fn run_groups_scenario(base_url: &str, results: &mut TestResults) -> Resul
     Ok(())
 }
 
+async fn run_realistic_scenario(base_url: &str, results: &mut TestResults, _max_actions: u32) -> Result<()> {
+    log_section("REALISTIC USER FLOW SIMULATION");
+    
+    println!("{}", "🎭 This scenario simulates real users with individual behaviors:".cyan());
+    println!("  • Each user performs random actions with realistic timing");
+    println!("  • Users create posts, like content, follow others, join forums");
+    println!("  • Actions happen concurrently with random delays");
+    println!("  • Power users are more active than casual users");
+    println!();
+
+    let users_data = load_test_users("data/test_users.json")?;
+    
+    // First, ensure we have authenticated users
+    let authenticated_users: Vec<models::TestUser> = users_data
+        .users
+        .into_iter()
+        .filter(|u| u.token.is_some())
+        .collect();
+
+    if authenticated_users.is_empty() {
+        println!("{}", "⚠ No authenticated users found. Run auth scenario first.".yellow());
+        return Ok(());
+    }
+
+    run_realistic_user_flow(authenticated_users, base_url.to_string(), results).await
+}
+
 async fn run_all_scenarios(base_url: &str, results: &mut TestResults) -> Result<()> {
     let start = Instant::now();
 
     // 1. Authentication (creates users)
-    let mut users = run_auth_scenario(base_url, results).await?;
+    let mut users = run_auth_scenario(base_url, results, 0).await?;
 
     // Save updated users with tokens
     let users_data = models::TestUsersData::new(base_url.to_string(), users.clone());
@@ -290,31 +332,12 @@ async fn run_all_scenarios(base_url: &str, results: &mut TestResults) -> Result<
 
     results.created_users = users.clone();
 
-    // 2. User Management
-    let user_scenarios = UserScenarios::new(base_url.to_string());
-    user_scenarios.run_all(&mut users, results).await?;
-
-    // 3. Posts/Timeline
-    let post_scenarios = PostScenarios::new(base_url.to_string());
-    let (posts, comments) = post_scenarios.run_all(&users, results).await?;
-    results.created_posts = posts;
-    results.created_comments = comments;
-
-    // 4. Forums
-    let forum_scenarios = ForumScenarios::new(base_url.to_string());
-    let (forums, topics) = forum_scenarios.run_all(&users, results).await?;
-    results.created_forums = forums;
-    results.created_topics = topics;
-
-    // 5. Messages
-    let message_scenarios = MessageScenarios::new(base_url.to_string());
-    let messages = message_scenarios.run_all(&users, results).await?;
-    results.created_messages = messages;
-
-    // 6. Groups
-    let group_scenarios = GroupScenarios::new(base_url.to_string());
-    let groups = group_scenarios.run_all(&users, results).await?;
-    results.created_groups = groups;
+    // 2. Run realistic user flow simulation instead of individual scenarios
+    println!("\n{}", "═".repeat(70).cyan());
+    println!("{}", "  SWITCHING TO REALISTIC USER FLOW SIMULATION".cyan().bold());
+    println!("{}", "═".repeat(70).cyan());
+    
+    run_realistic_user_flow(users, base_url.to_string(), results).await?;
 
     let duration = start.elapsed();
     println!("\n{}", format!("⏱ Total execution time: {:?}", duration).cyan());

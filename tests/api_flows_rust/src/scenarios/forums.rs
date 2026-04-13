@@ -91,8 +91,18 @@ impl ForumScenarios {
         let mut forum_templates: Vec<(&&str, &&str)> = sample_forums.iter().map(|(a, b)| (a, b)).collect();
         forum_templates.shuffle(&mut rng);
 
+        // Scale forums based on user count: 1-2 per user for up to 10 users, then scale down
+        let user_count = users.iter().filter(|u| u.token.is_some()).count();
+        let max_creators = if user_count <= 10 {
+            user_count
+        } else if user_count <= 30 {
+            (user_count as f32 * 0.5) as usize
+        } else {
+            (user_count as f32 * 0.3) as usize
+        }.max(3).min(20); // Min 3, max 20 creators
+
         for (i, user) in users.iter().filter(|u| u.token.is_some()).enumerate() {
-            if i >= 10 || forum_templates.is_empty() {
+            if i >= max_creators || forum_templates.is_empty() {
                 break;
             }
 
@@ -171,7 +181,11 @@ impl ForumScenarios {
                 .collect();
 
             if other_forums.len() >= 2 {
-                let num_to_join = rng.gen_range(2..=4).min(other_forums.len());
+                // Scale joins based on available forums (20-40% of available, min 2, max 5)
+                let num_to_join = ((other_forums.len() as f32 * 0.3) as usize)
+                    .max(2)
+                    .min(5)
+                    .min(other_forums.len());
                 let forums_to_join: Vec<&Forum> = other_forums
                     .choose_multiple(&mut rng, num_to_join)
                     .cloned()
@@ -242,10 +256,16 @@ impl ForumScenarios {
                 ApiClient::with_token(self.base_url.clone(), user.token.clone().unwrap());
 
             // Get forums this user can post in (created or joined)
+            // Scale based on total forum count
+            let max_forums_per_user = if forums.len() <= 10 {
+                3
+            } else {
+                ((forums.len() as f32 * 0.2) as usize).max(2).min(5)
+            };
             let user_forums: Vec<&Forum> = forums
                 .iter()
                 .filter(|f| f.creator == user.username || rng.gen_bool(0.3))
-                .take(3)
+                .take(max_forums_per_user)
                 .collect();
 
             if !user_forums.is_empty() {
@@ -316,7 +336,11 @@ impl ForumScenarios {
 
         let mut success_count = 0;
 
-        for user in users.iter().filter(|u| u.token.is_some()).take(5) {
+        // Scale list tests based on user count (15% of users, min 2, max 8)
+        let test_count = users.iter().filter(|u| u.token.is_some()).count();
+        let test_count = ((test_count as f32 * 0.15) as usize).max(2).min(8);
+        
+        for user in users.iter().filter(|u| u.token.is_some()).take(test_count) {
             let client =
                 ApiClient::with_token(self.base_url.clone(), user.token.clone().unwrap());
 

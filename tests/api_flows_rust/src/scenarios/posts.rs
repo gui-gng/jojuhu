@@ -106,7 +106,19 @@ impl PostScenarios {
             let client =
                 ApiClient::with_token(self.base_url.clone(), user.token.clone().unwrap());
 
-            let num_posts = rng.gen_range(2..=5);
+            // Scale posts per user based on total user count
+            // 2-5 posts for up to 50 users, scale down for larger user sets
+            let user_count = users.len();
+            let max_posts = if user_count <= 10 {
+                5
+            } else if user_count <= 50 {
+                4
+            } else if user_count <= 100 {
+                3
+            } else {
+                2
+            };
+            let num_posts = rng.gen_range(2..=max_posts);
 
             for i in 0..num_posts {
                 let content = sample_posts.choose(&mut rng).unwrap();
@@ -180,7 +192,11 @@ impl PostScenarios {
                 .collect();
 
             if other_posts.len() >= 2 {
-                let num_to_like = rng.gen_range(2..=4).min(other_posts.len());
+                // Scale likes based on available posts (10-30% of available)
+                let num_to_like = ((other_posts.len() as f32 * 0.2) as usize)
+                    .max(2)
+                    .min(5)
+                    .min(other_posts.len());
                 let posts_to_like: Vec<&Post> = other_posts
                     .choose_multiple(&mut rng, num_to_like)
                     .cloned()
@@ -251,7 +267,11 @@ impl PostScenarios {
                 .collect();
 
             if other_posts.len() >= 2 {
-                let num_to_comment = rng.gen_range(1..=3).min(other_posts.len());
+                // Scale comments based on available posts (5-20% of available)
+                let num_to_comment = ((other_posts.len() as f32 * 0.15) as usize)
+                    .max(1)
+                    .min(3)
+                    .min(other_posts.len());
                 let posts_to_comment: Vec<&Post> = other_posts
                     .choose_multiple(&mut rng, num_to_comment)
                     .cloned()
@@ -307,7 +327,11 @@ impl PostScenarios {
 
         let mut success_count = 0;
 
-        for user in users.iter().filter(|u| u.token.is_some()).take(5) {
+        // Scale feed tests based on user count (20% of users, min 2, max 10)
+        let test_count = users.iter().filter(|u| u.token.is_some()).count();
+        let test_count = ((test_count as f32 * 0.2) as usize).max(2).min(10);
+        
+        for user in users.iter().filter(|u| u.token.is_some()).take(test_count) {
             let client =
                 ApiClient::with_token(self.base_url.clone(), user.token.clone().unwrap());
 
@@ -341,7 +365,10 @@ impl PostScenarios {
 
         let mut success_count = 0;
 
-        for post in posts.iter().take(5) {
+        // Scale post detail tests based on post count (10-20% of posts, min 3, max 15)
+        let test_count = ((posts.len() as f32 * 0.15) as usize).max(3).min(15);
+        
+        for post in posts.iter().take(test_count) {
             if let Some(token) = users
                 .iter()
                 .find(|u| u.username == post.author_username)

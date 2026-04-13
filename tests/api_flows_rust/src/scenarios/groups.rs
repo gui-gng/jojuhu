@@ -1,7 +1,6 @@
 use anyhow::Result;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use rand::Rng;
 use reqwest::StatusCode;
 use serde_json::Value;
 use uuid::Uuid;
@@ -74,8 +73,12 @@ impl GroupScenarios {
 
         let mut created_groups = Vec::new();
 
+        // Scale groups based on user count: ~20-30% of users can create groups
+        let user_count = users.iter().filter(|u| u.token.is_some()).count();
+        let max_creators = ((user_count as f32 * 0.25) as usize).max(2).min(15); // Min 2, max 15 creators
+
         for (i, user) in users.iter().filter(|u| u.token.is_some()).enumerate() {
-            if i >= 8 {
+            if i >= max_creators {
                 break;
             }
 
@@ -149,7 +152,11 @@ impl GroupScenarios {
                 .collect();
 
             if other_groups.len() >= 2 {
-                let num_to_join = rng.gen_range(2..=3).min(other_groups.len());
+                // Scale joins based on available groups (25-50% of available, min 2, max 4)
+                let num_to_join = ((other_groups.len() as f32 * 0.35) as usize)
+                    .max(2)
+                    .min(4)
+                    .min(other_groups.len());
                 let groups_to_join: Vec<&Group> = other_groups
                     .choose_multiple(&mut rng, num_to_join)
                     .cloned()
@@ -202,7 +209,11 @@ impl GroupScenarios {
 
         let mut success_count = 0;
 
-        for user in users.iter().filter(|u| u.token.is_some()).take(5) {
+        // Scale list tests based on user count (15% of users, min 2, max 8)
+        let test_count = users.iter().filter(|u| u.token.is_some()).count();
+        let test_count = ((test_count as f32 * 0.15) as usize).max(2).min(8);
+        
+        for user in users.iter().filter(|u| u.token.is_some()).take(test_count) {
             let client =
                 ApiClient::with_token(self.base_url.clone(), user.token.clone().unwrap());
 

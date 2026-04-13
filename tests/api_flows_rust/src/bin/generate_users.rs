@@ -1,5 +1,6 @@
 use anyhow::Result;
-use fake::faker::internet::en::{FreeEmail, Password, Username};
+use clap::Parser;
+use fake::faker::internet::en::{FreeEmail, Password};
 use fake::faker::name::en::FirstName;
 use fake::Fake;
 use rand::Rng;
@@ -8,7 +9,22 @@ use std::path::Path;
 
 use jojuhu_api_flow_tests::models::{TestUser, TestUsersData};
 
-const QNT_USERS: usize = 500;
+#[derive(Parser, Debug)]
+#[command(name = "generate-users")]
+#[command(about = "Generate test users for Jojuhu API testing")]
+struct Args {
+    /// Number of users to generate
+    #[arg(short, long, default_value_t = 50)]
+    count: usize,
+
+    /// API base URL
+    #[arg(short = 'a', long, default_value = "http://localhost:8080")]
+    url: String,
+
+    /// Output file path
+    #[arg(short, long, default_value = "data/test_users.json")]
+    output: String,
+}
 
 fn generate_unique_username(base: String, index: usize) -> String {
     format!(
@@ -54,45 +70,52 @@ pub fn generate_test_users(count: usize) -> Vec<TestUser> {
 }
 
 fn main() -> Result<()> {
+    let args = Args::parse();
+
     println!("🚀 Jojuhu API Test Users Generator\n");
 
-    let api_base_url =
-        std::env::var("API_BASE_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
-
-    let output_dir = Path::new("data");
+    let output_dir = Path::new(&args.output).parent().unwrap_or(Path::new("."));
     if !output_dir.exists() {
         fs::create_dir_all(output_dir)?;
-        println!("📁 Created data directory");
+        println!("📁 Created output directory: {}", output_dir.display());
     }
 
-    println!("📝 Generating {} test users...", QNT_USERS);
-    let users = generate_test_users(QNT_USERS);
+    println!("📝 Generating {} test users...", args.count);
+    let users = generate_test_users(args.count);
 
-    let users_data = TestUsersData::new(api_base_url.clone(), users);
+    let users_data = TestUsersData::new(args.url.clone(), users);
 
-    let output_path = output_dir.join("test_users.json");
+    let output_path = Path::new(&args.output);
     let json = serde_json::to_string_pretty(&users_data)?;
     fs::write(&output_path, json)?;
 
-    println!("✅ Successfully generated {} test users", QNT_USERS);
+    println!(
+        "✅ Successfully generated {} test users",
+        users_data.user_count
+    );
     println!("📄 Saved to: {}", output_path.display());
     println!("\n📋 Sample users:");
 
-    // Display first 5 users as sample
-    for (i, user) in users_data.users.iter().take(5).enumerate() {
+    // Display first 5 users as sample (or fewer if less than 5)
+    let sample_count = std::cmp::min(5, users_data.users.len());
+    for (i, user) in users_data.users.iter().take(sample_count).enumerate() {
         println!(
             "  {}. {} ({}) - {}",
             i + 1,
             user.username,
             user.email,
-            "*".repeat(user.password.len())
+            "*".repeat(user.password.len().min(20))
         );
+    }
+
+    if users_data.users.len() > sample_count {
+        println!("  ... and {} more", users_data.users.len() - sample_count);
     }
 
     println!("\n💡 Use these users for API testing:");
     println!("   cargo run --bin api-flow-tests");
     println!("\n🔧 Environment:");
-    println!("   API_BASE_URL={}", api_base_url);
+    println!("   API_BASE_URL={}", args.url);
 
     Ok(())
 }

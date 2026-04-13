@@ -95,6 +95,25 @@ impl MessageScenarios {
             return Ok(sent_messages);
         }
 
+        // Scale messaging based on user count
+        let total_users = user_tokens.len();
+        let max_recipients_per_user = if total_users <= 10 {
+            4
+        } else if total_users <= 30 {
+            3
+        } else if total_users <= 50 {
+            2
+        } else {
+            2
+        };
+        let max_messages_per_conversation = if total_users <= 20 {
+            4
+        } else if total_users <= 50 {
+            3
+        } else {
+            2
+        };
+
         for (sender_name, sender_token, sender_id) in &user_tokens {
             let client = ApiClient::with_token(self.base_url.clone(), sender_token.clone());
 
@@ -104,14 +123,18 @@ impl MessageScenarios {
                 .collect();
 
             if other_users.len() >= 2 {
-                let num_recipients = rng.gen_range(2..=3).min(other_users.len());
+                // Scale recipients (10-25% of other users, min 2, max based on user count)
+                let num_recipients = ((other_users.len() as f32 * 0.2) as usize)
+                    .max(2)
+                    .min(max_recipients_per_user)
+                    .min(other_users.len());
                 let recipients: Vec<&(String, String, Uuid)> = other_users
                     .choose_multiple(&mut rng, num_recipients)
                     .cloned()
                     .collect();
 
                 for (recipient_name, _, recipient_id) in recipients {
-                    let num_messages = rng.gen_range(2..=4);
+                    let num_messages = rng.gen_range(2..=max_messages_per_conversation);
 
                     for i in 0..num_messages {
                         let content = if i == 0 {
@@ -171,7 +194,11 @@ impl MessageScenarios {
 
         let mut success_count = 0;
 
-        for user in users.iter().filter(|u| u.token.is_some()).take(5) {
+        // Scale conversation tests based on user count (20% of users, min 2, max 10)
+        let test_count = users.iter().filter(|u| u.token.is_some()).count();
+        let test_count = ((test_count as f32 * 0.2) as usize).max(2).min(10);
+        
+        for user in users.iter().filter(|u| u.token.is_some()).take(test_count) {
             let client =
                 ApiClient::with_token(self.base_url.clone(), user.token.clone().unwrap());
 
@@ -228,6 +255,7 @@ impl MessageScenarios {
         let mut rng = thread_rng();
 
         // Get unique conversations from messages
+        // Scale reply tests based on message count (10-20% of unique conversations)
         let conversations: Vec<(Uuid, Uuid)> = messages
             .iter()
             .map(|m| {
@@ -239,7 +267,7 @@ impl MessageScenarios {
             })
             .collect::<std::collections::HashSet<_>>()
             .into_iter()
-            .take(10)
+            .take(((messages.len() as f32 * 0.15) as usize).max(5).min(20))
             .collect();
 
         for (sender_id, recipient_id) in conversations {

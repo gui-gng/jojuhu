@@ -98,9 +98,12 @@ impl AuthScenarios {
         // Load pre-generated users
         let users_data = crate::utils::load_test_users("data/test_users.json")?;
         
+        // Calculate max users to register: ~80% of available, max 50, min 5
+        let max_users = (users_data.users.len() as f32 * 0.8) as usize;
+        let max_users = max_users.max(5).min(50);
+        
         for (i, mut user) in users_data.users.into_iter().enumerate() {
-            // Only register first 20 users to keep tests manageable
-            if i >= 20 {
+            if i >= max_users {
                 break;
             }
             
@@ -193,9 +196,11 @@ impl AuthScenarios {
         log_info("Testing: Profile Retrieval");
         
         let mut success_count = 0;
-        let test_count = users.iter().filter(|u| u.token.is_some()).count().min(10);
+        // Scale test count based on available users (max 30% or 10, min 2)
+        let test_count = users.iter().filter(|u| u.token.is_some()).count();
+        let test_count = ((test_count as f32 * 0.3) as usize).max(2).min(10);
         
-        for user in users.iter().filter(|u| u.token.is_some()).take(10) {
+        for user in users.iter().filter(|u| u.token.is_some()).take(test_count) {
             let client = ApiClient::with_token(
                 self.base_url.clone(),
                 user.token.clone().unwrap()

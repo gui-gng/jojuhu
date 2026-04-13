@@ -1,5 +1,6 @@
 pub mod api_client;
 pub mod logging;
+pub mod scaling;
 
 use anyhow::Result;
 use std::fs;

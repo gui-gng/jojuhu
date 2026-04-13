@@ -44,9 +44,12 @@ impl UserScenarios {
         log_info("Testing: Update User Profiles");
 
         let mut success_count = 0;
+        // Scale profile updates based on user count (20% of users, min 2, max 10)
+        let test_count = users.iter().filter(|u| u.token.is_some()).count();
+        let test_count = ((test_count as f32 * 0.2) as usize).max(2).min(10);
         let test_users: Vec<&mut TestUser> = users.iter_mut()
             .filter(|u| u.token.is_some())
-            .take(5)
+            .take(test_count)
             .collect();
 
         for user in test_users {
@@ -96,7 +99,17 @@ impl UserScenarios {
             return Ok(());
         }
 
-        // Each user follows 2-3 other random users
+        // Scale follows based on user count
+        // Each user follows 10-30% of other users, min 2, max 5
+        let total_users = user_tokens.len();
+        let max_follows = if total_users <= 10 {
+            3
+        } else if total_users <= 30 {
+            4
+        } else {
+            5
+        };
+
         for (username, token, _) in &user_tokens {
             let client = ApiClient::with_token(self.base_url.clone(), token.clone());
 
@@ -106,7 +119,10 @@ impl UserScenarios {
 
             other_users.shuffle(&mut thread_rng());
 
-            let num_to_follow = std::cmp::min(3, other_users.len());
+            let num_to_follow = ((other_users.len() as f32 * 0.2) as usize)
+                .max(2)
+                .min(max_follows)
+                .min(other_users.len());
 
             for target in other_users.into_iter().take(num_to_follow) {
                 let response = client.follow_user(target.2).await?;
@@ -151,7 +167,11 @@ impl UserScenarios {
                 first_user.token.clone().unwrap()
             );
 
-            for target in users.iter().filter(|u| u.user_id.is_some()).take(5) {
+            // Scale profile retrieval tests (15% of users, min 3, max 12)
+            let test_count = users.iter().filter(|u| u.user_id.is_some()).count();
+            let test_count = ((test_count as f32 * 0.15) as usize).max(3).min(12);
+            
+            for target in users.iter().filter(|u| u.user_id.is_some()).take(test_count) {
                 let response = client.get_user_profile(target.user_id.unwrap()).await?;
 
                 match response.status() {
