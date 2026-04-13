@@ -20,7 +20,7 @@ use crate::notifications::handlers::{
     delete_notification, get_notifications, get_unread_count, mark_all_as_read, mark_as_read,
 };
 use crate::notifications::NotificationService;
-use crate::utils::auth::validator;
+use crate::utils::auth::{validator, validator_with_query};
 use crate::websocket::WebSocketServer;
 
 /// Configure all application routes
@@ -68,6 +68,7 @@ pub fn configure(
 
     // Protected routes (auth required)
     let auth = HttpAuthentication::bearer(validator);
+    let ws_auth = HttpAuthentication::bearer(validator_with_query);
     let is_production = settings.environment == "production";
     
     let protected_routes = web::scope("/api/v1")
@@ -76,12 +77,6 @@ pub fn configure(
         .route(
             "/me/resend-verification",
             web::post().to(resend_verification_handler),
-        )
-        .route(
-            "/ws",
-            web::get().to(|req, payload, srv, user| async {
-                crate::websocket::websocket_handler(req, payload, srv, user).await
-            }),
         )
         .service(
             web::scope("/notifications")
@@ -106,12 +101,24 @@ pub fn configure(
         .configure(|c| crate::modules::link_preview::configure_module(c, pool.clone()))
         .configure(search::configure_routes);
     
+    // WebSocket route with query parameter auth support
+    let ws_routes = web::scope("/api/v1")
+        .wrap(ws_auth)
+        .route(
+            "/ws",
+            web::get().to(|req, payload, srv, user| async {
+                crate::websocket::websocket_handler(req, payload, srv, user).await
+            }),
+        );
+    
     // Apply per-user rate limiting only in production
     if is_production {
         let user_rate_limit = crate::middleware::rate_limit::UserRateLimit::new(100, 60);
         cfg.service(protected_routes.wrap(user_rate_limit));
+        cfg.service(ws_routes);
     } else {
         cfg.service(protected_routes);
+        cfg.service(ws_routes);
     }
 }
 

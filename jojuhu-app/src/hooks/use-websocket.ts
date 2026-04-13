@@ -13,12 +13,8 @@ export function useWebSocket(
   const connect = useCallback(() => {
     if (!enabled || !token) return;
 
-    const wsUrl = `ws://localhost:8080/api/v1/ws`;
+    const wsUrl = `ws://localhost:8080/api/v1/ws?token=${encodeURIComponent(token)}`;
     const ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "auth", token }));
-    };
 
     ws.onmessage = (event) => {
       try {

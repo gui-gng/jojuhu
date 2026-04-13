@@ -75,3 +75,53 @@ pub async fn validator(
         )),
     }
 }
+
+/// Validator that checks for token in query parameters (for WebSocket connections)
+pub async fn validator_with_query(
+    req: ServiceRequest,
+    credentials: BearerAuth,
+) -> Result<ServiceRequest, (Error, ServiceRequest)> {
+    let settings = req
+        .app_data::<actix_web::web::Data<Settings>>()
+        .expect("Settings not found in app data");
+
+    // Try to get token from Authorization header first
+    let token = credentials.token();
+    
+    // If that fails, try to get from query parameter
+    let token = if token.is_empty() {
+        req.query_string()
+            .split('&')
+            .find_map(|pair| {
+                let mut parts = pair.splitn(2, '=');
+                let key = parts.next()?;
+                let value = parts.next()?;
+                if key == "token" {
+                    Some(value.to_string())
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_default()
+    } else {
+        token.to_string()
+    };
+
+    if token.is_empty() {
+        return Err((
+            actix_web::error::ErrorUnauthorized("No token provided"),
+            req,
+        ));
+    }
+
+    match decode_token(&token, settings) {
+        Ok(claims) => {
+            req.extensions_mut().insert(claims);
+            Ok(req)
+        }
+        Err(_) => Err((
+            actix_web::error::ErrorUnauthorized("Invalid token"),
+            req,
+        )),
+    }
+}
