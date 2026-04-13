@@ -1,33 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jojuhu-frontend
+  name: jojuhu-app
   namespace: jojuhu
   labels:
-    app: jojuhu-frontend
+    app: jojuhu-app
     app.kubernetes.io/name: jojuhu
-    app.kubernetes.io/component: frontend
+    app.kubernetes.io/component: app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: jojuhu-frontend
+      app: jojuhu-app
   template:
     metadata:
       labels:
-        app: jojuhu-frontend
+        app: jojuhu-app
     spec:
       containers:
-      - name: frontend
-        image: localhost:5000/jojuhu-frontend:latest
+      - name: app
+        image: localhost:5000/jojuhu-app:latest
         imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 3000
           protocol: TCP
-        # API_URL is set at build time via --dart-define
-        # Empty value means relative URLs (nginx proxies /api to backend)
-        # To use absolute URL, rebuild with: --dart-define=API_URL=http://backend:8080
         resources:
           requests:
             memory: "128Mi"
@@ -57,12 +54,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: jojuhu-frontend
+  name: jojuhu-app
   namespace: jojuhu
   labels:
-    app: jojuhu-frontend
+    app: jojuhu-app
     app.kubernetes.io/name: jojuhu
-    app.kubernetes.io/component: frontend
+    app.kubernetes.io/component: app
 spec:
   type: ClusterIP
   ports:
@@ -71,4 +68,4 @@ spec:
     targetPort: 3000
     protocol: TCP
   selector:
-    app: jojuhu-frontend
+    app: jojuhu-app

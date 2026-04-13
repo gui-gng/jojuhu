@@ -15,6 +15,6 @@ images:
 - name: jojuhu-backend
   newName: localhost:5000/jojuhu-backend
   newTag: latest
-- name: jojuhu-frontend
-  newName: localhost:5000/jojuhu-frontend
+- name: jojuhu-app
+  newName: localhost:5000/jojuhu-app
   newTag: latest

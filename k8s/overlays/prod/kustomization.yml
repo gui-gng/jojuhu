@@ -28,7 +28,7 @@ patches:
 
 - target:
     kind: Deployment
-    name: jojuhu-frontend
+    name: jojuhu-app
   patch: |-
     - op: replace
       path: /spec/replicas

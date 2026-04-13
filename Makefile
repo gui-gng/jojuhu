@@ -3,7 +3,7 @@
 K8S_DIR ?= k8s
 REGISTRY ?= localhost:5000
 BACKEND_IMAGE ?= $(REGISTRY)/jojuhu-backend:latest
-FRONTEND_IMAGE ?= $(REGISTRY)/jojuhu-frontend:latest
+APP_IMAGE ?= $(REGISTRY)/jojuhu-app:latest
 WEBSITE_IMAGE ?= $(REGISTRY)/jojuhu-website:latest
 CLUSTER_NAME ?= jojuhu
 REGISTRY_NAME ?= jojuhu-registry
@@ -19,7 +19,7 @@ help:
 	@echo "  ingress        - Install NGINX Ingress Controller"
 	@echo "  build          - Build all Docker images"
 	@echo "  build-backend  - Build backend image only"
-	@echo "  build-frontend - Build Flutter frontend (Mobile App)"
+	@echo "  build-app     - Build jojuhu-app (Tauri Desktop App)"
 	@echo "  build-website  - Build Astro website (Marketing Site)"
 	@echo "  push           - Push images to local registry"
 	@echo "  deploy         - Deploy to Kubernetes"
@@ -31,7 +31,7 @@ help:
 	@echo ""
 	@echo "Services:"
 	@echo "  jojuhu.local      - Website (Astro marketing site)"
-	@echo "  app.jojuhu.local  - Flutter App (Mobile application)"
+	@echo "  app.jojuhu.local  - jojuhu-app (Desktop application)"
 	@echo ""
 
 registry:
@@ -86,23 +86,23 @@ build-backend:
 	cd backend && docker build -t $(BACKEND_IMAGE) .
 	@echo "Backend image built successfully"
 
-build-frontend:
-	@echo "Building Flutter frontend (Mobile App)..."
-	cd frontend && docker build -t $(FRONTEND_IMAGE) .
-	@echo "Flutter frontend built successfully"
+build-app:
+	@echo "Building jojuhu-app (Tauri Desktop App)..."
+	cd jojuhu-app && docker build -t $(APP_IMAGE) .
+	@echo "jojuhu-app built successfully"
 
 build-website:
 	@echo "Building Astro website (Marketing Site)..."
 	cd website && docker build -t $(WEBSITE_IMAGE) .
 	@echo "Astro website built successfully"
 
-build: build-backend build-frontend build-website
+build: build-backend build-app build-website
 	@echo "All images built successfully"
 
 push:
 	@echo "Pushing images to local registry..."
 	docker push $(BACKEND_IMAGE)
-	docker push $(FRONTEND_IMAGE)
+	docker push $(APP_IMAGE)
 	docker push $(WEBSITE_IMAGE)
 	@echo "Images pushed successfully"
 
@@ -122,7 +122,7 @@ deploy:
 	
 	@echo "Deploying services..."
 	kubectl apply -f $(K8S_DIR)/services/backend.yml
-	kubectl apply -f $(K8S_DIR)/services/frontend.yml
+	kubectl apply -f $(K8S_DIR)/services/app.yml
 	kubectl apply -f $(K8S_DIR)/services/website.yml
 	kubectl apply -f $(K8S_DIR)/services/ingress.yml
 	
@@ -133,7 +133,7 @@ deploy:
 	
 	@echo "Waiting for deployments..."
 	kubectl rollout status deployment/jojuhu-backend -n jojuhu --timeout=120s
-	kubectl rollout status deployment/jojuhu-frontend -n jojuhu --timeout=60s
+	kubectl rollout status deployment/jojuhu-app -n jojuhu --timeout=60s
 	
 	@echo "Deployment completed"
 	@echo "Don't forget to add '127.0.0.1 jojuhu.local' to your /etc/hosts file"

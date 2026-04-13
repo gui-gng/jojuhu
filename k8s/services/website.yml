@@ -6,7 +6,7 @@ metadata:
   labels:
     app: jojuhu-website
     app.kubernetes.io/name: jojuhu
-    app.kubernetes.io/component: frontend
+    app.kubernetes.io/component: website
 spec:
   replicas: 1
   selector:
@@ -18,7 +18,7 @@ spec:
         app: jojuhu-website
     spec:
       containers:
-      - name: frontend
+      - name: website
         image: localhost:5000/jojuhu-website:latest
         imagePullPolicy: Always
         ports:
@@ -59,7 +59,7 @@ metadata:
   labels:
     app: jojuhu-website
     app.kubernetes.io/name: jojuhu
-    app.kubernetes.io/component: frontend
+    app.kubernetes.io/component: website
 spec:
   type: ClusterIP
   ports:

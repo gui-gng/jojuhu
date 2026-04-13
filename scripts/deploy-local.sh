@@ -123,8 +123,8 @@ build_images() {
     log_info "Building backend image..."
     docker build -t localhost:${REGISTRY_PORT}/jojuhu-backend:latest ./backend
     
-    log_info "Building frontend image..."
-    docker build -t localhost:${REGISTRY_PORT}/jojuhu-frontend:latest ./website
+    log_info "Building app image..."
+    docker build -t localhost:${REGISTRY_PORT}/jojuhu-app:latest ./jojuhu-app
     
     log_success "Images built"
 }
@@ -133,7 +133,7 @@ push_images() {
     log_info "Pushing images to local registry..."
     
     docker push localhost:${REGISTRY_PORT}/jojuhu-backend:latest
-    docker push localhost:${REGISTRY_PORT}/jojuhu-frontend:latest
+    docker push localhost:${REGISTRY_PORT}/jojuhu-app:latest
     
     log_success "Images pushed to registry"
 }
@@ -167,8 +167,8 @@ deploy() {
     log_info "Deploying Backend..."
     kubectl apply -f "$k8s_dir/services/backend.yml"
     
-    log_info "Deploying Frontend..."
-    kubectl apply -f "$k8s_dir/services/frontend.yml"
+    log_info "Deploying App..."
+    kubectl apply -f "$k8s_dir/services/app.yml"
     
     log_info "Deploying Ingress..."
     kubectl apply -f "$k8s_dir/services/ingress.yml"
@@ -180,7 +180,7 @@ deploy() {
     
     log_info "Waiting for deployments to be ready..."
     kubectl rollout status deployment/jojuhu-backend -n jojuhu --timeout=120s
-    kubectl rollout status deployment/jojuhu-frontend -n jojuhu --timeout=60s
+    kubectl rollout status deployment/jojuhu-app -n jojuhu --timeout=60s
     
     log_success "Deployment completed"
 }

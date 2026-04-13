@@ -49,12 +49,12 @@ spec:
             name: jaeger
             port:
               number: 16686
-      # Flutter App (/app path)
+      # jojuhu-app (/app path)
       - path: /app
         pathType: Prefix
         backend:
           service:
-            name: jojuhu-frontend
+            name: jojuhu-app
             port:
               number: 3000
       # Website (Astro) - default root
@@ -66,7 +66,7 @@ spec:
             port:
               number: 3000
 ---
-# Separate ingress for Flutter app at root (app.jojuhu.local)
+# Separate ingress for jojuhu-app at root (app.jojuhu.local)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -88,7 +88,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: jojuhu-frontend
+            name: jojuhu-app
             port:
               number: 3000
       - path: /api
