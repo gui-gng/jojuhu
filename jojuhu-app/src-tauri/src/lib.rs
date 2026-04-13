@@ -1,16 +1,18 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_stronghold::Builder::new(|pass| todo!()).build())
+        .plugin(
+            tauri_plugin_stronghold::Builder::new(|pass| {
+                let mut key = vec![0u8; 32];
+                let bytes = pass.as_bytes();
+                let len = bytes.len().min(32);
+                key[..len].copy_from_slice(&bytes[..len]);
+                key
+            })
+            .build(),
+        )
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
