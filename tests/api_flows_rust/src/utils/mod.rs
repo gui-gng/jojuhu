@@ -2,11 +2,10 @@ pub mod api_client;
 pub mod logging;
 
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
-use crate::models::{TestUsersData, TestResults};
+use crate::models::{TestResults, TestUsersData};
 
 pub fn load_test_users<P: AsRef<Path>>(path: P) -> Result<TestUsersData> {
     let content = fs::read_to_string(path)?;

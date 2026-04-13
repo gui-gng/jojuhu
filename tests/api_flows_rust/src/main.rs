@@ -15,7 +15,7 @@ use scenarios::groups::GroupScenarios;
 use scenarios::messages::MessageScenarios;
 use scenarios::posts::PostScenarios;
 use scenarios::users::UserScenarios;
-use utils::logging::{log_section, log_test_result};
+use utils::logging::log_section;
 use utils::{ensure_data_dir, load_test_users, save_test_results};
 
 #[derive(Parser, Debug)]
@@ -23,11 +23,11 @@ use utils::{ensure_data_dir, load_test_users, save_test_results};
 #[command(about = "Comprehensive API testing for Jojuhu backend")]
 struct Args {
     /// API base URL
-    #[arg(short, long, default_value = "http://localhost:8080")]
+    #[arg(short = 'a', long, default_value = "http://localhost:8080")]
     url: String,
 
     /// Skip user generation (assume test_users.json exists)
-    #[arg(short, long)]
+    #[arg(long)]
     skip_generate: bool,
 
     /// Run specific scenario (auth, users, posts, forums, messages, groups, all)
@@ -35,7 +35,7 @@ struct Args {
     scenario: String,
 
     /// Number of users to register
-    #[arg(short, long, default_value_t = 20)]
+    #[arg(short = 'n', long, default_value_t = 20)]
     users: usize,
 }
 
@@ -103,7 +103,7 @@ fn print_banner() {
 }
 
 async fn generate_test_users(api_url: &str) -> Result<()> {
-    use fake::faker::internet::en::{FreeEmail, Password, Username};
+    use fake::faker::internet::en::{FreeEmail, Password};
     use fake::faker::name::en::FirstName;
     use fake::Fake;
     use rand::Rng;
@@ -163,7 +163,7 @@ async fn run_auth_scenario(base_url: &str, results: &mut TestResults) -> Result<
 async fn run_users_scenario(base_url: &str, results: &mut TestResults) -> Result<()> {
     log_section("USER MANAGEMENT SCENARIOS");
 
-    let mut users_data = load_test_users("data/test_users.json")?;
+    let users_data = load_test_users("data/test_users.json")?;
 
     // Filter only users with tokens (authenticated)
     let authenticated_users: Vec<models::TestUser> = users_data

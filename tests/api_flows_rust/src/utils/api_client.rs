@@ -2,11 +2,8 @@ use anyhow::Result;
 use reqwest::{Client, Method, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use std::collections::HashMap;
 use std::time::Duration;
 use uuid::Uuid;
-
-use crate::models::TestUser;
 
 pub struct ApiClient {
     client: Client,

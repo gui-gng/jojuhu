@@ -243,7 +243,7 @@ impl MessageScenarios {
             .collect();
 
         for (sender_id, recipient_id) in conversations {
-            if let Some((sender_name, sender_token)) = users
+            if let Some((_sender_name, sender_token)) = users
                 .iter()
                 .find(|u| u.user_id == Some(sender_id))
                 .map(|u| (u.username.clone(), u.token.clone().unwrap()))

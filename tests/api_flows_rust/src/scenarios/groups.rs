@@ -73,7 +73,6 @@ impl GroupScenarios {
         ];
 
         let mut created_groups = Vec::new();
-        let mut rng = thread_rng();
 
         for (i, user) in users.iter().filter(|u| u.token.is_some()).enumerate() {
             if i >= 8 {
