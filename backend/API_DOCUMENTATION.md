@@ -1,6 +1,6 @@
 # Social Network API Documentation
 
-> **For Frontend Developers** - Complete API reference for building the frontend application.
+> **For App Developers** - Complete API reference for building the jojuhu-app application.
 
 ## Base URL
 

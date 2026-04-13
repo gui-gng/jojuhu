@@ -214,7 +214,7 @@ This project follows semantic commits with project-specific prefixes:
 
 ### Project Prefixes
 - `backend/` - Rust API and server-side code
-- `frontend/` - Client-side UI code
+- `jojuhu-app/` - Client-side UI code
 - `infrastructure/` - Docker, CI/CD, deployment configs
 
 ### Commit Types

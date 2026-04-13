@@ -18,7 +18,7 @@ k8s/
 │   └── secret.yml
 ├── services/          # Deployments and Services
 │   ├── backend.yml
-│   ├── frontend.yml
+│   ├── app.yml
 │   ├── postgres.yml
 │   ├── redis.yml
 │   ├── minio.yml
@@ -139,7 +139,7 @@ kubectl apply -k k8s/overlays/prod
 
 ```bash
 kubectl scale deployment jojuhu-backend -n jojuhu --replicas=3
-kubectl scale deployment jojuhu-frontend -n jojuhu --replicas=3
+kubectl scale deployment jojuhu-app -n jojuhu --replicas=3
 ```
 
 ## Verificar Saúde

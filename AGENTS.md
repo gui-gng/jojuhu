@@ -7,49 +7,34 @@ Monorepo for Jojuhu social network platform.
 | Directory | Tech | Run Commands |
 |-----------|------|--------------|
 | `backend/` | Rust (Actix-web) | `cargo build`, `cargo run`, `cargo test` |
-| `frontend/` | Flutter | `flutter pub get`, `flutter run` |
+| `jojuhu-app/` | Tauri + React | `pnpm dev`, `pnpm tauri dev` |
 | `website/` | Astro (pnpm) | `pnpm dev`, `pnpm build` |
 | `infrastructure/` | Docker Compose | `docker-compose up -d` |
 | `seeder/` | Rust | `cargo run` |
 | `k8s/ | Kubernetes manifests | `make deploy` |
 | `tests/api_flows/` | Python tests | `./run_all_tests.py` |
 
-## Frontend (Flutter)
+## Frontend (Tauri + React)
 
-**Design System:**
-- Theme: `lib/theme/jojuhu_theme.dart` - Colors (Sol/Lua/Encontro palette), Material 3
-- Typography: `lib/theme/typography.dart` - Playfair Display + Inter fonts
-- Tokens: `lib/theme/tokens.dart` - Spacing, radius, durations, elevations
-- Animations: `lib/utils/animations.dart` - Reusable animation presets
+**Stack:**
+- Tauri v2 - Desktop app framework with Rust backend
+- React 19 - UI library
+- Vite - Build tool and dev server
+- TypeScript - Type safety
 
-**Widgets (`lib/widgets/`):**
-- `jojuhu_avatar.dart` - Avatar with caching, sizes, badge support
-- `jojuhu_button.dart` - Button variants (primary/secondary/outline/text/danger)
-- `jojuhu_card.dart` - Card container with elevation options
-- `jojuhu_text_field.dart` - Input with focus animations, validation states
-- `jojuhu_image_viewer.dart` - Full-screen zoomable images
-- `jojuhu_shimmer.dart` - Loading skeleton components
-- `jojuhu_post_card.dart` - Social post card component
-- `jojuhu_widgets.dart` - Barrel export for all widgets
+**Key Commands:**
+```bash
+cd jojuhu-app
+pnpm dev        # Vite dev server
+pnpm tauri dev  # Tauri desktop app in dev mode
+pnpm build      # Build web assets
+pnpm tauri build # Build desktop binaries
+```
 
-**Key Packages:**
-- `cached_network_image` - Image caching (replace all `Image.network()`)
-- `flutter_screenutil` - Responsive sizing (`.w`, `.h`, `.sp`)
-- `google_fonts` - Playfair Display + Inter typography
-- `flutter_animate` - Declarative animations
-- `photo_view` - Image zoom/pan
-
-**Usage Pattern:**
-```dart
-// Responsive sizing
-Container(width: 100.w, height: 50.h)
-
-// Use design tokens
-padding: EdgeInsets.all(JojuhuSpacing.lg)
-borderRadius: JojuhuRadius.smRadius
-
-// Import all widgets
-import 'package:jojuhu/widgets/jojuhu_widgets.dart';```
+**Structure:**
+- `src/` - React application source
+- `src-tauri/` - Tauri Rust backend
+- `public/` - Static assets
 
 ## Backend Commands
 
@@ -155,7 +140,7 @@ Key patterns:
 
 ```
 feat(backend/scope): description
-fix(frontend/scope): description
+fix(jojuhu-app/scope): description
 chore(infrastructure): description
 ```
 
