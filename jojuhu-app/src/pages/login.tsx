@@ -20,6 +20,7 @@ export function LoginPage() {
       await authLogin(res.token, res.user);
       toast.success("Welcome back!");
     } catch (err: any) {
+      console.error("Login error:", err);
       toast.error(err.message || "Login failed");
     }
   };

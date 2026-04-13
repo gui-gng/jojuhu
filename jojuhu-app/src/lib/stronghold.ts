@@ -8,7 +8,14 @@ async function getClient(): Promise<Client> {
   if (client) return client;
   const vaultPath = `${await appLocalDataDir()}/stronghold.hold`;
   stronghold = await Stronghold.load(vaultPath, "jojuhu-secure-passphrase");
-  client = await stronghold.loadClient("jojuhu_client");
+  
+  // Try to load existing client, or create if it doesn't exist
+  try {
+    client = await stronghold.loadClient("jojuhu_client");
+  } catch {
+    client = await stronghold.createClient("jojuhu_client");
+  }
+  
   return client;
 }
 
