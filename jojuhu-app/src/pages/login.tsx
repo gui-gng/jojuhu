@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,6 @@ import { useAuthStore } from "@/store/auth";
 import { toast } from "sonner";
 
 export function LoginPage() {
-  const navigate = useNavigate();
   const loginMutation = useLogin();
   const authLogin = useAuthStore((s) => s.login);
 
@@ -20,7 +19,6 @@ export function LoginPage() {
       const res = await loginMutation.mutateAsync(form);
       await authLogin(res.token, res.user);
       toast.success("Welcome back!");
-      navigate("/");
     } catch (err: any) {
       toast.error(err.message || "Login failed");
     }

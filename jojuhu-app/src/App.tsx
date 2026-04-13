@@ -19,7 +19,8 @@ import { StoriesPage } from "@/pages/stories";
 import { SettingsPage } from "@/pages/settings";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { token, isInitialized } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
   const location = useLocation();
 
   if (!isInitialized) {
@@ -38,7 +39,8 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 }
 
 function RedirectIfAuth({ children }: { children: React.ReactNode }) {
-  const { token, isInitialized } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
   if (!isInitialized) {
     return (
       <div className="flex h-full w-full items-center justify-center">
