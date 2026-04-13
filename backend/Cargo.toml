@@ -13,7 +13,6 @@ actix-ws = "0.3"
 futures = "0.3"
 actix-rt = "2"
 actix-cors = "0.7"
-actix-governor = "0.5"
 
 # Real-time & Caching
 redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }

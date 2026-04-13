@@ -27,7 +27,7 @@ use crate::websocket::WebSocketServer;
 pub fn configure(
     cfg: &mut web::ServiceConfig,
     pool: PgPool,
-    _settings: Settings,
+    settings: Settings,
     redis_cache: Option<RedisCache>,
     ws_server: WebSocketServer,
 ) {
@@ -68,45 +68,51 @@ pub fn configure(
 
     // Protected routes (auth required)
     let auth = HttpAuthentication::bearer(validator);
-    let user_rate_limit = crate::middleware::rate_limit::UserRateLimit::new(100, 60); // 100 requests per minute per user
-    cfg.service(
-        web::scope("/api/v1")
-            .wrap(user_rate_limit)
-            .wrap(auth)
-            .route("/me", web::get().to(get_current_user_handler))
-            .route(
-                "/me/resend-verification",
-                web::post().to(resend_verification_handler),
-            )
-            .route(
-                "/ws",
-                web::get().to(|req, payload, srv, user| async {
-                    crate::websocket::websocket_handler(req, payload, srv, user).await
-                }),
-            )
-            .service(
-                web::scope("/notifications")
-                    .route("", web::get().to(get_notifications))
-                    .route("/count", web::get().to(get_unread_count))
-                    .route("/{id}/read", web::post().to(mark_as_read))
-                    .route("/read-all", web::post().to(mark_all_as_read))
-                    .route("/{id}", web::delete().to(delete_notification)),
-            )
-            .configure(|c| crate::modules::users::configure(c, pool.clone()))
-            .configure(|c| crate::modules::upload::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::timeline::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::stories::configure_module(c, pool.clone()))
-.configure(|c| crate::modules::hashtag::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::polls::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::posts::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::privacy::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::groups::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::moderation::configure_module(c, pool.clone()))
-            .configure(|c| crate::modules::link_preview::configure_module(c, pool.clone()))
-            .configure(search::configure_routes),
-    );
+    let is_production = settings.environment == "production";
+    
+    let protected_routes = web::scope("/api/v1")
+        .wrap(auth)
+        .route("/me", web::get().to(get_current_user_handler))
+        .route(
+            "/me/resend-verification",
+            web::post().to(resend_verification_handler),
+        )
+        .route(
+            "/ws",
+            web::get().to(|req, payload, srv, user| async {
+                crate::websocket::websocket_handler(req, payload, srv, user).await
+            }),
+        )
+        .service(
+            web::scope("/notifications")
+                .route("", web::get().to(get_notifications))
+                .route("/count", web::get().to(get_unread_count))
+                .route("/{id}/read", web::post().to(mark_as_read))
+                .route("/read-all", web::post().to(mark_all_as_read))
+                .route("/{id}", web::delete().to(delete_notification)),
+        )
+        .configure(|c| crate::modules::users::configure(c, pool.clone()))
+        .configure(|c| crate::modules::upload::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::messages::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::timeline::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::forums::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::stories::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::hashtag::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::polls::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::posts::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::privacy::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::groups::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::moderation::configure_module(c, pool.clone()))
+        .configure(|c| crate::modules::link_preview::configure_module(c, pool.clone()))
+        .configure(search::configure_routes);
+    
+    // Apply per-user rate limiting only in production
+    if is_production {
+        let user_rate_limit = crate::middleware::rate_limit::UserRateLimit::new(100, 60);
+        cfg.service(protected_routes.wrap(user_rate_limit));
+    } else {
+        cfg.service(protected_routes);
+    }
 }
 
 /// Health check endpoint

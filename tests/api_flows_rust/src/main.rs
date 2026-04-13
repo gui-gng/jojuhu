@@ -18,6 +18,7 @@ use scenarios::users::UserScenarios;
 use utils::logging::log_section;
 use utils::{ensure_data_dir, load_test_users, save_test_results};
 
+const QNT_USERS: usize = 500;
 #[derive(Parser, Debug)]
 #[command(name = "Jojuhu API Flow Tests")]
 #[command(about = "Comprehensive API testing for Jojuhu backend")]
@@ -108,12 +109,12 @@ async fn generate_test_users(api_url: &str) -> Result<()> {
     use fake::Fake;
     use rand::Rng;
 
-    println!("{}", "📝 Generating 50 test users...".yellow());
+    println!("{}", "📝 Generating {QNT_USERS} test users...".yellow());
 
     let mut users = Vec::new();
     let mut used_usernames: Vec<String> = Vec::new();
 
-    for i in 0..50 {
+    for i in 0..QNT_USERS {
         let first_name: String = FirstName().fake();
         let base_username = first_name.to_lowercase().replace(" ", "_");
 

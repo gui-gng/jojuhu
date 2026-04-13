@@ -1,7 +1,5 @@
 use actix_cors::Cors;
-use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::dev::Service;
-use actix_web::{http::header, middleware as actix_middleware, web, App, HttpServer};
+use actix_web::{dev::Service, http::header, middleware as actix_middleware, web, App, HttpServer};
 use sqlx::postgres::PgPoolOptions;
 use std::time::Duration;
 
@@ -29,9 +27,6 @@ use jobs::start_background_jobs;
 use middleware::logging::RequestLogger;
 use routes::configure;
 use websocket::WebSocketServer;
-
-
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -78,17 +73,12 @@ async fn main() -> std::io::Result<()> {
     let pool_data = web::Data::new(pool.clone());
     let server_address = settings.server_address();
 
-    // Configure rate limiting
-    let governor_conf = GovernorConfigBuilder::default()
-        .per_second(1) // 1 request per second per IP
-        .burst_size(10) // Allow bursts of up to 10 requests
-        .finish()
-        .expect("Failed to create rate limiter config");
-
-
-
     info!("Starting server at http://{}", server_address);
-    info!("Rate limiting: 1 req/sec with burst of 10");
+    if settings.environment == "production" {
+        info!("Rate limiting: 100 req/min per user (per-user rate limit enabled)");
+    } else {
+        info!("Rate limiting disabled (non-production environment)");
+    }
     info!("API Documentation: http://{}/docs", server_address);
     info!("Routes:");
     info!("  Public: GET  /docs (Swagger UI)");
@@ -142,7 +132,7 @@ async fn main() -> std::io::Result<()> {
     start_background_jobs(pool.clone());
 
     HttpServer::new(move || {
-        let mut cors = Cors::default()
+        let cors = Cors::default()
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
             .allowed_headers(vec![
                 header::AUTHORIZATION,
@@ -150,17 +140,14 @@ async fn main() -> std::io::Result<()> {
                 header::CONTENT_TYPE,
             ])
             .allow_any_origin() // Allows all origins
-            .send_wildcard() 
+            .send_wildcard()
             // .supports_credentials()
             .max_age(3600);
-
 
         App::new()
             .app_data(pool_data.clone())
             .app_data(settings_data.clone())
             .app_data(ws_server_data.clone())
-            // Rate limiting middleware
-            .wrap(Governor::new(&governor_conf))
             // Request logger
             .wrap(RequestLogger)
             // Security headers middleware
@@ -168,49 +155,49 @@ async fn main() -> std::io::Result<()> {
                 let fut = srv.call(req);
                 async {
                     let mut res = fut.await?;
-                    
+
                     // Prevent MIME type sniffing
                     res.headers_mut().insert(
                         header::HeaderName::from_static("x-content-type-options"),
                         header::HeaderValue::from_static("nosniff"),
                     );
-                    
+
                     // Prevent clickjacking
                     res.headers_mut().insert(
                         header::HeaderName::from_static("x-frame-options"),
                         header::HeaderValue::from_static("DENY"),
                     );
-                    
+
                     // Enable XSS filter in browsers
                     res.headers_mut().insert(
                         header::HeaderName::from_static("x-xss-protection"),
                         header::HeaderValue::from_static("1; mode=block"),
                     );
-                    
+
                     // HSTS - force HTTPS
                     res.headers_mut().insert(
                         header::HeaderName::from_static("strict-transport-security"),
                         header::HeaderValue::from_static("max-age=31536000; includeSubDomains"),
                     );
-                    
+
                     // CSP - restrict resource loading
                     res.headers_mut().insert(
                         header::HeaderName::from_static("content-security-policy"),
                         header::HeaderValue::from_static("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"),
                     );
-                    
+
                     // Referrer Policy
                     res.headers_mut().insert(
                         header::HeaderName::from_static("referrer-policy"),
                         header::HeaderValue::from_static("strict-origin-when-cross-origin"),
                     );
-                    
+
                     // Permissions Policy
                     res.headers_mut().insert(
                         header::HeaderName::from_static("permissions-policy"),
                         header::HeaderValue::from_static("accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"),
                     );
-                    
+
                     Ok(res)
                 }
             })
@@ -249,9 +236,9 @@ mod tests {
             },
             email: None,
             environment: "test".to_string(),
-           
+
         };
-        
+
         assert_eq!(settings.server.port, 8080);
         assert_eq!(settings.jwt.expiration_hours, 24);
     }

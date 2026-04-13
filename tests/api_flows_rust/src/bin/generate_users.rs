@@ -8,6 +8,8 @@ use std::path::Path;
 
 use jojuhu_api_flow_tests::models::{TestUser, TestUsersData};
 
+const QNT_USERS: usize = 500;
+
 fn generate_unique_username(base: String, index: usize) -> String {
     format!(
         "{}_{}_{:03}",
@@ -63,8 +65,8 @@ fn main() -> Result<()> {
         println!("📁 Created data directory");
     }
 
-    println!("📝 Generating 50 test users...");
-    let users = generate_test_users(50);
+    println!("📝 Generating {} test users...", QNT_USERS);
+    let users = generate_test_users(QNT_USERS);
 
     let users_data = TestUsersData::new(api_base_url.clone(), users);
 
@@ -72,7 +74,7 @@ fn main() -> Result<()> {
     let json = serde_json::to_string_pretty(&users_data)?;
     fs::write(&output_path, json)?;
 
-    println!("✅ Successfully generated 50 test users");
+    println!("✅ Successfully generated {} test users", QNT_USERS);
     println!("📄 Saved to: {}", output_path.display());
     println!("\n📋 Sample users:");
 
