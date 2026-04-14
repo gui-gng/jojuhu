@@ -292,15 +292,29 @@ impl TimelineRepository {
         .fetch_one(&self.pool)
         .await?;
 
+        // Increment likes_count on the post
+        sqlx::query("UPDATE posts SET likes_count = likes_count + 1 WHERE id = $1")
+            .bind(post_id)
+            .execute(&self.pool)
+            .await?;
+
         Ok(like)
     }
 
     pub async fn delete_like(&self, post_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
-        sqlx::query("DELETE FROM likes WHERE post_id = $1 AND user_id = $2")
+        let result = sqlx::query("DELETE FROM likes WHERE post_id = $1 AND user_id = $2")
             .bind(post_id)
             .bind(user_id)
             .execute(&self.pool)
             .await?;
+
+        // Only decrement if a like was actually deleted
+        if result.rows_affected() > 0 {
+            sqlx::query("UPDATE posts SET likes_count = likes_count - 1 WHERE id = $1")
+                .bind(post_id)
+                .execute(&self.pool)
+                .await?;
+        }
 
         Ok(())
     }
