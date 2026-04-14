@@ -47,8 +47,8 @@ export function NotificationsPage() {
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </>
-        ) : data?.notifications?.length ? (
-          data.notifications.map((n) => {
+        ) : data?.length ? (
+          data.map((n) => {
             const Icon = iconMap[n.type] || iconMap.default;
             return (
               <div

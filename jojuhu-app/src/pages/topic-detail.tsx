@@ -90,8 +90,8 @@ export function TopicDetailPage() {
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </>
-        ) : replies?.replies?.length ? (
-          replies.replies.map((reply) => (
+        ) : replies?.length ? (
+          replies.map((reply) => (
             <div key={reply.id} className="rounded-xl border bg-card p-4">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">

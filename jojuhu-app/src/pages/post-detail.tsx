@@ -78,8 +78,8 @@ export function PostDetailPage() {
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </>
-        ) : commentsData?.comments?.length ? (
-          commentsData.comments.map((comment) => (
+        ) : commentsData?.length ? (
+          commentsData.map((comment) => (
             <div key={comment.id} className="rounded-xl border bg-card p-4">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">

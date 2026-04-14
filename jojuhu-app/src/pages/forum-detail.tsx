@@ -59,8 +59,8 @@ export function ForumDetailPage() {
             </div>
             <p className="mt-1 text-muted-foreground">{forum.description}</p>
             <div className="mt-3 flex gap-4 text-sm text-muted-foreground">
-              <span>{formatNumber(forum.member_count)} members</span>
-              <span>{formatNumber(forum.topic_count)} topics</span>
+              <span>{formatNumber(forum.members_count)} members</span>
+              <span>{formatNumber(forum.topics_count)} topics</span>
             </div>
           </div>
           <ForumActions forum={forum} />
@@ -108,8 +108,8 @@ export function ForumDetailPage() {
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </>
-        ) : topics?.topics?.length ? (
-          topics.topics.map((topic) => (
+        ) : topics?.length ? (
+          topics.map((topic) => (
             <Card key={topic.id}>
               <CardHeader className="pb-2">
                 <Link to={`/forums/${forum.id}/topics/${topic.id}`} className="text-lg font-semibold hover:underline">

@@ -121,8 +121,8 @@ export function ProfilePage() {
           <TabsTrigger value="likes">Likes</TabsTrigger>
         </TabsList>
         <TabsContent value="posts" className="space-y-4">
-          {posts?.posts?.length ? (
-            posts.posts.map((post) => <PostCard key={post.id} post={post} />)
+          {posts?.length ? (
+            posts.map((post) => <PostCard key={post.id} post={post} />)
           ) : (
             <p className="text-center text-muted-foreground">No posts yet.</p>
           )}

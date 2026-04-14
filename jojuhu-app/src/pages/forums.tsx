@@ -67,8 +67,8 @@ export function ForumsPage() {
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-32 w-full" />
           </>
-        ) : data?.forums?.length ? (
-          data.forums.map((forum) => <ForumCard key={forum.id} forum={forum} />)
+        ) : data?.length ? (
+          data.map((forum) => <ForumCard key={forum.id} forum={forum} />)
         ) : (
           <p className="text-muted-foreground">No forums yet.</p>
         )}
@@ -77,7 +77,7 @@ export function ForumsPage() {
   );
 }
 
-function ForumCard({ forum }: { forum: { id: string; name: string; description: string; is_public: boolean; member_count: number; topic_count: number; is_member?: boolean } }) {
+function ForumCard({ forum }: { forum: { id: string; name: string; description: string; is_public: boolean; members_count: number; topics_count: number; is_member?: boolean } }) {
   const join = useJoinForum();
   const leave = useLeaveForum();
 
@@ -111,9 +111,9 @@ function ForumCard({ forum }: { forum: { id: string; name: string; description: 
       <CardContent className="flex items-center justify-between">
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
-            <Users className="h-4 w-4" /> {formatNumber(forum.member_count)}
+            <Users className="h-4 w-4" /> {formatNumber(forum.members_count)}
           </span>
-          <span>{forum.topic_count} topics</span>
+          <span>{forum.topics_count} topics</span>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>

@@ -34,7 +34,7 @@ export function SearchPage() {
             <TrendingUp className="h-4 w-4" /> Trending Hashtags
           </h2>
           <div className="flex flex-wrap gap-2">
-            {trending?.hashtags?.map((h) => (
+            {trending?.map((h) => (
               <button
                 key={h.name}
                 onClick={() => setQ(`#${h.name}`)}

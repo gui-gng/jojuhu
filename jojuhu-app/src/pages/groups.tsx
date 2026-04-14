@@ -67,8 +67,8 @@ export function GroupsPage() {
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-32 w-full" />
           </>
-        ) : data?.groups?.length ? (
-          data.groups.map((group) => <GroupCard key={group.id} group={group} />)
+        ) : data?.length ? (
+          data.map((group) => <GroupCard key={group.id} group={group} />)
         ) : (
           <p className="text-muted-foreground">No groups yet.</p>
         )}

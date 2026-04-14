@@ -24,9 +24,9 @@ export function StoriesPage() {
             <Skeleton className="h-16 w-16 rounded-full" />
             <Skeleton className="h-16 w-16 rounded-full" />
           </div>
-        ) : following?.stories?.length ? (
+        ) : following?.length ? (
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {groupByUser(following.stories).map(({ user, stories }) => (
+            {groupByUser(following).map(({ user, stories }) => (
               <button
                 key={user.id}
                 onClick={() => setViewing({ story: stories[0], user })}
@@ -54,9 +54,9 @@ export function StoriesPage() {
           <div className="flex gap-3">
             <Skeleton className="h-16 w-16 rounded-full" />
           </div>
-        ) : mine?.stories?.length ? (
+        ) : mine?.length ? (
           <div className="flex gap-4 overflow-x-auto pb-2">
-            {mine.stories.map((story) => (
+            {mine.map((story) => (
               <div key={story.id} className="flex flex-col items-center gap-1">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={story.media_url} />

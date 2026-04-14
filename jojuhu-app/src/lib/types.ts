@@ -70,8 +70,8 @@ export interface Forum {
   name: string;
   description: string;
   is_public: boolean;
-  member_count: number;
-  topic_count: number;
+  members_count: number;
+  topics_count: number;
   created_by: string;
   created_at: string;
   is_member?: boolean;

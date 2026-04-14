@@ -68,8 +68,8 @@ export function FeedPage() {
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-32 w-full" />
           </>
-        ) : data?.posts?.length ? (
-          data.posts.map((post) => <PostCard key={post.id} post={post} onDelete={() => refetch()} />)
+        ) : data?.length ? (
+          data.map((post) => <PostCard key={post.id} post={post} onDelete={() => refetch()} />)
         ) : (
           <p className="text-center text-muted-foreground">No posts to show.</p>
         )}

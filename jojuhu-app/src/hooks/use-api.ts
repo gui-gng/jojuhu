@@ -72,14 +72,14 @@ export const useFeed = (type: "feed" | "following" | "for-you" | "trending", pag
   useQuery({
     queryKey: ["timeline", type, page],
     queryFn: () =>
-      api.get<{ posts: Post[]; total: number }>(`/api/v1/timeline/${type}?page=${page}&per_page=20`),
+      api.get<Post[]>(`/api/v1/timeline/${type}?page=${page}&per_page=20`),
     staleTime: 1000 * 30,
   });
 
 export const useUserPosts = (userId: string, page = 1) =>
   useQuery({
     queryKey: ["posts", "user", userId, page],
-    queryFn: () => api.get<{ posts: Post[] }>(`/api/v1/timeline/users/${userId}/posts?page=${page}&per_page=20`),
+    queryFn: () => api.get<Post[]>(`/api/v1/timeline/users/${userId}/posts?page=${page}&per_page=20`),
     enabled: !!userId,
   });
 
@@ -134,7 +134,7 @@ export const useUnlikePost = () => {
 export const useComments = (postId: string) =>
   useQuery({
     queryKey: ["comments", postId],
-    queryFn: () => api.get<{ comments: Comment[] }>(`/api/v1/timeline/posts/${postId}/comments`),
+    queryFn: () => api.get<Comment[]>(`/api/v1/timeline/posts/${postId}/comments`),
     enabled: !!postId,
   });
 
@@ -171,7 +171,7 @@ export const useRemoveRepost = () => {
 export const useForums = (page = 1) =>
   useQuery({
     queryKey: ["forums", page],
-    queryFn: () => api.get<{ forums: Forum[] }>(`/api/v1/forums?page=${page}&per_page=20`),
+    queryFn: () => api.get<Forum[]>(`/api/v1/forums?page=${page}&per_page=20`),
   });
 
 export const useForum = (id: string) =>
@@ -184,7 +184,7 @@ export const useForum = (id: string) =>
 export const useForumTopics = (forumId: string, page = 1) =>
   useQuery({
     queryKey: ["forums", forumId, "topics", page],
-    queryFn: () => api.get<{ topics: Topic[] }>(`/api/v1/forums/${forumId}/topics?page=${page}&per_page=20`),
+    queryFn: () => api.get<Topic[]>(`/api/v1/forums/${forumId}/topics?page=${page}&per_page=20`),
     enabled: !!forumId,
   });
 
@@ -199,7 +199,7 @@ export const useTopicReplies = (forumId: string, topicId: string, page = 1) =>
   useQuery({
     queryKey: ["forums", forumId, "topics", topicId, "replies", page],
     queryFn: () =>
-      api.get<{ replies: Reply[] }>(`/api/v1/forums/${forumId}/topics/${topicId}/replies?page=${page}&per_page=20`),
+      api.get<Reply[]>(`/api/v1/forums/${forumId}/topics/${topicId}/replies?page=${page}&per_page=20`),
     enabled: !!forumId && !!topicId,
   });
 
@@ -260,14 +260,14 @@ export const useCreateReply = () => {
 export const useConversations = () =>
   useQuery({
     queryKey: ["conversations"],
-    queryFn: () => api.get<{ conversations: Conversation[] }>("/api/v1/messages/conversations"),
+    queryFn: () => api.get<Conversation[]>("/api/v1/messages/conversations"),
   });
 
 export const useMessages = (userId: string, page = 1) =>
   useQuery({
     queryKey: ["messages", userId, page],
     queryFn: () =>
-      api.get<{ messages: Message[] }>(`/api/v1/messages/conversations/${userId}?page=${page}&per_page=50`),
+      api.get<Message[]>(`/api/v1/messages/conversations/${userId}?page=${page}&per_page=50`),
     enabled: !!userId,
   });
 
@@ -296,7 +296,7 @@ export const useNotifications = (unreadOnly = false) =>
   useQuery({
     queryKey: ["notifications", unreadOnly],
     queryFn: () =>
-      api.get<{ notifications: Notification[] }>(`/api/v1/notifications${unreadOnly ? "?unread_only=true" : ""}`),
+      api.get<Notification[]>(`/api/v1/notifications${unreadOnly ? "?unread_only=true" : ""}`),
   });
 
 export const useNotificationCount = () =>
@@ -331,19 +331,19 @@ export const useMarkAllNotificationsRead = () => {
 export const useStoriesFeed = () =>
   useQuery({
     queryKey: ["stories", "feed"],
-    queryFn: () => api.get<{ stories: Story[] }>("/api/v1/stories/feed"),
+    queryFn: () => api.get<Story[]>("/api/v1/stories/feed"),
   });
 
 export const useFollowingStories = () =>
   useQuery({
     queryKey: ["stories", "following"],
-    queryFn: () => api.get<{ stories: Story[] }>("/api/v1/stories/following"),
+    queryFn: () => api.get<Story[]>("/api/v1/stories/following"),
   });
 
 export const useMyStories = () =>
   useQuery({
     queryKey: ["stories", "me"],
-    queryFn: () => api.get<{ stories: Story[] }>("/api/v1/stories/me"),
+    queryFn: () => api.get<Story[]>("/api/v1/stories/me"),
   });
 
 export const useCreateStory = () => {
@@ -366,7 +366,7 @@ export const useViewStory = () =>
 export const useGroups = (page = 1) =>
   useQuery({
     queryKey: ["groups", page],
-    queryFn: () => api.get<{ groups: Group[] }>(`/api/v1/groups?page=${page}&per_page=20`),
+    queryFn: () => api.get<Group[]>(`/api/v1/groups?page=${page}&per_page=20`),
   });
 
 export const useGroup = (id: string) =>
@@ -379,7 +379,7 @@ export const useGroup = (id: string) =>
 export const useGroupMembers = (id: string) =>
   useQuery({
     queryKey: ["groups", id, "members"],
-    queryFn: () => api.get<{ members: GroupMember[] }>(`/api/v1/groups/${id}/members`),
+    queryFn: () => api.get<GroupMember[]>(`/api/v1/groups/${id}/members`),
     enabled: !!id,
   });
 
@@ -420,7 +420,7 @@ export const useSearch = (q: string, type = "all") =>
 export const useTrendingHashtags = () =>
   useQuery({
     queryKey: ["hashtags", "trending"],
-    queryFn: () => api.get<{ hashtags: Hashtag[] }>("/api/v1/hashtag/trending"),
+    queryFn: () => api.get<Hashtag[]>("/api/v1/hashtag/trending"),
   });
 
 // Privacy

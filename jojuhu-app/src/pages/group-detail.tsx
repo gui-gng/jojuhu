@@ -57,8 +57,8 @@ export function GroupDetailPage() {
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-16 w-full" />
           </>
-        ) : members?.members?.length ? (
-          members.members.map((m) => (
+        ) : members?.length ? (
+          members.map((m) => (
             <div key={m.user_id} className="flex items-center gap-3 rounded-xl border bg-card p-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={m.avatar_url} />

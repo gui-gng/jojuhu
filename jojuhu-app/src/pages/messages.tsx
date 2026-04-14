@@ -48,8 +48,8 @@ export function MessagesPage() {
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
             </div>
-          ) : conversations?.conversations?.length ? (
-            conversations.conversations.map((c) => (
+          ) : conversations?.length ? (
+            conversations.map((c) => (
               <Link
                 key={c.user_id}
                 to={`/messages/${c.user_id}`}
@@ -125,7 +125,7 @@ function ChatThread({ userId }: { userId: string }) {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {messagesData?.messages?.map((msg) => {
+              {messagesData?.map((msg) => {
                 const isMe = msg.sender_id === me?.id;
                 return (
                   <div
